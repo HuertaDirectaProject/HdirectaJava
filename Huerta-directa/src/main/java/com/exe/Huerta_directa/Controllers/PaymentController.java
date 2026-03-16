@@ -20,6 +20,7 @@ import java.util.Properties;
 import jakarta.mail.*;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
+import org.springframework.beans.factory.annotation.Value;
 
 @RestController
 @RequestMapping("/api/payments")
@@ -34,7 +35,8 @@ public class PaymentController {
     private static final String EMAIL_HOST = "smtp.gmail.com";
     private static final String EMAIL_PORT = "587";
     private static final String SENDER_EMAIL = "hdirecta@gmail.com";
-    private static final String SENDER_PASSWORD = "agst ebgg yakk lohu";
+    @Value("${mail.sender.password}")
+    private String SENDER_PASSWORD;
 
 
     @PostMapping("/process")

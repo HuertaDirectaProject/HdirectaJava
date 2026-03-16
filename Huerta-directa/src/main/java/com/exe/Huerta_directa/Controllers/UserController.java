@@ -37,6 +37,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -61,7 +62,8 @@ public class UserController {
     private static final String SENDER_EMAIL = "hdirecta@gmail.com";
     // Nota: la contraseña de aplicación idealmente debe guardarse en
     // properties/secret manager
-    private static final String SENDER_PASSWORD = "agst ebgg yakk lohu";
+    @Value("${mail.sender.password}")
+    private String SENDER_PASSWORD;
 
     public UserController(UserService userService, UserRepository userRepository, ProductService productService) {
         this.userRepository = userRepository;

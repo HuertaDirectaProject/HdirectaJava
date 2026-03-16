@@ -99,6 +99,10 @@ export const useAuth = () => {
         setSuccess("Te enviamos un código de verificación al correo");
         return;
       }
+      if (response.status === "verify-sms") {
+        navigate("/verify-sms");
+        return;
+      }
 
       // Login exitoso
       setSuccess(response.message || "¡Login exitoso!");

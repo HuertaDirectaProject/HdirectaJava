@@ -4,7 +4,9 @@ import { Background } from "../../components/GlobalComponents/Background";
 import logo from "../../assets/logo_huerta.png";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
+  faArrowLeft,
   faArrowRight,
+  faArrowRotateLeft,
   faEnvelope,
   faMobile,
   faMobileScreenButton,
@@ -59,18 +61,22 @@ const Login: React.FC = () => {
       {error && (
         <div className="fixed top-5 right-5 bg-[#dc3545] text-white border border-[#dc3545] rounded-[10px] text-center font-medium w-75 text-[13px] p-[15px_20px] z-1000 shadow-[0_4px_12px_rgba(220,53,69,0.2)] flex items-center justify-between">
           <span>{error}</span>
-          <button onClick={() => setError(null)} className="ml-2">
-            ×
-          </button>
+          <Button
+            text="×"
+            onClick={() => setError(null)}
+            className="ml-2 bg-transparent! hover:bg-transparent! hover:scale-100! p-0 text-white!"
+          />
         </div>
       )}
 
       {success && (
         <div className="fixed top-5 right-5 bg-[#52c41a] text-white border border-[#52c41a] rounded-[10px] text-center font-medium w-75 text-[13px] p-[15px_20px] z-1000 shadow-[0_4px_12px_rgba(0,0,0,0.15)] flex items-center justify-between">
           <span>{success}</span>
-          <button onClick={() => setSuccess(null)} className="ml-2">
-            ×
-          </button>
+          <Button
+            text="×"
+            onClick={() => setSuccess(null)}
+            className="ml-2 bg-transparent! hover:bg-transparent! hover:scale-100! p-0 text-white!"
+          />
         </div>
       )}
 
@@ -173,32 +179,27 @@ const Login: React.FC = () => {
               </p>
 
               <div className="w-full flex flex-col gap-3">
-                <button
-                  type="button"
+                <Button
+                  text="Recibir por correo"
+                  iconLetf={faEnvelope}
                   onClick={() => handleSelectVerificationChannel("email")}
-                  className="w-full py-3 px-4 rounded-[15px] border-2 border-[#8dc84b] text-[#2e7d32] font-semibold flex items-center justify-center gap-2 hover:bg-[#eef8e1] transition-all"
-                >
-                  <FontAwesomeIcon icon={faEnvelope} />
-                  Recibir por correo 
-                </button>
+                  className="w-full py-3 px-4 rounded-[15px] border-2 border-[#8dc84b] text-[#2e7d32]! dark:hover:text-white! duration-500 font-semibold bg-transparent! hover:bg-[#5aaa37]! hover:text-white!"
+                />
 
-                <button
-                  type="button"
+                <Button
+                  text={`Recibir por sms ${hasPhoneChannel ? "(Próximamente)" : "(No registrado)"}`}
+                  iconLetf={faMobile}
                   onClick={() => handleSelectVerificationChannel("sms")}
-                  className="w-full py-3 px-4 rounded-[15px] border-2 border-[#d9d9d9] text-[#666] font-semibold flex items-center justify-center gap-2 hover:bg-red-300 transition-all cursor-not-allowed"
-                >
-                  <FontAwesomeIcon icon={faMobile} />
-                  Recibir por sms {hasPhoneChannel ? "(Próximamente)" : "(No registrado)"}
-                </button>
+                  className="w-full py-3 px-4 rounded-[15px] border-2 border-[#a5a2a2] text-[#666]! dark:text-white! dark:hover:bg-red-800! duration-500 font-semibold bg-transparent! hover:bg-red-300! cursor-not-allowed!"
+                />
               </div>
 
-              <button
-                type="button"
+              <Button
+                text="Cancelar"
                 onClick={cancelEmailVerification}
-                className="text-xs px-4 py-2 rounded-xl border border-[#c9c9c9] text-[#444] mt-4"
-              >
-                Cancelar
-              </button>
+                iconLetf={faArrowLeft}
+                className="text-xs px-4 py-2 rounded-xl border border-[#c9c9c9] bg-transparent! hover:bg-gray-400! hover:text-white! text-[#444]! mt-4 dark:text-white! dark:hover:bg-[#444]! dark:hover:text-white!"
+              />
             </form>
           ) : requiresEmailVerification ? (
             <form
@@ -252,21 +253,19 @@ const Login: React.FC = () => {
               />
 
               <div className="flex gap-3 mt-3">
-                <button
-                  type="button"
+                <Button
+                  text={resendCooldown > 0 ? `Reenviar (${resendCooldown}s)` : "Reenviar"}
                   onClick={handleResendEmailCode}
                   disabled={resendCooldown > 0}
-                  className="text-xs px-4 py-2 rounded-xl border border-[#8dc84b] text-[#2e7d32] disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {resendCooldown > 0 ? `Reenviar (${resendCooldown}s)` : "Reenviar"}
-                </button>
-                <button
-                  type="button"
+                  iconLetf={faArrowRotateLeft}
+                  className="text-xs px-4 py-2 rounded-xl border border-[#8dc84b] text-[#2e7d32]! bg-transparent! hover:bg-[#8dc84b]! hover:text-white! dark:text-gray-300!"
+                />
+                <Button
+                  text="Cancelar"
                   onClick={cancelEmailVerification}
-                  className="text-xs px-4 py-2 rounded-xl border border-[#c9c9c9] text-[#444]"
-                >
-                  Cancelar
-                </button>
+                  iconLetf={faArrowLeft}
+                  className="text-xs px-4 py-2 rounded-xl border border-[#c9c9c9] text-[#444]! bg-transparent! hover:bg-gray-400! hover:text-white! dark:text-gray-300!"
+                />
               </div>
             </form>
           ) : (
@@ -341,7 +340,7 @@ const Login: React.FC = () => {
                 text="Iniciar Sesión"
                 iconRight={faRightToBracket}
                 onClick={() => setIsActive(false)}
-                className="bg-transparent border border-white text-white py-3! px-8! rounded-[15px] font-semibold uppercase text-xs tracking-wider cursor-pointer transition-all duration-500 hover:bg-white hover:text-[#8dc84b]"
+                className="bg-transparent! border border-white text-white! py-3! px-8! rounded-[15px] font-semibold uppercase text-xs tracking-wider cursor-pointer transition-all duration-500 hover:bg-white! hover:text-[#8dc84b]!"
               />
             </div>
 
@@ -354,7 +353,7 @@ const Login: React.FC = () => {
                 text="Registrar"
                 iconRight={faUserPlus}
                 onClick={() => setIsActive(true)}
-                className="bg-transparent border border-white text-white py-3 px-8 rounded-[15px] font-semibold uppercase text-xs tracking-wider cursor-pointer transition-all duration-500 hover:bg-white hover:text-[#8dc84b]"
+                className="bg-transparent! border border-white text-white! py-3 px-8 rounded-[15px] font-semibold uppercase text-xs tracking-wider cursor-pointer transition-all duration-500 hover:bg-white! hover:text-[#8dc84b]!"
               />
             </div>
           </div>

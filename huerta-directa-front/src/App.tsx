@@ -32,6 +32,7 @@ import PaymentLayout from "./layout/PaymentLayaout.tsx";
 import CheckoutSummaryPage from "./pages/Payment/CheckoutSummaryPage.tsx";
 import MercadoPagoPayment from "./pages/Payment/MercadoPagoPayment.tsx";
 import StatusSucesfull from "./pages/Payment/StatusSucesfull.tsx";
+import {SMSVerification} from "./pages/Auth/SMSVerification.tsx";
 
 function App() {
   return (
@@ -160,6 +161,8 @@ function App() {
               <Route path="/DashBoardAgregarProducto" element={<DashboardAgregarProducto />} />
               <Route path="/actualizacionUsuario" element={<ActualizacionUsuario />} />
             </Route>
+
+              <Route path="/verify-sms" element={<SMSVerification />} />
 
             <Route element={<PaymentLayout />}>
               <Route path="/payment/checkout" element={<CheckoutSummaryPage />} />

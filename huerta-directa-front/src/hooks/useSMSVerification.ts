@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { auth } from "../config/firebase";
-import { RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from "firebase/auth";
-
+import type { ConfirmationResult } from "firebase/auth";
+import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
 export const useSMSVerification = (phone: string) => {

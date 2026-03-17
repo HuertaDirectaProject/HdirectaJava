@@ -35,6 +35,8 @@ import StatusSucesfull from "./pages/Payment/StatusSucesfull.tsx";
 import StatusPending from "./pages/Payment/StatusPending.tsx";
 import StatusFailure from "./pages/Payment/StatusFailure.tsx";
 import { SMSVerification } from "./pages/Auth/SMSVerification.tsx";
+import { PaymentProvider } from "./contexts/PaymentContext";
+
 
 function App() {
     return (
@@ -85,7 +87,7 @@ function App() {
 
                         <Route path="/verify-sms" element={<SMSVerification />} />
 
-                        <Route element={<PaymentLayout />}>
+                        <Route element={<PaymentProvider><PaymentLayout /></PaymentProvider>}>
                             <Route path="/payment/checkout" element={<CheckoutSummaryPage />} />
                             <Route path="/payment/MercadoPayment" element={<MercadoPagoPayment />} />
                             <Route path="/payment/success" element={<StatusSucesfull />} />

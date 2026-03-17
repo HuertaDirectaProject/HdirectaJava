@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import authService from "../services/authService";
 
+
 const RESEND_COOLDOWN_SECONDS = 60;
 const OTP_EXPIRATION_SECONDS = 300;
 
@@ -128,7 +129,7 @@ export const useAuth = () => {
     setSuccess(null);
 
     if (channel === "sms") {
-      setSuccess("La verificación por celular estará disponible próximamente");
+      navigate("/verify-sms");
       return;
     }
 

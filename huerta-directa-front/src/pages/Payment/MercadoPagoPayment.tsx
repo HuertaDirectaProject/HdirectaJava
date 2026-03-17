@@ -3,44 +3,30 @@ import { CheckoutHeader } from '../../components/Checkout/CheckoutHeader';
 import { SecureFooter } from '../../components/Checkout/SecureFooter';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import { useEffect, useRef } from "react";
+import { useCart } from "../../contexts/CartContext";
+import paymentService from "../../services/paymentService";
 
 export const MercadoPagoPayment = () => {
     usePageTitle("MercadoPayment");
     const navigate = useNavigate();
     const containerRef = useRef<HTMLDivElement>(null);
+    const { totals, clearCart } = useCart();
 
     const CONFIG = {
         PUBLIC_KEY: 'TEST-4d1be8e9-6270-47e0-b83b-b8d27d41bcfe',
-        AMOUNT: 100000,  // Temporalmente (después será dinámico del carrito)
         DESCRIPTION: 'Compra Huerta Directa',
         PAYER_EMAIL: 'test@test.com'
     };
 
-
-    // Si no hay items, redirigir
-    // React.useEffect(() => {
-    //   if (items.length === 0) {
-    //     navigate('Checkout'); //en pruabas uando pasemos ya a tener logiva sera navigate('/HomePage')
-    //   }
-    // }, [items, navigate]);
-
-    //carga el script de MercadoPago al montar el componente para el brick
-
     useEffect(() => {
-        // Cargar el script dinámicamente
         const script = document.createElement('script');
         script.src = 'https://sdk.mercadopago.com/js/v2';
         script.async = true;
         document.head.appendChild(script);
-
-        return () => {
-            // Limpiar cuando el componente se desmonte
-            script.remove();
-        };
+        return () => { script.remove(); };
     }, []);
 
     useEffect(() => {
-        // Esperar a que el script de MercadoPago cargue
         const timer = setTimeout(() => {
             const mp = new (window as any).MercadoPago(CONFIG.PUBLIC_KEY, {
                 locale: 'es-CO'
@@ -50,7 +36,7 @@ export const MercadoPagoPayment = () => {
 
             const settings = {
                 initialization: {
-                    amount: CONFIG.AMOUNT,
+                    amount: totals.total,
                     payer: {
                         email: CONFIG.PAYER_EMAIL
                     }
@@ -71,8 +57,27 @@ export const MercadoPagoPayment = () => {
                 callbacks: {
                     onReady: () => console.log('✅ Brick cargado'),
                     onSubmit: async (data: any) => {
-                        console.log('📤 Datos del pago:', data);
-                        // Aquí irá el fetch al backend después
+                        try {
+                            const payload = {
+                                ...data,
+                                transaction_amount: totals.total,
+                                description: CONFIG.DESCRIPTION,
+                            };
+
+                            const result = await paymentService.processPayment(payload);
+
+                            if (result.status === 'approved') {
+                                clearCart();
+                                navigate('/payment/success');
+                            } else if (result.status === 'pending' || result.status === 'in_process') {
+                                navigate('/payment/pending');
+                            } else {
+                                navigate('/payment/failure');
+                            }
+                        } catch (error) {
+                            console.error('❌ Error en el pago:', error);
+                            navigate('/payment/failure');
+                        }
                     },
                     onError: (error: any) => console.error('❌ Error:', error)
                 }
@@ -81,18 +86,15 @@ export const MercadoPagoPayment = () => {
             if (containerRef.current) {
                 bricksBuilder.create('payment', 'paymentBrick_container', settings);
             }
-        }, 500);  // Espera 500ms para asegurar que MercadoPago cargó
+        }, 500);
 
         return () => clearTimeout(timer);
-    }, [CONFIG.PUBLIC_KEY, CONFIG.AMOUNT]);
-
-
+    }, [totals.total]);
 
     return (
         <div className="min-h-screen bg-[#F5F0E8] py-8 px-4">
             <div className="max-w-7xl mx-auto">
                 <CheckoutHeader />
-
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div className="lg:col-span-3 space-y-6">
                         <div
@@ -102,11 +104,7 @@ export const MercadoPagoPayment = () => {
                         ></div>
                     </div>
                 </div>
-
-                {/* Footer de seguridad */}
                 <SecureFooter />
-
-                {/* Botón volver */}
                 <div className="mt-8 flex justify-center">
                     <button
                         onClick={() => navigate('/HomePage')}
@@ -121,4 +119,3 @@ export const MercadoPagoPayment = () => {
 };
 
 export default MercadoPagoPayment;
-

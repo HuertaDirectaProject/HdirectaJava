@@ -44,11 +44,7 @@ export const HeroSlider = () => {
     <section
       className=" transition-colors! duration-500! 
       py-10
-      bg-linear-to-b from-[#FEF5DC] via-white to-[#FEF5DC]
-      dark:bg-[#1A221C]
-      dark:from-[#1A221C]
-      dark:via-white/20
-      dark:to-[#1A221C]
+      bg-linear-to-b from-[#FEF5DC] via-white to-[#FEF5DC] dark:bg-[#1A221C] dark:from-[#1A221C] dark:via-white/20 dark:to-[#1A221C]
       "
     >
       <div className="max-w-330 mx-auto">

@@ -1,4 +1,1 @@
-import { usePayment as usePaymentContext } from '../contexts/PaymentContext';
-
-export const usePayment = usePaymentContext;
-
+export { usePayment } from "../contexts/PaymentContext";

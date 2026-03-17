@@ -1,7 +1,7 @@
 -- =====================================
 -- CREAR TABLA ROLES
 -- =====================================
-CREATE TABLE roles (
+CREATE TABLE IF NOT EXISTS roles (
                        id_rol BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
                        rol_name VARCHAR(100) NOT NULL
 );
@@ -9,7 +9,7 @@ CREATE TABLE roles (
 -- =====================================
 -- CREAR TABLA USERS
 -- =====================================
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
                        id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
                        email VARCHAR(250) NOT NULL UNIQUE,
                        name VARCHAR(100) NOT NULL,
@@ -28,7 +28,7 @@ CREATE TABLE users (
 -- =====================================
 -- CREAR TABLA PRODUCTS
 -- =====================================
-CREATE TABLE products (
+CREATE TABLE IF NOT EXISTS products (
                           id_product BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
                           category VARCHAR(100),
                           description_product TEXT,
@@ -48,7 +48,7 @@ CREATE TABLE products (
 -- =====================================
 -- CREAR TABLA PRODUCT_IMAGES
 -- =====================================
-CREATE TABLE product_images (
+CREATE TABLE IF NOT EXISTS product_images (
                                 id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
                                 image_url VARCHAR(255),
                                 product_id BIGINT,
@@ -60,7 +60,7 @@ CREATE TABLE product_images (
 -- =====================================
 -- CREAR TABLA COMMENTS
 -- =====================================
-CREATE TABLE comments (
+CREATE TABLE IF NOT EXISTS comments (
                           id_comment BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
                           comment_commenter TEXT,
                           creation_comment DATE,
@@ -81,7 +81,7 @@ CREATE TABLE comments (
 -- =====================================
 -- CREAR TABLA PAYMENTS
 -- =====================================
-CREATE TABLE payments (
+CREATE TABLE IF NOT EXISTS payments (
                           id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
                           order_id BIGINT,
                           payer_email VARCHAR(255),
@@ -92,7 +92,7 @@ CREATE TABLE payments (
 -- =====================================
 -- CREAR TABLA PAYMENT_ITEMS
 -- =====================================
-CREATE TABLE payment_items (
+CREATE TABLE IF NOT EXISTS payment_items (
                                id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
                                quantity INTEGER,
                                title VARCHAR(255),
@@ -106,7 +106,7 @@ CREATE TABLE payment_items (
 -- =====================================
 -- CREAR TABLA CHAT_SOCIAL
 -- =====================================
-CREATE TABLE chat_social (
+CREATE TABLE IF NOT EXISTS chat_social (
                              id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
                              content TEXT,
                              sender_name VARCHAR(100),
@@ -116,3 +116,6 @@ CREATE TABLE chat_social (
                              CONSTRAINT fk_chat_user
                                  FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
+ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS profile_image_url VARCHAR(500);

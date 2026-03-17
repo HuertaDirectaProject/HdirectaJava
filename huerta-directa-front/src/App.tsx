@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Auth/Login";
+import ForgotPassword from "./pages/Auth/ForgotPassword";
+import ProtectedRoute from "./components/GlobalComponents/ProtectedRoute";
 import AuthLayout from "./layout/AuthLayout";
 import MainLayout from "./layout/MainLayout";
 import DashboardLayout from "./layout/DashboardLayout";
@@ -9,6 +11,7 @@ import { Dashboard } from "./pages/Dashboard/Dashboard";
 import { DashboardGraficos } from "./pages/Dashboard/DashboardGraficos";
 import { MensajesAreaSocial } from "./pages/Dashboard/MensajesAreaSocial";
 import { DashboardAgregarProducto } from "./pages/Dashboard/DashboardAgregarProducto";
+import { DashboardFavorites } from "./pages/Dashboard/DashboardFavorites";
 import { ActualizacionUsuario } from "./pages/Dashboard/ActualizacionUsuario";
 import { DashboardAdmin } from "./pages/DashboardAdmin/DashboardAdmin";
 import { AdminDashboardLayout } from "./layout/AdminDashboardLayout";
@@ -29,183 +32,97 @@ import PaymentLayout from "./layout/PaymentLayaout.tsx";
 import CheckoutSummaryPage from "./pages/Payment/CheckoutSummaryPage.tsx";
 import MercadoPagoPayment from "./pages/Payment/MercadoPagoPayment.tsx";
 import StatusSucesfull from "./pages/Payment/StatusSucesfull.tsx";
+import StatusPending from "./pages/Payment/StatusPending.tsx";
+import StatusFailure from "./pages/Payment/StatusFailure.tsx";
+import { SMSVerification } from "./pages/Auth/SMSVerification.tsx";
+import { PaymentProvider } from "./contexts/PaymentContext";
+
 
 function App() {
-  return (
-    <CartProvider>
-      <BrowserRouter>
-      <ScrollToTop />
-        <Routes>
-          {/* Landing Layout */}
-          <Route
-            element={
-              <MainLayout
-                navbarProps={{
-                  showQuienesSomos: true,
-                }}
-              />
-            }
-          >
-            <Route path="/" element={<Landing />} />
-          </Route>
+    return (
+        <CartProvider>
+            <BrowserRouter>
+                <ScrollToTop />
+                <Routes>
 
-          {/* Home, Quienes Somos, Categorias, Productos */}
-          <Route
-            element={
-              <MainLayout
-                navbarProps={{
-                  showProductos: true,
-                  showCategorias: true,
-                  showAddProduct: true,
-                  showCart: true,
-                  showProfile: true,
-                  showQuienesSomos: true,
-                }}
-              />
-            }
-          >
-            <Route path="/HomePage" element={<HomePage />} />
-          </Route>
-           <Route
-            element={
-              <MainLayout
-                navbarProps={{
-                  showInicio: true,
-                  showProductos: true,
-                  showCategorias: true,
-                  showAddProduct: true,
-                  showCart: true,
-                  showProfile: true,
-                  showQuienesSomos: true,
-                }}
-              />
-            }
-          >
-            <Route path="/producto/:id" element={<ProductDetailPage />} />
-          </Route>
-          <Route
-            element={
-              <MainLayout
-                navbarProps={{
-                  showInicio: true,
-                  showProductos: true,
-                  showCategorias: true,
-                  showProfile: true,
-                }}
-              />
-            }
-          >
-            <Route path="/QuienesSomos" element={<QuienesSomos />} />
+                    {/* Landing */}
+                    <Route element={<MainLayout navbarProps={{ showInicio: true, showQuienesSomos: true }} />}>
+                        <Route path="/" element={<Landing />} />
+                        <Route path="/QuienesSomos" element={<QuienesSomos />} />
+                        <Route path="/quienes-somos" element={<QuienesSomos />} />
+                        <Route path="/quienessomos" element={<QuienesSomos />} />
+                    </Route>
 
-          </Route>
-          <Route
-            element={
-              <MainLayout
-                navbarProps={{
-                  showInicio: true,
-                  showProductos: true,
-                  showCategorias: true,
-                  showCart : true,
-                  showProfile: true,
-                }}
-              />
-            }
-          >
+                    {/* Rutas protegidas */}
+                    <Route element={<ProtectedRoute />}>
 
-           <Route path="/categoria/:slug" element={<ProductsByCategoryPage />} />
+                        <Route element={<MainLayout navbarProps={{ showProductos: true, showCategorias: true, showAddProduct: true, showCart: true, showProfile: true, showQuienesSomos: true }} />}>
+                            <Route path="/HomePage" element={<HomePage />} />
+                        </Route>
 
-          </Route>
-          {/* Categories pages */}
-          <Route
-            element={
-              <MainLayout
-                navbarProps={{
-                  showInicio: true,
-                  showProductos: true,
-                  showProfile: true,
-                  showQuienesSomos: true
-                }}
-              />
-            }
-          >
+                        <Route element={<MainLayout navbarProps={{ showInicio: true, showProductos: true, showCategorias: true, showAddProduct: true, showCart: true, showProfile: true, showQuienesSomos: true }} />}>
+                            <Route path="/producto/:id" element={<ProductDetailPage />} />
+                        </Route>
 
-           <Route path="/CategoryPage" element={<CategoryPage />} />
+                        <Route element={<MainLayout navbarProps={{ showInicio: true, showProductos: true, showCategorias: true, showCart: true, showProfile: true }} />}>
+                            <Route path="/categoria/:slug" element={<ProductsByCategoryPage />} />
+                        </Route>
 
-          </Route>
-          {/* Productos pages */}
-          <Route
-            element={
-              <MainLayout
-                navbarProps={{
-                  showInicio: true,
-                  showProductos: true,
-                  showCategorias: true,
-                  showCart : true,
-                  showProfile: true,
-                }}
-              />
-            }
-          >
+                        <Route element={<MainLayout navbarProps={{ showInicio: true, showProductos: true, showProfile: true, showQuienesSomos: true }} />}>
+                            <Route path="/CategoryPage" element={<CategoryPage />} />
+                        </Route>
 
-           <Route path="/Productos" element={<ProductosPage />} />
+                        <Route element={<MainLayout navbarProps={{ showInicio: true, showProductos: true, showCategorias: true, showCart: true, showProfile: true }} />}>
+                            <Route path="/Productos" element={<ProductosPage />} />
+                        </Route>
 
-          </Route>
+                        <Route element={<DashboardLayout />}>
+                            <Route path="/dashboard" element={<Dashboard />} />
+                            <Route path="/misFavoritos" element={<DashboardFavorites />} />
+                            <Route path="/DashBoardGraficos" element={<DashboardGraficos />} />
+                            <Route path="/MensajesAreaSocial" element={<MensajesAreaSocial />} />
+                            <Route path="/DashBoardAgregarProducto" element={<DashboardAgregarProducto />} />
+                            <Route path="/actualizacionUsuario" element={<ActualizacionUsuario />} />
+                        </Route>
 
-          {/* Dashboard Layout */}
-          <Route element={<DashboardLayout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/DashBoardGraficos" element={<DashboardGraficos />} />
-            <Route
-              path="/MensajesAreaSocial"
-              element={<MensajesAreaSocial />}
-            />
-            <Route
-              path="/DashBoardAgregarProducto"
-              element={<DashboardAgregarProducto />}
-            />
-            <Route
-              path="/actualizacionUsuario"
-              element={<ActualizacionUsuario />}
-            />
-          </Route>
+                        <Route path="/verify-sms" element={<SMSVerification />} />
 
-          {/* Admin Dashboard Layout */}
-          <Route element={<AdminDashboardLayout />}>
-            <Route path="/admin-dashboard" element={<DashboardAdmin />} />
-            <Route path="/admin/stats" element={<AdminStats />} />
-            <Route path="/admin/usuarios" element={<AdminUsers />} />
-            <Route path="/admin/productos" element={<AdminProducts />} />
-            <Route path="/admin/reportes" element={<AdminReports />} />
-            <Route path="/admin/config" element={<AdminConfig />} />
-            <Route path="/admin/registrar" element={<AdminRegister />} />
-          </Route>
+                        <Route element={<PaymentProvider><PaymentLayout /></PaymentProvider>}>
+                            <Route path="/payment/checkout" element={<CheckoutSummaryPage />} />
+                            <Route path="/payment/MercadoPayment" element={<MercadoPagoPayment />} />
+                            <Route path="/payment/success" element={<StatusSucesfull />} />
+                            <Route path="/payment/pending" element={<StatusPending />} />
+                            <Route path="/payment/failure" element={<StatusFailure />} />
+                        </Route>
 
-          {/* Layout auth */}
-          <Route element={<AuthLayout />}>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Login />} />
-          </Route>
+                    </Route>
 
-          {/* Payment Layout */}
-          <Route element={<PaymentLayout />}>
-              <Route path="/payment/checkout" element={<CheckoutSummaryPage />} />
-              <Route path="/payment/MercadoPayment" element={<MercadoPagoPayment />} />
-              <Route path="/payment/status" element={<StatusSucesfull/>} />
-          </Route>
+                    {/* Admin */}
+                    <Route element={<ProtectedRoute requireAdmin />}>
+                        <Route element={<AdminDashboardLayout />}>
+                            <Route path="/admin-dashboard" element={<DashboardAdmin />} />
+                            <Route path="/admin/stats" element={<AdminStats />} />
+                            <Route path="/admin/usuarios" element={<AdminUsers />} />
+                            <Route path="/admin/productos" element={<AdminProducts />} />
+                            <Route path="/admin/reportes" element={<AdminReports />} />
+                            <Route path="/admin/config" element={<AdminConfig />} />
+                            <Route path="/admin/registrar" element={<AdminRegister />} />
+                        </Route>
+                    </Route>
 
+                    {/* Auth */}
+                    <Route element={<AuthLayout />}>
+                        <Route path="/login" element={<Login />} />
+                        <Route path="/register" element={<Login />} />
+                        <Route path="/forgot-password" element={<ForgotPassword />} />
+                    </Route>
 
-          {/* Layout auth */}
-        <Route element={<AuthLayout />}>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Login />} />
-        </Route>
+                    <Route path="*" element={<Navigate to="/" />} />
 
-          {/* Ruta comodín */}
-          <Route path="*" element={<Navigate to="/HomePage" />} />
-        </Routes>
-      </BrowserRouter>
-    </CartProvider>
-  );
+                </Routes>
+            </BrowserRouter>
+        </CartProvider>
+    );
 }
 
 export default App;

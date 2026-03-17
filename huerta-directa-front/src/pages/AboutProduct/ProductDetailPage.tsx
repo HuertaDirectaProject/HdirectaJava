@@ -15,6 +15,8 @@ import { Button } from "../../components/GlobalComponents/Button";
 import { useCart } from "../../hooks/useCart";
 import { usePageTitle } from "../../hooks/usePageTitle";
 import ProductCard from "../../components/Home/ProductCard";
+import { favoriteService } from "../../services/favoriteService";
+import Swal from "sweetalert2";
 
 interface Product {
   idProduct: number;
@@ -29,6 +31,7 @@ interface Product {
   images?: string[];
   averageRating?: number;
   reviewCount?: number;
+  discountOffer?: number;
 }
 
 interface Comment {
@@ -53,6 +56,8 @@ export const ProductDetailPage = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [newRating, setNewRating] = useState(5);
   const [newComment, setNewComment] = useState("");
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [isFavoriteLoading, setIsFavoriteLoading] = useState(false);
 
   const fetchComments = async () => {
     try {
@@ -113,15 +118,66 @@ export const ProductDetailPage = () => {
 
   const handleAddToCart = () => {
     if (product) {
+      const hasDiscount = product.discountOffer && product.discountOffer > 0;
+      const discountedPrice = hasDiscount
+        ? product.price * (1 - product.discountOffer! / 100)
+        : product.price;
+
       addItem({
         id: product.idProduct,
         nombre: product.nameProduct,
         descripcion: product.descriptionProduct,
-        precio: product.price,
+        precio: discountedPrice,
         cantidad: quantity,
-        subtotal: product.price * quantity,
+        subtotal: discountedPrice * quantity,
         imagen: `http://localhost:8085/uploads/productos/${product.imageProduct}`,
       });
+    }
+  };
+
+  const handleFavoriteToggle = async () => {
+    if (isFavoriteLoading || !product) return;
+    setIsFavoriteLoading(true);
+
+    try {
+      if (isFavorite) {
+        await favoriteService.removeFavorite(product.idProduct);
+        setIsFavorite(false);
+        Swal.fire({
+          title: "Eliminado",
+          text: "Producto eliminado de favoritos",
+          icon: "info",
+          timer: 1500,
+          showConfirmButton: false,
+          toast: true,
+          position: "top-end"
+        });
+      } else {
+        await favoriteService.addFavorite(product.idProduct);
+        setIsFavorite(true);
+        Swal.fire({
+          title: "¡Agregado!",
+          text: "Producto agregado a favoritos",
+          icon: "success",
+          timer: 1500,
+          showConfirmButton: false,
+          toast: true,
+          position: "top-end"
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      Swal.fire({
+        title: "Error",
+        text: "Ocurrió un error (¿Iniciaste sesión?)",
+        icon: "error",
+        toast: true,
+        position: "top-end",
+        timer: 3000,
+        showConfirmButton: false,
+      });
+    } finally {
+      setIsFavoriteLoading(false);
     }
   };
 
@@ -194,6 +250,10 @@ export const ProductDetailPage = () => {
 
   const rating = product.averageRating || 0;
   const reviewCount = product.reviewCount || 0;
+  const hasDiscount = product.discountOffer && product.discountOffer > 0;
+  const discountedPrice = hasDiscount
+    ? product.price * (1 - product.discountOffer! / 100)
+    : product.price;
 
   return (
     <div className="bg-linear-to-b  from-[#FEF5DC] via-white to-[#FEF5DC] min-h-screen pb-20 pt-10">
@@ -249,13 +309,26 @@ export const ProductDetailPage = () => {
 
                 {/* main Image */}
                 <div className="flex-1 bg-gray-50 rounded-2xl overflow-hidden flex items-center justify-center relative min-h-100">
-                  <img
+                    <img
                     src={mainImageUrl}
                     alt={product.nameProduct}
                     className="max-h-125 w-auto object-contain transition-transform duration-500 hover:scale-105"
                   />
+
+                  {/* Discount Badge */}
+                  {hasDiscount && (
+                    <div className="absolute top-4 left-4 z-10">
+                      <div className="bg-orange-600 text-white text-xs font-black px-4 py-2 rounded-xl shadow-xl flex flex-col items-center">
+                        <span className="text-xl">-{product.discountOffer}%</span>
+                        <span className="text-[10px] uppercase tracking-tighter">Oferta</span>
+                      </div>
+                    </div>
+                  )}
                   <div className="absolute top-4 right-4 flex flex-col gap-2">
-                    <button className="w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors">
+                    <button 
+                      onClick={handleFavoriteToggle} 
+                      disabled={isFavoriteLoading}
+                      className={`w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center transition-colors ${isFavorite ? "text-red-500" : "text-gray-400 hover:text-[#8dc84b]"} ${isFavoriteLoading ? "opacity-50 cursor-not-allowed" : ""}`}>
                       <FontAwesomeIcon icon={faHeart} />
                     </button>
                     <button className="w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center text-gray-400 hover:text-[#8dc84b] transition-colors">
@@ -430,13 +503,20 @@ export const ProductDetailPage = () => {
                   </span>
                 </div>
 
-                <div className="mb-8">
-                  <span className="text-4xl font-black text-[#004d00]">
-                    ${product.price.toLocaleString()}
-                  </span>
-                  <span className="text-gray-400 text-lg ml-2">
-                    / {product.unit || "unidad"}
-                  </span>
+                <div className="mb-8 flex flex-col">
+                  {hasDiscount && (
+                    <span className="text-xl font-bold text-gray-400 line-through mb-1">
+                      ${product.price.toLocaleString()}
+                    </span>
+                  )}
+                  <div className="flex items-baseline">
+                    <span className="text-4xl lg:text-5xl font-black text-[#8dc84b]">
+                      ${discountedPrice.toLocaleString()}
+                    </span>
+                    <span className="text-gray-400 text-lg ml-2">
+                      / {product.unit || "unidad"} COP
+                    </span>
+                  </div>
                 </div>
 
                 {/* Features Highlights */}

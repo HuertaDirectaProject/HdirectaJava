@@ -26,7 +26,7 @@ export const CheckoutHeader = () => {
 							{/* Punto */}
 							<div
 								className={`
-                  flex items-center justify-center w-12 h-12 rounded-full flex-shrink-0
+                  flex items-center justify-center w-12 h-12 rounded-full shrink-0
                   ${
 										step.color === "completed"
 											? "bg-[#8BC34A] text-white"

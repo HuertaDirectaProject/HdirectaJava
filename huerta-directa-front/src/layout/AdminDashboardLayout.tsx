@@ -11,7 +11,7 @@ export const AdminDashboardLayout: React.FC = () => {
   return (
     <div className="relative min-h-screen bg-[#FEF5DC] overflow-x-hidden">
       {/* Top Header Controls */}
-      <DashboardHeader  />
+      <DashboardHeader />
 
       {/* Sidebar logic extracted to component */}
       <Sidebar isOpen={isSidebarOpen} onToggle={toggleSidebar} role="admin" />

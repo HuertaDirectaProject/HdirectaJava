@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { FiltersBar } from "./FiltersBar";
 import ProductCard from "./ProductCard";
 import { faBoxOpen } from "@fortawesome/free-solid-svg-icons";
+import { API_URL } from "../../config/api";
 
 interface Product {
   id: number;
@@ -12,6 +13,7 @@ interface Product {
   category?: string;
   reviewCount?: number;
   averageRating?: number;
+  discountOffer?: number;
 }
 
 export const ProductsSection = () => {
@@ -19,18 +21,19 @@ export const ProductsSection = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("http://localhost:8085/api/products")
+    fetch(`${API_URL}/api/products`)
       .then((res) => res.json())
       .then((data) => {
         const mappedProducts: Product[] = data.map((p: any) => ({
           id: p.idProduct,
           name: p.nameProduct,
-          image: `http://localhost:8085/uploads/productos/${p.imageProduct}`,
+          image: `${API_URL}/uploads/productos/${p.imageProduct}`,
           category: p.category,
           price: p.price,
           stock: p.stock,
           reviewCount: p.reviewCount,
           averageRating: p.averageRating,
+          discountOffer: p.discountOffer,
         }));
 
         setProducts(mappedProducts);

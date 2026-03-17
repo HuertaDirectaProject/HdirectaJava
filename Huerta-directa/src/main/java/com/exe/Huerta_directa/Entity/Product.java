@@ -58,6 +58,9 @@ public class Product {
     @NotBlank
     private String descriptionProduct = "sin descripcion";
 
+    @Column(name = "discount_offer")
+    private Integer discountOffer = 0;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnoreProperties({ "products" })

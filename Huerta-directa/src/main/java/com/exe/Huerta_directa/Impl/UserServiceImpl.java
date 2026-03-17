@@ -138,6 +138,7 @@ public class UserServiceImpl implements UserService {
         // âœ… NUEVOS CAMPOS - IMPORTANTE
         userDTO.setGender(user.getGender());
         userDTO.setBirthDate(user.getBirthDate());
+        userDTO.setProfileImageUrl(user.getProfileImageUrl());
         if (user.getRole() != null) {
             userDTO.setIdRole(user.getRole().getIdRole());
         } else {
@@ -155,6 +156,7 @@ public class UserServiceImpl implements UserService {
         // âœ… NUEVOS CAMPOS - IMPORTANTE
         user.setGender(userDTO.getGender());
         user.setBirthDate(userDTO.getBirthDate());
+        user.setProfileImageUrl(userDTO.getProfileImageUrl());
         // CORRECCIÃ“N: Establecer fecha actual si no existe
         if (user.getCreacionDate() == null) {
             user.setCreacionDate(LocalDate.now());
@@ -180,6 +182,7 @@ public class UserServiceImpl implements UserService {
         // âœ… NUEVOS CAMPOS - IMPORTANTE
         user.setGender(userDTO.getGender());
         user.setBirthDate(userDTO.getBirthDate());
+        user.setProfileImageUrl(userDTO.getProfileImageUrl());
         // La contraseÃ±a se hashearÃ¡ en actualizarUser() si no estÃ¡ vacÃ­a
         // NO hashear aquÃ­ para evitar hashear dos veces
         if (userDTO.getIdRole() != null) {

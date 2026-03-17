@@ -82,10 +82,12 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional
     public void eliminarProductPorId(Long productId) {
         if (!productRepository.existsById(productId)) {
             throw new RuntimeException("Producto no encontrado con id: " + productId);
         } else {
+            productRepository.deleteFromUserFavorites(productId);
             productRepository.deleteById(productId);
         }
     }
@@ -150,6 +152,7 @@ public class ProductServiceImpl implements ProductService {
         productDTO.setDescriptionProduct(product.getDescriptionProduct());
         productDTO.setPublicationDate(product.getPublicationDate());
         productDTO.setStock(product.getStock());
+        productDTO.setDiscountOffer(product.getDiscountOffer() != null ? product.getDiscountOffer() : 0);
 
         // Map images
         if (product.getImages() != null) {
@@ -225,6 +228,7 @@ public class ProductServiceImpl implements ProductService {
         product.setDescriptionProduct(productDTO.getDescriptionProduct());
         product.setPublicationDate(productDTO.getPublicationDate());
         product.setStock(productDTO.getStock());
+        product.setDiscountOffer(productDTO.getDiscountOffer() != null ? productDTO.getDiscountOffer() : 0);
 
         if (productDTO.getUserId() != null) {
             User user = userRepository.findById(productDTO.getUserId())
@@ -245,6 +249,7 @@ public class ProductServiceImpl implements ProductService {
         product.setDescriptionProduct(productDTO.getDescriptionProduct());
         product.setPublicationDate(productDTO.getPublicationDate());
         product.setStock(productDTO.getStock());
+        product.setDiscountOffer(productDTO.getDiscountOffer() != null ? productDTO.getDiscountOffer() : 0);
 
         if (productDTO.getUserId() != null) {
             User user = userRepository.findById(productDTO.getUserId())

@@ -1,36 +1,25 @@
-import React, { useState, useEffect } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import React, { useState } from "react";
+
 import {
-  faMagnifyingGlass,
-  //faBox,
-  faPen,
-  faTrash,
-  faFileExcel,
-  faFilePdf,
   faCloudArrowUp,
-  faCartShopping,
-  faBagShopping,
-  faUser,
-  faBorderAll,
-  faListUl,
+
   //faUpload,
 } from "@fortawesome/free-solid-svg-icons";
+import Swal from "sweetalert2";
 import { usePageTitle } from "../../hooks/usePageTitle";
 
 // Reusable components
 import { Button } from "../../components/GlobalComponents/Button";
 import { Modal } from "../../components/GlobalComponents/Modal";
 import { EditProductModal } from "../../components/Modals/EditProductModal";
+import { OfferProductModal } from "../../components/Modals/OfferProductModal";
+import { InsightsGrid } from "../../components/Dashboard/PanelDeControl/InsightsGrid";
+import { DashboardAside } from "../../components/Dashboard/PanelDeControl/DashboardAside";
+import { ProductManager } from "../../components/Dashboard/PanelDeControl/ProductManager";
 
-interface Product {
-  idProduct: number;
-  nameProduct: string;
-  category: string;
-  price: number;
-  unit: string;
-  descriptionProduct: string;
-  stock: number;
-}
+import type { Product } from "../../types/Product";
+import { updateProduct } from "../../services/productService";
+import { useProducts } from "../../hooks/Productos/useProducts";
 
 interface InsightItem {
   title: string;
@@ -43,34 +32,19 @@ interface InsightItem {
 export const Dashboard: React.FC = () => {
   usePageTitle("Dashboard");
 
-  const [products, setProducts] = useState<Product[]>([]);
-  const [_,setLoading] = useState(true);
+  const { products, setProducts, removeProduct, fetchProducts } = useProducts();
   const [searchTerm, setSearchTerm] = useState("");
   const [category, setCategory] = useState("");
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
-  const [uploadResult, setUploadResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [uploadResult, setUploadResult] = useState<{
+    success: boolean;
+    message: string;
+  } | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
-
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  const fetchProducts = async () => {
-    try {
-      const response = await fetch("/api/products/mis-Productos");
-      if (response.ok) {
-        const data = await response.json();
-        setProducts(data);
-      }
-    } catch (error) {
-      console.error("Error fetching products:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const insights: InsightItem[] = [
     {
@@ -99,21 +73,21 @@ export const Dashboard: React.FC = () => {
   const filteredProducts = products.filter(
     (p) =>
       p.nameProduct.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      (category === "" || p.category === category)
+      (category === "" || p.category === category),
   );
 
   const handleExportExcel = () => {
     const params = new URLSearchParams();
     if (searchTerm) params.append("buscar", searchTerm);
     if (category) params.append("categoria", category);
-    window.location.href = `/exportar_productos_excel?${params.toString()}`;
+    window.location.href = `/api/products/exportExcel?${params.toString()}`;
   };
 
   const handleExportPdf = () => {
     const params = new URLSearchParams();
     if (searchTerm) params.append("buscar", searchTerm);
     if (category) params.append("categoria", category);
-    window.location.href = `/exportar_productos_pdf?${params.toString()}`;
+    window.location.href = `/api/products/exportPdf?${params.toString()}`;
   };
 
   const handleUploadSubmit = async (e: React.FormEvent) => {
@@ -137,10 +111,16 @@ export const Dashboard: React.FC = () => {
           setUploadResult(null);
         }, 2000);
       } else {
-        setUploadResult({ success: false, message: result.message || "Error al cargar productos" });
+        setUploadResult({
+          success: false,
+          message: result.message || "Error al cargar productos",
+        });
       }
-    } catch (error) {
-      setUploadResult({ success: false, message: "Error de conexión con el servidor" });
+    } catch {
+      setUploadResult({
+        success: false,
+        message: "Error de conexión con el servidor",
+      });
     }
   };
 
@@ -149,274 +129,117 @@ export const Dashboard: React.FC = () => {
     setIsEditModalOpen(true);
   };
 
-  const handleSaveProduct = (updatedProduct: Product) => {
-    setProducts(products.map((p) => (p.idProduct === updatedProduct.idProduct ? updatedProduct : p)));
-    setIsEditModalOpen(false);
+  const handleSaveProduct = async (updatedProduct: Product) => {
+    try {
+      await updateProduct(updatedProduct.idProduct, updatedProduct);
+      setProducts(
+        products.map((p) =>
+          p.idProduct === updatedProduct.idProduct ? updatedProduct : p,
+        ),
+      );
+      setIsEditModalOpen(false);
+      Swal.fire({
+        icon: "success",
+        title: "Producto actualizado",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+    } catch (error) {
+      console.error(error);
+      Swal.fire("Error", "No se pudo actualizar el producto", "error");
+    }
+  };
+
+  const handleOpenOfferModal = (product: Product) => {
+    setSelectedProduct(product);
+    setIsOfferModalOpen(true);
+  };
+
+  const handleApplyOffer = async (updatedProduct: Product) => {
+    try {
+      await updateProduct(updatedProduct.idProduct, updatedProduct);
+      setProducts(
+        products.map((p) =>
+          p.idProduct === updatedProduct.idProduct ? updatedProduct : p,
+        ),
+      );
+      setIsOfferModalOpen(false);
+      Swal.fire({
+        icon: "success",
+        title: "Oferta aplicada",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+    } catch (error) {
+      console.error(error);
+      Swal.fire("Error", "No se pudo aplicar la oferta", "error");
+    }
   };
 
   return (
     <div className="w-full">
-      <h1 className="text-3xl font-extrabold mb-6 text-gray-900">Dashboard</h1>
+      <h1 className="text-3xl font-extrabold mb-6 text-gray-900 dark:text-white">
+        Dashboard
+      </h1>
 
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-8 items-start">
         <section className="w-full">
           {/* Insights Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-            {insights.map((item, idx) => {
-              const colorClass = 
-                item.color === 'sales' ? 'before:bg-[#8dc84b]' : 
-                item.color === 'expenses' ? 'before:bg-[#8dc84b]' : 'before:bg-[#8dc84b]';
-              
-              return (
-                <div key={idx} className={`bg-white p-10 rounded-4xl shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col min-h-45 relative overflow-hidden ${colorClass} before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-2`}>
-                  <div className="flex items-center justify-between mt-4">
-                    <div className="flex flex-col">
-                      <h3 className="text-base font-semibold text-gray-400 uppercase tracking-widest">{item.title}</h3>
-                      <h1 className="text-3xl font-black mt-2 text-gray-900 tracking-tight">{item.value}</h1>
-                    </div>
-                    
-                    <div className="relative w-16 h-16 rounded-full flex items-center justify-center font-extrabold text-sm">
-                      <svg className="w-16 h-16 transform -rotate-90">
-                        <circle cx="32" cy="32" r="26" fill="none" stroke="#f3f4f6" strokeWidth="7" />
-                        <circle
-                          cx="32"
-                          cy="32"
-                          r="26"
-                          fill="none"
-                          stroke={item.color === 'expenses' ? "#ff5252" : "#8dc84b"}
-                          strokeWidth="7"
-                          strokeDasharray="163"
-                          strokeLinecap="round"
-                          style={{ 
-                            strokeDashoffset: 163 * (1 - item.percentage / 100),
-                            transition: "stroke-dashoffset 1.5s ease-out"
-                          }}
-                        />
-                      </svg>
-                      <p className="absolute text-gray-800 tracking-tighter">{item.percentage}%</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 mt-4">
-                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider ${item.color === 'expenses' ? 'bg-red-50 text-red-500' : 'bg-green-50 text-green-600'}`}>
-                      {item.color === 'expenses' ? 'Alto' : 'Estable'}
-                    </span>
-                    <small className="text-gray-400 font-bold text-[11px]">{item.footer}</small>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <InsightsGrid insights={insights} />
 
           {/* Product Management */}
-          <section className="bg-white p-8 rounded-3xl shadow-sm mb-8 border border-gray-100">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
-              <h2 className="text-2xl font-bold text-gray-800">Gestión de Productos</h2>
-              <div className="flex items-center gap-4">
-                <div className="flex bg-gray-100 p-1 rounded-xl">
-                  <button
-                    onClick={() => setViewMode("list")}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all ${
-                      viewMode === "list" ? "bg-white text-[#8dc84b] shadow-sm" : "text-gray-500 hover:text-gray-700"
-                    }`}
-                  >
-                    <FontAwesomeIcon icon={faListUl} />
-                  </button>
-                  <button
-                    onClick={() => setViewMode("grid")}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all ${
-                      viewMode === "grid" ? "bg-white text-[#8dc84b] shadow-sm" : "text-gray-500 hover:text-gray-700"
-                    }`}
-                  >
-                    <FontAwesomeIcon icon={faBorderAll} />
-                  </button>
-                </div>
-                <div className="flex gap-3">
-                  <Button text="Excel" iconLetf={faFileExcel} onClick={handleExportExcel} className="bg-[#8dc84b] text-white px-4 py-2 rounded-xl" />
-                  <Button text="PDF" iconLetf={faFilePdf} onClick={handleExportPdf} className="bg-[#004d00] text-white px-4 py-2 rounded-xl" />
-                  <Button text="Carga Masiva" iconLetf={faCloudArrowUp} onClick={() => setIsUploadModalOpen(true)} className="bg-orange-500 text-white px-4 py-2 rounded-xl" />
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap gap-4 items-center bg-gray-50/50 p-6 rounded-2xl border border-gray-100 mb-6 font-poppins">
-              <div className="flex-1 min-w-[250px] relative">
-                <FontAwesomeIcon icon={faMagnifyingGlass} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Buscar producto..."
-                  className="w-full pl-12 pr-4 py-3 border-2 border-transparent rounded-xl outline-none focus:border-[#8dc84b] bg-white transition-all shadow-sm"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <select
-                className="p-3 bg-white border-2 border-gray-100 rounded-xl font-semibold outline-none min-w-[180px]"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-              >
-                <option value="">Todas las categorías</option>
-                <option value="frutas">Frutas</option>
-                <option value="verduras-hortalizas">Verduras y Hortalizas</option>
-                <option value="lacteos">Lácteos</option>
-                <option value="carnes-proteinas">Carnes y Proteinas</option>
-                <option value="cereales-granos">Cereales y Granos</option>
-                <option value="productos-organicos">Productos Orgánicos</option>
-                <option value="miel-derivados">Miel y Derivados</option>
-                <option value="bebidas">Bebidas naturales</option>
-                <option value="cajas-mixtas-combos">Cajas mixtas y combos</option>
-              </select>
-            </div>
-
-            {viewMode === "list" ? (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left">
-                  <thead>
-                    <tr className="border-b border-gray-100 text-gray-400 font-bold uppercase text-xs tracking-wider">
-                      <th className="py-4 px-4">Producto</th>
-                      <th className="py-4 px-4">Categoría</th>
-                      <th className="py-4 px-4">Precio</th>
-                      <th className="py-4 px-4">Stock</th>
-                      <th className="py-4 px-4 text-center">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50">
-                    {filteredProducts.map((p) => (
-                      <tr key={p.idProduct} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="py-5 px-4 font-semibold text-gray-800">{p.nameProduct}</td>
-                        <td className="py-5 px-4 text-gray-600 text-sm">{p.category}</td>
-                        <td className="py-5 px-4 font-bold text-[#004d00]">${p.price.toLocaleString()}</td>
-                        <td className="py-5 px-4">
-                          <span className={`px-2 py-1 rounded-lg text-xs font-bold ${p.stock > 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'}`}>
-                            {p.stock} {p.unit}
-                          </span>
-                        </td>
-                        <td className="py-5 px-4">
-                          <div className="flex justify-center gap-2">
-                            <button onClick={() => handleEditProduct(p)} className="w-9 h-9 rounded-lg bg-gray-50 text-[#8dc84b] hover:bg-[#8dc84b] hover:text-white transition-all flex items-center justify-center border-none cursor-pointer">
-                              <FontAwesomeIcon icon={faPen} />
-                            </button>
-                            <button className="w-9 h-9 rounded-lg bg-gray-50 text-red-400 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center border-none cursor-pointer">
-                              <FontAwesomeIcon icon={faTrash} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredProducts.map((p) => (
-                  <div key={p.idProduct} className="bg-white border-2 border-gray-100 rounded-3xl p-6 flex flex-col gap-4 hover:border-[#8dc84b] hover:shadow-lg transition-all duration-300">
-                    <div className="relative w-full h-40 overflow-hidden rounded-2xl bg-gray-50">
-                       <img 
-                        src={`/uploads/productos/${(p as any).imageProduct}`} 
-                        alt={p.nameProduct} 
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = "https://via.placeholder.com/400x300?text=Sin+Imagen";
-                        }}
-                      />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-800">{p.nameProduct}</h3>
-                      <p className="text-sm text-gray-500">{p.category}</p>
-                    </div>
-                    <div className="flex justify-between items-end mt-4 pt-4 border-t border-gray-50">
-                      <div>
-                        <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Precio</p>
-                        <p className="text-xl font-bold text-[#004d00]">${p.price.toLocaleString()}</p>
-                      </div>
-                      <div className="text-right">
-                        <span className={`px-2 py-1 rounded-lg text-xs font-bold ${p.stock > 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'}`}>
-                          {p.stock} {p.unit}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex gap-2 mt-4">
-                      <button onClick={() => handleEditProduct(p)} className="flex-1 py-2 rounded-xl bg-gray-50 text-[#8dc84b] hover:bg-[#8dc84b] hover:text-white transition-all font-bold border-none cursor-pointer">
-                        Editar
-                      </button>
-                      <button className="w-12 rounded-xl bg-gray-50 text-red-400 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center border-none cursor-pointer">
-                        <FontAwesomeIcon icon={faTrash} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
+          <ProductManager
+            products={products}
+            filteredProducts={filteredProducts}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            category={category}
+            setCategory={setCategory}
+            viewMode={viewMode}
+            setViewMode={setViewMode}
+            handleEditProduct={handleEditProduct}
+            handleOpenOfferModal={handleOpenOfferModal}
+            handleDeleteProduct={removeProduct}
+            handleExportExcel={handleExportExcel}
+            handleExportPdf={handleExportPdf}
+            setIsUploadModalOpen={setIsUploadModalOpen}
+          />
         </section>
 
-        <aside className="flex flex-col gap-8">
-          <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
-            <h2 className="text-xl font-bold mb-4 text-gray-800">Resumen</h2>
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center gap-4 p-4 bg-gray-50/50 rounded-2xl hover:bg-gray-100 transition-all cursor-pointer">
-                <div className="w-10 h-10 rounded-full bg-[#8dc84b] text-white flex items-center justify-center">
-                  <FontAwesomeIcon icon={faCartShopping} />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-xs font-bold text-gray-400">Ordenes Totales</h3>
-                  <p className="font-bold text-lg text-gray-800">3,849</p>
-                  
-                </div>
-                
-              </div>
-            </div>
-            
-          </div>
-          <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
-            <h2 className="text-xl font-bold mb-4 text-gray-800">Usuarios</h2>
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center gap-4 p-4 bg-gray-50/50 rounded-2xl hover:bg-gray-100 transition-all cursor-pointer">
-                <div className="w-10 h-10 rounded-full bg-[#8dc84b] text-white flex items-center justify-center">
-                  <FontAwesomeIcon icon={faUser} />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-xs font-bold text-gray-400">Usuarios Totales</h3>
-                  <p className="font-bold text-lg text-gray-800">100</p>
-                  
-                </div>
-                
-              </div>
-            </div>
-            
-          </div>
-          <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
-            <h2 className="text-xl font-bold mb-4 text-gray-800">Tus Productos</h2>
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center gap-4 p-4 bg-gray-50/50 rounded-2xl hover:bg-gray-100 transition-all cursor-pointer">
-                <div className="w-10 h-10 rounded-full bg-[#8dc84b] text-white flex items-center justify-center">
-                  <FontAwesomeIcon icon={faBagShopping} />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-xs font-bold text-gray-400">Productos Totales</h3>
-                  <p className="font-bold text-lg text-gray-800">{products.length}</p>
-                  
-                </div>
-                
-              </div>
-            </div>
-            
-          </div>
-        </aside>
-        
+        <DashboardAside productsCount={products.length} />
       </div>
 
       {/* Mass Upload Modal */}
-      <Modal isOpen={isUploadModalOpen} onClose={() => setIsUploadModalOpen(false)} title="Carga Masiva" icon={faCloudArrowUp}>
+      <Modal
+        isOpen={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+        title="Carga Masiva"
+        icon={faCloudArrowUp}
+      >
         <div className="p-8">
           <form onSubmit={handleUploadSubmit} className="flex flex-col gap-6">
             <div className="flex flex-col gap-2">
-              <label className="font-bold text-gray-700">Seleccionar Archivo</label>
-              <input type="file" onChange={(e) => setUploadFile(e.target.files ? e.target.files[0] : null)} className="p-4 bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl text-center cursor-pointer hover:border-[#8dc84b] transition-all" />
+              <label className="font-bold text-gray-700">
+                Seleccionar Archivo
+              </label>
+              <input
+                type="file"
+                onChange={(e) =>
+                  setUploadFile(e.target.files ? e.target.files[0] : null)
+                }
+                className="p-4 bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl text-center cursor-pointer hover:border-[#8dc84b] transition-all"
+              />
             </div>
-            <Button type="submit" text="Subir Archivo" className="w-full py-4 rounded-2xl shadow-xl shadow-[#8dc84b]/20" />
+            <Button
+              type="submit"
+              text="Subir Archivo"
+              className="w-full py-4 rounded-2xl shadow-xl shadow-[#8dc84b]/20"
+            />
           </form>
           {uploadResult && (
-            <div className={`mt-4 p-4 rounded-xl text-center font-bold ${uploadResult.success ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+            <div
+              className={`mt-4 p-4 rounded-xl text-center font-bold ${uploadResult.success ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
+            >
               {uploadResult.message}
             </div>
           )}
@@ -429,6 +252,14 @@ export const Dashboard: React.FC = () => {
         onClose={() => setIsEditModalOpen(false)}
         product={selectedProduct}
         onSave={handleSaveProduct}
+      />
+
+      {/* Offer Product Modal */}
+      <OfferProductModal
+        isOpen={isOfferModalOpen}
+        onClose={() => setIsOfferModalOpen(false)}
+        product={selectedProduct}
+        onSave={handleApplyOffer}
       />
     </div>
   );

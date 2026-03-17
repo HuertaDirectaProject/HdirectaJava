@@ -51,6 +51,9 @@ public class User {
     @Column(name = "birth_date")
     private LocalDate birthDate;
 
+    @Column(name = "profile_image_url", length = 500)
+    private String profileImageUrl;
+
     @ManyToOne
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
@@ -59,6 +62,16 @@ public class User {
     @lombok.ToString.Exclude
     @lombok.EqualsAndHashCode.Exclude
     private Set<Product> products;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "user_favorites",
+        joinColumns = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "product_id")
+    )
+    @lombok.ToString.Exclude
+    @lombok.EqualsAndHashCode.Exclude
+    private Set<Product> favoriteProducts = new java.util.HashSet<>();
 
     // Metodo para calcular la edad
     public Integer getAge() {

@@ -28,7 +28,7 @@ public class ProductExportController {
     @Autowired
     private ProductService productService;
 
-    @GetMapping("/exportar_productos_excel")
+    @GetMapping({"/exportar_productos_excel", "/api/products/exportExcel"})
     public void exportarProductosExcel(
             HttpServletResponse response,
             @RequestParam(required = false) String buscar,
@@ -81,7 +81,7 @@ public class ProductExportController {
         workbook.close();
     }
 
-    @GetMapping("/exportar_productos_pdf")
+    @GetMapping({"/exportar_productos_pdf", "/api/products/exportPdf"})
     public void exportarProductosPdf(
             HttpServletResponse response,
             @RequestParam(required = false) String buscar,

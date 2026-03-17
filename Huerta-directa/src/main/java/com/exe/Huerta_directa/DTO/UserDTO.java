@@ -24,6 +24,7 @@ public class UserDTO {
     private Long idRole;
     private String gender;
     private LocalDate birthDate;
+    private String profileImageUrl;
     
 
 }

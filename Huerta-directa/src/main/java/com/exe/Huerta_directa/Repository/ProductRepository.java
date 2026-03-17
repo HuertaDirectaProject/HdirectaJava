@@ -5,6 +5,9 @@ import com.exe.Huerta_directa.Entity.Product;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -25,6 +28,10 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     boolean existsByNameProductIgnoreCaseAndCategoryIgnoreCase(String nameProduct, String category);
 
     // FETCH JOIN para traer usuarios eficientemente
-    @org.springframework.data.jpa.repository.Query("SELECT p FROM Product p LEFT JOIN FETCH p.user")
+    @Query("SELECT p FROM Product p LEFT JOIN FETCH p.user")
     List<Product> findAllWithUsers();
+
+    @Modifying
+    @Query(value = "DELETE FROM user_favorites WHERE product_id = :productId", nativeQuery = true)
+    void deleteFromUserFavorites(@Param("productId") Long productId);
 }

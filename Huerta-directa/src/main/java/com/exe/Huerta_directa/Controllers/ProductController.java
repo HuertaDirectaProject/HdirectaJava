@@ -10,8 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.servlet.view.RedirectView;
+
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -34,7 +33,7 @@ public class ProductController {
 
     // Crear producto con imagen
     @PostMapping("/create")
-    public RedirectView crearProductConImagen(
+    public ResponseEntity<?> crearProductConImagen(
             @RequestParam("nombre") String nameProduct,
             @RequestParam("precio") Double price,
             @RequestParam("unidad") String unit,
@@ -43,27 +42,28 @@ public class ProductController {
             @RequestParam(value = "additional_images", required = false) MultipartFile[] additionalImages,
             @RequestParam("descripcion") String descriptionProduct,
             @RequestParam(value = "stock", defaultValue = "0") Integer stock,
-            HttpSession session,
-            RedirectAttributes redirectAttributes) {
+            HttpSession session) {
         User currentUser = (User) session.getAttribute("user");
         if (currentUser == null) {
-            return new RedirectView("/login?error=session&message=Debe+iniciar+sesiÃ³n+para+registrar+productos");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Debe iniciar sesión para registrar productos");
         }
         // Validar datos completos del usuario
         User user = userRepository.findById(currentUser.getId())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
         if (user.getPhone() == null || user.getPhone().trim().isEmpty() ||
                 user.getAddress() == null || user.getAddress().trim().isEmpty()) {
-            redirectAttributes.addFlashAttribute("error",
-                    "Complete su telÃ©fono y direcciÃ³n en el perfil antes de agregar productos");
-            return new RedirectView("/actualizacionUsuario");
+
+            return ResponseEntity.badRequest()
+                    .body("Complete su teléfono y dirección en el perfil antes de agregar productos");
         }
         try {
             // Obtener usuario desde la sesiÃ³n
             User userSession = (User) session.getAttribute("user");
             if (userSession == null) {
                 // Si no hay usuario en sesiÃ³n, agregar mensaje de alerta y redirigir al login
-                return new RedirectView("/login?error=session&message=Debe+iniciar+sesion+para+registrar+productos");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Debe iniciar sesión para registrar productos");
             }
             // PERMITIR A CUALQUIER USUARIO REGISTRADO AGREGAR PRODUCTOS
             // (No solo admins, cualquier usuario autenticado puede agregar productos)
@@ -117,25 +117,16 @@ public class ProductController {
                     }
                 }
             }
-            // Condicional para redirigir
             if (creado != null && creado.getIdProduct() != null) {
-                // Registro exitoso -> Redirigir segÃºn el rol del usuario con mensaje de Ã©xito
-                if (user != null && user.getRole() != null && user.getRole().getIdRole() == 1) {
-                    // Si es admin, ir al dashboard admin con mensaje de Ã©xito
-                    return new RedirectView("/DashboardAdmin?success=Producto+'" + creado.getNameProduct()
-                            + "'+registrado+exitosamente");
-                } else {
-                    // Si es usuario normal, ir al dashboard cliente o index con mensaje de Ã©xito
-                    return new RedirectView(
-                            "/index?success=Â¡Producto+registrado+exitosamente!+Gracias+por+contribuir+a+nuestra+comunidad");
-                }
+                return ResponseEntity.ok(creado);
             } else {
-                // FallÃ³ el registro -> volver al formulario con error
-                return new RedirectView("/agregar_producto?error=Error+al+registrar+el+producto.+IntÃ©ntalo+de+nuevo");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("Error al registrar el producto");
             }
         } catch (IOException | RuntimeException e) {
             // En caso de error -> volver al formulario con mensaje de error
-            return new RedirectView("/agregar_producto?error=Error+interno+del+servidor.+Contacta+al+administrador");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error interno del servidor");
         }
     }
 
@@ -152,9 +143,10 @@ public class ProductController {
     }
 
     @GetMapping("/category/test")
-public String testCategory() {
-    return "FUNCIONA CATEGORY";
-}
+    public String testCategory() {
+        return "FUNCIONA CATEGORY";
+    }
+
     // Metodo para obtener un producto por su id
     @GetMapping("/{productId}")
     public ResponseEntity<ProductDTO> obtenerProductPorId(@PathVariable Long productId) {

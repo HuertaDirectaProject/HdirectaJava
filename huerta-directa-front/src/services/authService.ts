@@ -7,6 +7,7 @@ export interface User {
   email: string;
   idRole: number | null;
   profileImageUrl?: string;
+  phone?: string;
 }
 
 export interface LoginResponse {

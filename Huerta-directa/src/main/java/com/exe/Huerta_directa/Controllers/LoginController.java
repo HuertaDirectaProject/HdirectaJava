@@ -55,7 +55,7 @@ public class LoginController {
     }
 
     private static final String EMAIL_HOST = "smtp.gmail.com";
-    private static final String EMAIL_PORT = "587";
+    private static final String EMAIL_PORT = "465";
     private static final String SENDER_EMAIL = "hdirecta@gmail.com";
     private static final Pattern PHONE_PATTERN = Pattern.compile("^\\d{10}$");
     private static final Pattern ADDRESS_PATTERN = Pattern.compile("^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\\s#.,\\-_/()]+$");

@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 
+const API_BASE = import.meta.env.VITE_API_URL ?? "";
+
 export interface ShippingAddress {
   nombre: string;
   calle: string;
@@ -40,7 +42,7 @@ export const PaymentProvider = ({ children }: { children: React.ReactNode }) => 
     setError(null);
 
     try {
-      const response = await fetch('http://localhost:8080/api/payments/process', {
+      const response = await fetch(`${API_BASE}/api/payments/process`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),

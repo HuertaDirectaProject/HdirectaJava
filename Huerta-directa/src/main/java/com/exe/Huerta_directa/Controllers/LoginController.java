@@ -549,16 +549,16 @@ public class LoginController {
         return ResponseEntity.badRequest().body(new ErrorResponse("Canal no válido"));
     }
 
-    @PostMapping("/resend-email")
-    @ResponseBody
-    public ResponseEntity<?> resendEmailCode(HttpSession session) {
-        User pendingUser = (User) session.getAttribute("pendingUser");
+        @PostMapping("/resend-email")
+        @ResponseBody
+        public ResponseEntity<?> resendEmailCode(HttpSession session) {
+            User pendingUser = (User) session.getAttribute("pendingUser");
 
-        if (pendingUser == null) {
-            return ResponseEntity
-                    .status(HttpStatus.UNAUTHORIZED)
-                    .body(new ErrorResponse("No hay verificación pendiente. Inicia sesión nuevamente."));
-        }
+            if (pendingUser == null) {
+                return ResponseEntity
+                        .status(HttpStatus.UNAUTHORIZED)
+                        .body(new ErrorResponse("No hay verificación pendiente. Inicia sesión nuevamente."));
+            }
 
         sendEmailVerificationCode(pendingUser, session);
 
@@ -1270,7 +1270,8 @@ public class LoginController {
                     crearContenidoHTMLCodigoVerificacion(user.getName(), otp));
         } catch (MessagingException e) {
             clearPendingEmailSession(session);
-            log.error("No se pudo enviar OTP al correo {}", user.getEmail(), e);
+            log.error("No se pudo enviar OTP al correo {} - Causa: {} - Mensaje: {}",
+                    user.getEmail(), e.getClass().getName(), e.getMessage(), e);
             throw new RuntimeException("No fue posible enviar el código al correo. Inténtalo nuevamente.");
         }
     }

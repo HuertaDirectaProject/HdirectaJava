@@ -1,4 +1,5 @@
 import logo from "../../assets/logo_huerta.png";
+import hero from "../../assets/hero.jpg";
 import { useAuth } from "../../hooks/useAuth";
 import { PasswordInput } from "../../components/GlobalComponents/PasswordInput";
 import { Background } from "../GlobalComponents/Background";
@@ -40,7 +41,7 @@ export const LoginMobile = () => {
   const otpSeconds = (otpSecondsLeft % 60).toString().padStart(2, "0");
 
   return (
-    <div className="md:hidden flex mt-10 justify-center min-h-screen px-2 relative text-black dark:text-white  dark:bg-[#1A221C]">
+    <div className="md:hidden flex   justify-center min-h-screen  relative text-black dark:text-white  dark:bg-[#1A221C]">
       <Background />
       {/* ALERTAS */}
       {error && (
@@ -61,27 +62,42 @@ export const LoginMobile = () => {
         </div>
       )}
 
-      <main className="relative z-10 w-full  max-w-xs mx-auto">
-        {/* logo */}
-        <div className="flex flex-col items-center mb-5">
-          <img src={logo} className="w-24 mb-3" />
-          <h1 className="text-3xl font-bold">Huerta Directa</h1>
-          <p className="dark:text-white/60 text-black/80 text-lg mt-2 text-center">
-            Del campo a tu mesa digital
-          </p>
+      <main className="relative z-10 w-full">
+        <div className="relative w-full h-75 overflow-hidden hero-clip">
+          {/* Imagen */}
+          <img
+            src={hero}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+
+          {/* Overlay verde */}
+          <div className="absolute inset-0 bg-linear-to-t from-[#3e6a00]/90 to-[#8dc84b]/70" />
+
+          {/* Contenido */}
+          <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-6">
+            <img src={logo} className="w-20 mb-3" />
+
+            <h1 className="text-white text-3xl font-extrabold">
+              Huerta Directa
+            </h1>
+             <div className="pt-2">
+                 
+                </div>
+            <p className="text-white/90 text-sm mb-10">Fresco, local y a tu puerta</p>
+          </div>
         </div>
 
-        <div className="dark:bg-white/10 bg-white backdrop-blur-xl border border-white/10 rounded-2xl px-4 py-6">
+        <div className="dark:bg-white/10 bg-white backdrop-blur-xl border max-w-xs mx-auto border-white/10 rounded-3xl px-4 py-6 -mt-15 ">
           {/* ================= SELECT CHANNEL ================= */}
           {requiresChannelSelection && (
-            <div className="space-y-5 w-80">
+            <div className="space-y-5 w-full">
               <h2 className="text-xl font-bold text-center">
                 Selecciona verificación
               </h2>
 
               <button
                 onClick={() => handleSelectVerificationChannel("email")}
-                className="w-full flex justify-center items-center gap-3 cursor-pointer py-3 rounded-xl hover:bg-[#8dc84b]/50 transition-all duration-500 bg-[#8dc84b] text-black font-semibold"
+                className="w-full flex justify-center items-center gap-3 cursor-pointer py-3 rounded-xl hover:bg-[#8dc84b]/50 transition-all duration-500 bg-[#8dc84b] text-white font-semibold"
               >
                 <p>Recibir por correo</p>{" "}
                 <FontAwesomeIcon icon={faEnvelopeCircleCheck} />
@@ -98,7 +114,7 @@ export const LoginMobile = () => {
 
           {/* ================= VERIFY EMAIL ================= */}
           {requiresEmailVerification && (
-            <form onSubmit={handleVerifyEmailSubmit} className="space-y-6">
+            <form onSubmit={handleVerifyEmailSubmit} className="space-y-6 ">
               <h2 className="text-xl font-bold text-center">
                 Verifica tu correo
               </h2>
@@ -151,9 +167,12 @@ export const LoginMobile = () => {
               onSubmit={handleLoginSubmit}
               className="flex flex-col space-y-4"
             >
-              <h2 className="text-2xl font-bold text-center tracking-tight">
-                Iniciar Sesión
-              </h2>
+              <div className="text-2xl font-bold text-center tracking-tight">
+                <h2 className="">
+                  Bienvenido de nuevo
+                </h2>
+                <p className="text-sm dark:text-white/70 text-black/60">Ingresa para continuar comprando lo mejor del campo.</p>
+              </div>
 
               {/* Email */}
               <div className="w-full mb-2">

@@ -2,7 +2,11 @@ import logo from "../../assets/logo_huerta.png";
 import { useAuth } from "../../hooks/useAuth";
 import { PasswordInput } from "../../components/GlobalComponents/PasswordInput";
 import { Background } from "../GlobalComponents/Background";
-import { faArrowRight, faEnvelope } from "@fortawesome/free-solid-svg-icons";
+import {
+  faArrowRight,
+  faEnvelope,
+  faEnvelopeCircleCheck,
+} from "@fortawesome/free-solid-svg-icons";
 import { Button } from "../GlobalComponents/Button";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 export const LoginMobile = () => {
@@ -36,7 +40,7 @@ export const LoginMobile = () => {
   const otpSeconds = (otpSecondsLeft % 60).toString().padStart(2, "0");
 
   return (
-    <div className="md:hidden flex items-center justify-center min-h-screen px-6 relative text-white bg-[#1A221C]">
+    <div className="md:hidden flex items-center justify-center min-h-screen px-6 relative text-black dark:text-white  dark:bg-[#1A221C]">
       <Background />
       {/* ALERTAS */}
       {error && (
@@ -62,29 +66,30 @@ export const LoginMobile = () => {
         <div className="flex flex-col items-center mb-10">
           <img src={logo} className="w-24 mb-3" />
           <h1 className="text-3xl font-bold">Huerta Directa</h1>
-          <p className="text-white/60 text-lg mt-2 text-center">
+          <p className="dark:text-white/60 text-black/80 text-lg mt-2 text-center">
             Del campo a tu mesa digital
           </p>
         </div>
 
-        <div className="bg-white/10 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
+        <div className="dark:bg-white/10 bg-white backdrop-blur-xl border border-white/10 rounded-2xl p-8">
           {/* ================= SELECT CHANNEL ================= */}
           {requiresChannelSelection && (
-            <div className="space-y-5">
+            <div className="space-y-5 w-80">
               <h2 className="text-xl font-bold text-center">
                 Selecciona verificación
               </h2>
 
               <button
                 onClick={() => handleSelectVerificationChannel("email")}
-                className="w-full py-3 rounded-xl bg-[#8dc84b] text-black font-semibold"
+                className="w-full flex justify-center items-center gap-3 cursor-pointer py-3 rounded-xl hover:bg-[#8dc84b]/50 transition-all duration-500 bg-[#8dc84b] text-black font-semibold"
               >
-                Recibir por correo
+                <p>Recibir por correo</p>{" "}
+                <FontAwesomeIcon icon={faEnvelopeCircleCheck} />
               </button>
 
               <button
                 onClick={cancelEmailVerification}
-                className="w-full py-3 rounded-xl border border-white/30"
+                className="w-full py-3 rounded-xl border cursor-pointer border-black dark:border-white/60 hover:bg-gray-300/50 transition-all duration-500"
               >
                 Cancelar
               </button>
@@ -98,11 +103,11 @@ export const LoginMobile = () => {
                 Verifica tu correo
               </h2>
 
-              <p className="text-sm text-center text-white/60">
+              <p className="text-sm text-center text-black/70  dark:text-white/40">
                 Código enviado a {maskedEmail}
               </p>
 
-              <p className="text-xs text-center text-white/40">
+              <p className="text-ms text-center text-black/70  dark:text-white/40">
                 Expira en {otpMinutes}:{otpSeconds}
               </p>
 
@@ -114,23 +119,24 @@ export const LoginMobile = () => {
                 onChange={(e) =>
                   setEmailCode(e.target.value.replace(/\D/g, "").slice(0, 6))
                 }
-                className="w-full p-4 text-center text-lg tracking-widest rounded-xl bg-white/5 outline-none"
+                className="w-full p-4 text-center text-lg tracking-widest rounded-xl bg-[#8dc84b]/20 dark:bg-white/5 outline-none"
                 placeholder="000000"
                 required
               />
 
               <button
                 type="submit"
-                className="w-full py-3 rounded-xl bg-[#8dc84b] text-black font-bold"
+                className="w-full flex justify-center items-center gap-3 cursor-pointer py-3 rounded-xl hover:bg-[#8dc84b]/50 transition-all duration-500 bg-[#8dc84b] text-black font-semibold"
               >
-                Verificar
+                <p>Verificar</p>
+                <FontAwesomeIcon icon={faEnvelopeCircleCheck} />
               </button>
 
               <button
                 type="button"
                 disabled={resendCooldown > 0}
                 onClick={handleResendEmailCode}
-                className="w-full text-sm text-[#8dc84b]"
+                className="w-full text-sm text-[#405f1c] cursor-pointer hover:text-[#8dc84b]/70 transition-all duration-500  dark:text-[#8dc84b]"
               >
                 {resendCooldown > 0
                   ? `Reenviar en ${resendCooldown}s`
@@ -175,7 +181,7 @@ export const LoginMobile = () => {
                     Ingrese su contraseña
                   </label>
                   <a
-                    href="/forgot-password"
+                    href="/forgot-password-mobile"
                     className="text-[#333] dark:text-gray-300 text-[13px] no-underline mb-1 hover:text-[#8dc84b] transition-colors duration-500"
                   >
                     ¿La Olvidaste?
@@ -192,7 +198,9 @@ export const LoginMobile = () => {
               </div>
               <div className="flex flex-col justify-center items-center">
                 <div className="flex justify-baseline items-center gap-3">
-                  <p   className="text-[#333] dark:text-gray-300 text-[15px] no-underline my-2  transition-colors duration-500">¿No tienes una cuenta?</p>
+                  <p className="text-[#333] dark:text-gray-300 text-[15px] no-underline my-2  transition-colors duration-500">
+                    ¿No tienes una cuenta?
+                  </p>
                   <a
                     href="/RegisterMobile"
                     className="text-[#333] dark:text-gray-300 text-[15px] no-underline my-2 hover:text-[#8dc84b] transition-colors duration-500"

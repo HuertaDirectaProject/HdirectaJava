@@ -62,15 +62,15 @@ return (
             Huerta Directa
           </h1>
           
-          <p className="text-white/90 text-sm mb-10">
+          <p className="text-white/90 text-sm mb-15">
             Del campo a tu mesa digital
           </p>
         </div>
       </div>
 
       {/* CARD */}
-      <div className="dark:bg-white/10 bg-white backdrop-blur-xl border max-w-xs mx-auto border-white/10 rounded-3xl px-4 py-6 -mt-15">
-        <form onSubmit={handleRegisterSubmit} className="flex flex-col space-y-4">
+      <div className="dark:bg-white/10 bg-white backdrop-blur-xl border max-w-xs mx-auto border-white/10 rounded-3xl px-4 py-6 -mt-20">
+        <form onSubmit={handleRegisterSubmit} className="flex flex-col space-y-3">
           
           <div className="text-2xl font-bold text-center tracking-tight">
             <h2>Crear Cuenta</h2>

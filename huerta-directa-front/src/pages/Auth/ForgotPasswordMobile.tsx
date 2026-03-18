@@ -36,7 +36,7 @@ export const ForgotPasswordMobile = () => {
   };
 
   return (
-    <div className="md:hidden flex items-center justify-center min-h-screen px-6 relative text-black dark:text-white bg-[#FEF5DC] dark:bg-[#1A221C]">
+    <div className="md:hidden flex items-center justify-center min-h-screen px-2 relative text-black dark:text-white bg-[#FEF5DC] dark:bg-[#1A221C]">
       <Background />
 
       {/* ALERTAS */}
@@ -54,7 +54,7 @@ export const ForgotPasswordMobile = () => {
         </div>
       )}
 
-      <main className="relative z-10 w-full max-w-105">
+      <main className="relative z-10 w-full max-w-sm mx-auto">
         {/* LOGO */}
         <div className="flex flex-col items-center mb-10">
           <img src={logo} className="w-24 mb-3" />
@@ -91,7 +91,7 @@ export const ForgotPasswordMobile = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="correo@email.com"
-                  className="w-full pl-10 p-3 rounded-xl bg-white/70 dark:bg-white/5 border border-black/20 dark:border-white/10 outline-none text-black dark:text-white placeholder-black/50 dark:placeholder-white/30 focus:border-[#8dc84b] focus:ring-2 focus:ring-[#8dc84b]/30 transition-all"
+                  className="w-full pl-10 p-2 rounded-xl bg-white/70 dark:bg-white/5 border border-black/20 dark:border-white/10 outline-none text-black dark:text-white placeholder-black/50 dark:placeholder-white/30 focus:border-[#8dc84b] focus:ring-2 focus:ring-[#8dc84b]/30 transition-all"
                   required
                 />
               </div>

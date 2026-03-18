@@ -1,5 +1,5 @@
 import React from "react";
-import "./Login.css";
+import "../../pages/Auth/Login.css";
 import { Background } from "../../components/GlobalComponents/Background";
 import logo from "../../assets/logo_huerta.png";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";

@@ -36,6 +36,8 @@ import StatusPending from "./pages/Payment/StatusPending.tsx";
 import StatusFailure from "./pages/Payment/StatusFailure.tsx";
 import { SMSVerification } from "./pages/Auth/SMSVerification.tsx";
 import { PaymentProvider } from "./contexts/PaymentContext";
+import RegisterMobilePage from "./pages/Auth/RegisterMobilePage.tsx";
+import { ForgotPasswordMobile } from "./pages/Auth/ForgotPasswordMobile.tsx";
 
 
 function App() {
@@ -115,6 +117,9 @@ function App() {
                         <Route path="/login" element={<Login />} />
                         <Route path="/register" element={<Login />} />
                         <Route path="/forgot-password" element={<ForgotPassword />} />
+                        <Route path="/forgot-password-mobile" element={<ForgotPasswordMobile />} />
+                        <Route path="/RegisterMobile" element={<RegisterMobilePage />} />
+
                     </Route>
 
                     <Route path="*" element={<Navigate to="/" />} />

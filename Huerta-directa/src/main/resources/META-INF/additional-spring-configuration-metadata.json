@@ -28,5 +28,20 @@
     "name": "mercadopago.public_key",
     "type": "java.lang.String",
     "description": "A description for 'mercadopago.public_key'"
+  },
+  {
+    "name": "mail.sender.email",
+    "type": "java.lang.String",
+    "description": "A description for 'mail.sender.email'"
+  },
+  {
+    "name": "mail.sender.email",
+    "type": "java.lang.String",
+    "description": "A description for 'mail.sender.email'"
+  },
+  {
+    "name": "mail.sender.password",
+    "type": "java.lang.String",
+    "description": "A description for 'mail.sender.password'"
   }
 ]}

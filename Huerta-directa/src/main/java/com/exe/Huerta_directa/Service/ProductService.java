@@ -40,4 +40,6 @@ public interface ProductService {
 
     // Enrich products with rating data (average rating and review count)
     void enrichProductsWithRatings(List<ProductDTO> products);
+
+    List<ProductDTO> listarOfertas();
 }

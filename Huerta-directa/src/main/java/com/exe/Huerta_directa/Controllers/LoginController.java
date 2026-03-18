@@ -55,8 +55,9 @@ public class LoginController {
     }
 
     private static final String EMAIL_HOST = "smtp.gmail.com";
-    private static final String EMAIL_PORT = "465";
-    private static final String SENDER_EMAIL = "hdirecta@gmail.com";
+    private static final String EMAIL_PORT = "587";
+    @Value("${mail.sender.email:hdirecta@gmail.com}")
+    private String SENDER_EMAIL;
     private static final Pattern PHONE_PATTERN = Pattern.compile("^\\d{10}$");
     private static final Pattern ADDRESS_PATTERN = Pattern.compile("^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\\s#.,\\-_/()]+$");
     private static final int EMAIL_CODE_LENGTH = 6;
@@ -75,7 +76,13 @@ public class LoginController {
         props.put("mail.smtp.starttls.enable", "true");
         props.put("mail.smtp.host", EMAIL_HOST);
         props.put("mail.smtp.port", EMAIL_PORT);
-        props.put("mail.smtp.ssl.trust", EMAIL_HOST);
+        props.put("mail.smtp.ssl.trust", "smtp.gmail.com");
+        
+        // Timeout configuration
+        props.put("mail.smtp.connectiontimeout", "5000");
+        props.put("mail.smtp.timeout", "5000");
+        props.put("mail.smtp.writetimeout", "5000");
+
         return Session.getInstance(props, new Authenticator() {
             protected PasswordAuthentication getPasswordAuthentication() {
                 return new PasswordAuthentication(SENDER_EMAIL, SENDER_PASSWORD);
@@ -1081,12 +1088,6 @@ public class LoginController {
     /**
      * Método helper para obtener URL de redirección según el rol
      */
-    private String getRedirectUrlByRole(Long roleId) {
-        if (roleId != null && roleId == 1) {
-            return "/admin-dashboard";
-        }
-        return "/HomePage";
-    }
 
     public static class ChangePasswordRequest {
         private String currentPassword;
@@ -1345,13 +1346,20 @@ public class LoginController {
     }
 
     private void enviarCorreoIndividual(String destinatario, String asunto, String cuerpo) throws MessagingException {
-        Session session = crearSesionCorreo();
-        MimeMessage message = new MimeMessage(session);
-        message.setFrom(new InternetAddress(SENDER_EMAIL));
-        message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(destinatario));
-        message.setSubject(asunto);
-        message.setContent(cuerpo, "text/html; charset=utf-8");
-        Transport.send(message);
+        try {
+            log.info("Enviando correo a: {} con asunto: {}", destinatario, asunto);
+            Session session = crearSesionCorreo();
+            MimeMessage message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(SENDER_EMAIL));
+            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(destinatario));
+            message.setSubject(asunto);
+            message.setContent(cuerpo, "text/html; charset=utf-8");
+            Transport.send(message);
+            log.info("Correo enviado satisfactoriamente a: {}", destinatario);
+        } catch (MessagingException e) {
+            log.error("Fallo al enviar correo a {}: {}", destinatario, e.getMessage());
+            throw e;
+        }
     }
 
     private String generateEmailOtpCode() {

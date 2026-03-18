@@ -1,16 +1,36 @@
-import f1 from "../../assets/image/oferts/f1.png";
-import f2 from "../../assets/image/oferts/f2.png";
-import f3 from "../../assets/image/oferts/f3.png";
-import f4 from "../../assets/image/oferts/f4.png";
-
-const offers = [
-  { img: f1, title: "Oferta", type: "Premium" },
-  { img: f2, title: "Oferta", type: "Premium" },
-  { img: f3, title: "Oferta", type: "Premium" },
-  { img: f4, title: "Oferta", type: "Premium" },
-];
+import { useEffect, useState } from "react";
+import { API_URL } from "../../config/api";
+import type { Product } from "../../types/Product";
 
 export const OffersSection = () => {
+  const [offers, setOffers] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchOffers = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/products/offers`, {
+          credentials: "include"
+        });
+        if (response.ok) {
+          const data = await response.json();
+          console.log("Offers fetched:", data);
+          setOffers(data);
+        } else {
+          console.error("Failed to fetch offers:", response.status, response.statusText);
+        }
+      } catch (err) {
+        console.error("Error fetching offers:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchOffers();
+  }, []);
+
+  if (loading) return null;
+  if (offers.length === 0) return null;
+
   return (
     <section
       className="w-full py-20 transition-colors! duration-500! 
@@ -29,10 +49,10 @@ export const OffersSection = () => {
           </p>
         </div>
 
-        <div className="flex justify-between gap-8 flex-wrap">
-          {offers.map((offer, index) => (
+        <div className="flex justify-center gap-8 flex-wrap">
+          {offers.map((offer) => (
             <div
-              key={index}
+              key={offer.idProduct}
               className="
                 w-70
                 flex flex-col
@@ -54,22 +74,33 @@ export const OffersSection = () => {
               "
             >
               <img
-                src={offer.img}
-                alt={offer.title}
-                className="w-35 mx-auto"
+                src={`${API_URL}/uploads/productos/${offer.imageProduct}`}
+                alt={offer.nameProduct}
+                className="w-35 h-35 object-contain mx-auto"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "https://via.placeholder.com/150?text=Producto";
+                }}
               />
 
               <h3 className="font-bold text-lg text-[#333128] dark:text-gray-200">
-                {offer.title}
+                {offer.nameProduct}
               </h3>
 
-              <p className="text-[#8dc84b] font-semibold text-[15px]">
-                {offer.type}
-              </p>
+              <div className="flex flex-col items-center gap-1">
+                <p className="text-[#8dc84b] font-bold text-xl">
+                  -{offer.discountOffer}%
+                </p>
+                <p className="text-gray-400 line-through text-sm">
+                  ${offer.price?.toLocaleString()}
+                </p>
+                <p className="text-[#333128] dark:text-gray-200 font-black text-lg">
+                  ${(Number(offer.price) * (1 - (offer.discountOffer || 0) / 100)).toLocaleString()}
+                </p>
+              </div>
             </div>
           ))}
         </div>
       </div>
     </section>
   );
-};
+};

@@ -186,4 +186,9 @@ public class ProductController {
         List<ProductDTO> productos = productService.listarProductosPorUsuario(user.getId());
         return ResponseEntity.ok(productos);
     }
+
+    @GetMapping("/offers")
+    public ResponseEntity<List<ProductDTO>> listarOfertas() {
+        return new ResponseEntity<>(productService.listarOfertas(), HttpStatus.OK);
+    }
 }

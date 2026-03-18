@@ -345,4 +345,14 @@ public class ProductServiceImpl implements ProductService {
         }
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProductDTO> listarOfertas() {
+        // Usamos findAllWithUsers para asegurar que tenemos toda la info necesaria
+        return productRepository.findAllWithUsers().stream()
+                .filter(p -> p.getDiscountOffer() != null && p.getDiscountOffer() >= 1)
+                .map(this::convertirADTO)
+                .collect(Collectors.toList());
+    }
+
 }

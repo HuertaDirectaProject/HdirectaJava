@@ -61,7 +61,7 @@ export const LoginMobile = () => {
         </div>
       )}
 
-      <main className="relative z-10 w-full max-w-105">
+      <main className="relative z-10 w-full max-w-sm mx-auto">
         {/* logo */}
         <div className="flex flex-col items-center mb-10">
           <img src={logo} className="w-24 mb-3" />

@@ -103,3 +103,27 @@ function DesplegarProfile() {
         NotaComentarios.classList.remove("flex");
         NotaComentarios.classList.add("hidden");
       });
+
+// --- TEMA OSCURO ---
+const themeToggler = document.querySelector(".theme-toggler");
+
+if (themeToggler) {
+  themeToggler.addEventListener("click", () => {
+    document.body.classList.toggle("dark-theme");
+    themeToggler.querySelector("span:nth-child(1)").classList.toggle("active");
+    themeToggler.querySelector("span:nth-child(2)").classList.toggle("active");
+    
+    const isDark = document.body.classList.contains("dark-theme");
+    localStorage.setItem("theme-preference", isDark ? "dark" : "light");
+    
+    // Notificar a las gráficas
+    window.dispatchEvent(new CustomEvent("themeChanged", { detail: { theme: isDark ? "dark" : "light" } }));
+  });
+
+  // Cargar preferencia
+  if (localStorage.getItem("theme-preference") === "dark") {
+    document.body.classList.add("dark-theme");
+    themeToggler.querySelector("span:nth-child(1)").classList.remove("active");
+    themeToggler.querySelector("span:nth-child(2)").classList.add("active");
+  }
+}

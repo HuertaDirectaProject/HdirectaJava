@@ -47,7 +47,7 @@ return (
 
     <main className="relative z-10 w-full">
       {/* HERO */}
-      <div className="relative w-full h-75 overflow-hidden hero-clip">
+      <div className="relative w-full h-72 overflow-hidden hero-clip">
         <img
           src={hero}
           className="absolute inset-0 w-full h-full object-cover"
@@ -69,7 +69,7 @@ return (
       </div>
 
       {/* CARD */}
-      <div className="dark:bg-white/10 bg-white backdrop-blur-xl border max-w-xs mx-auto border-white/10 rounded-3xl px-4 py-6 -mt-20">
+      <div className="dark:bg-white/10 bg-white backdrop-blur-xl border max-w-xs mx-auto border-white/10 rounded-3xl px-4 py-6 -mt-22">
         <form onSubmit={handleRegisterSubmit} className="flex flex-col space-y-3">
           
           <div className="text-2xl font-bold text-center tracking-tight">

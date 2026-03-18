@@ -25,7 +25,7 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
 
   return (
     <div className="w-full mb-2">
-      <div className="flex items-center min-w-[320px] relative">
+      <div className="flex items-center min-w-full relative">
         
         {/* 🔒 Icono izquierdo */}
         <div className="absolute left-3 text-[#888]">

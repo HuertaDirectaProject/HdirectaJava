@@ -40,7 +40,7 @@ export const LoginMobile = () => {
   const otpSeconds = (otpSecondsLeft % 60).toString().padStart(2, "0");
 
   return (
-    <div className="md:hidden flex items-center justify-center min-h-screen px-2 relative text-black dark:text-white  dark:bg-[#1A221C]">
+    <div className="md:hidden flex mt-10 justify-center min-h-screen px-2 relative text-black dark:text-white  dark:bg-[#1A221C]">
       <Background />
       {/* ALERTAS */}
       {error && (
@@ -61,7 +61,7 @@ export const LoginMobile = () => {
         </div>
       )}
 
-      <main className="relative z-10 w-full max-w-sm mx-auto">
+      <main className="relative z-10 w-full  max-w-xs mx-auto">
         {/* logo */}
         <div className="flex flex-col items-center mb-5">
           <img src={logo} className="w-24 mb-3" />
@@ -71,7 +71,7 @@ export const LoginMobile = () => {
           </p>
         </div>
 
-        <div className="dark:bg-white/10 bg-white backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+        <div className="dark:bg-white/10 bg-white backdrop-blur-xl border border-white/10 rounded-2xl px-4 py-6">
           {/* ================= SELECT CHANNEL ================= */}
           {requiresChannelSelection && (
             <div className="space-y-5 w-80">
@@ -147,7 +147,10 @@ export const LoginMobile = () => {
 
           {/* ================= LOGIN ================= */}
           {!requiresChannelSelection && !requiresEmailVerification && (
-            <form onSubmit={handleLoginSubmit} className="space-y-6">
+            <form
+              onSubmit={handleLoginSubmit}
+              className="flex flex-col space-y-4"
+            >
               <h2 className="text-2xl font-bold text-center tracking-tight">
                 Iniciar Sesión
               </h2>
@@ -198,12 +201,12 @@ export const LoginMobile = () => {
               </div>
               <div className="flex flex-col justify-center items-center">
                 <div className="flex justify-baseline items-center gap-3">
-                  <p className="text-[#333] dark:text-gray-300 text-[15px] no-underline my-2  transition-colors duration-500">
+                  <p className="text-[#333] dark:text-gray-300 text-[15px] no-underline  transition-colors duration-500">
                     ¿No tienes una cuenta?
                   </p>
                   <a
                     href="/RegisterMobile"
-                    className="text-[#333] dark:text-gray-300 text-[15px] no-underline my-2 hover:text-[#8dc84b] transition-colors duration-500"
+                    className="text-[#333] dark:text-gray-300 text-[15px] no-underline  hover:text-[#8dc84b] transition-colors duration-500"
                   >
                     Registrarse
                   </a>

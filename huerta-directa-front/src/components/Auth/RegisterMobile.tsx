@@ -3,7 +3,11 @@ import { useAuth } from "../../hooks/useAuth";
 import { PasswordInput } from "../GlobalComponents/PasswordInput";
 import { Background } from "../GlobalComponents/Background";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEnvelope, faUser, faUserPlus } from "@fortawesome/free-solid-svg-icons";
+import {
+  faEnvelope,
+  faUser,
+  faUserPlus,
+} from "@fortawesome/free-solid-svg-icons";
 import { Button } from "../GlobalComponents/Button";
 
 export const RegisterMobile = () => {
@@ -36,9 +40,9 @@ export const RegisterMobile = () => {
         </div>
       )}
 
-      <main className="relative z-10  w-full max-w-105">
+      <main className="relative z-10 w-full max-w-sm mx-auto">
         {/* LOGO */}
-        <div className="flex flex-col items-center mb-10">
+        <div className="flex flex-col items-center mb-5">
           <img src={logo} className="w-24 mb-3" />
           <h1 className="text-3xl font-bold">Huerta Directa</h1>
           <p className="text-black/70 dark:text-white/60 text-sm mt-2 text-center">
@@ -47,11 +51,9 @@ export const RegisterMobile = () => {
         </div>
 
         {/* CARD */}
-        <div className="bg-white dark:bg-white/5 backdrop-blur-2xl border border-black/10 dark:border-white/10 rounded-2xl p-8 shadow-2xl">
-          <form onSubmit={handleRegisterSubmit} className="space-y-6">
-            <h2 className="text-2xl font-bold text-center">
-              Crear Cuenta
-            </h2>
+        <div className="bg-white dark:bg-white/5 backdrop-blur-2xl border border-black/10 dark:border-white/10 rounded-2xl p-5 shadow-2xl">
+          <form onSubmit={handleRegisterSubmit} className="space-y-3">
+            <h2 className="text-2xl font-bold text-center">Crear Cuenta</h2>
 
             {/* USERNAME */}
             <div>
@@ -61,7 +63,7 @@ export const RegisterMobile = () => {
               <div className="relative">
                 <FontAwesomeIcon
                   icon={faUser}
-                  className="absolute left-3 top-3 text-gray-500 dark:text-gray-400"
+                  className="absolute left-3 top-4 text-gray-500 dark:text-gray-400"
                 />
                 <input
                   type="text"
@@ -83,7 +85,7 @@ export const RegisterMobile = () => {
               <div className="relative">
                 <FontAwesomeIcon
                   icon={faEnvelope}
-                  className="absolute left-3 top-3 text-gray-500 dark:text-gray-400"
+                  className="absolute left-3 top-4 text-gray-500 dark:text-gray-400"
                 />
                 <input
                   type="email"
@@ -97,14 +99,19 @@ export const RegisterMobile = () => {
               </div>
             </div>
 
-            {/* PASSWORD */}
-            <PasswordInput
-              name="password"
-              value={registerData.password}
-              onChange={handleRegisterChange}
-              placeholder="Contraseña"
-              required
-            />
+            <div className="w-full mb-2">
+              <label className="text-sm font-normal block dark:text-gray-300!">
+                Ingrese su contraseña
+              </label>
+
+              <PasswordInput
+                name="password"
+                value={registerData.password}
+                onChange={handleRegisterChange}
+                placeholder="Contraseña"
+                required
+              />
+            </div>
 
             {/* BOTÓN */}
             <Button

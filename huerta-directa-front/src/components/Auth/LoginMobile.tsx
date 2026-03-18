@@ -40,7 +40,7 @@ export const LoginMobile = () => {
   const otpSeconds = (otpSecondsLeft % 60).toString().padStart(2, "0");
 
   return (
-    <div className="md:hidden flex items-center justify-center min-h-screen px-6 relative text-black dark:text-white  dark:bg-[#1A221C]">
+    <div className="md:hidden flex items-center justify-center min-h-screen px-2 relative text-black dark:text-white  dark:bg-[#1A221C]">
       <Background />
       {/* ALERTAS */}
       {error && (
@@ -63,7 +63,7 @@ export const LoginMobile = () => {
 
       <main className="relative z-10 w-full max-w-sm mx-auto">
         {/* logo */}
-        <div className="flex flex-col items-center mb-10">
+        <div className="flex flex-col items-center mb-5">
           <img src={logo} className="w-24 mb-3" />
           <h1 className="text-3xl font-bold">Huerta Directa</h1>
           <p className="dark:text-white/60 text-black/80 text-lg mt-2 text-center">
@@ -71,7 +71,7 @@ export const LoginMobile = () => {
           </p>
         </div>
 
-        <div className="dark:bg-white/10 bg-white backdrop-blur-xl border border-white/10 rounded-2xl p-8">
+        <div className="dark:bg-white/10 bg-white backdrop-blur-xl border border-white/10 rounded-2xl p-6">
           {/* ================= SELECT CHANNEL ================= */}
           {requiresChannelSelection && (
             <div className="space-y-5 w-80">

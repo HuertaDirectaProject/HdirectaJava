@@ -118,7 +118,7 @@ export const ProductDetailPage = () => {
 
   const handleAddToCart = () => {
     if (product) {
-      const hasDiscount = product.discountOffer && product.discountOffer > 0;
+      const hasDiscount = !!(product.discountOffer && product.discountOffer > 0);
       const discountedPrice = hasDiscount
         ? product.price * (1 - product.discountOffer! / 100)
         : product.price;
@@ -250,7 +250,7 @@ export const ProductDetailPage = () => {
 
   const rating = product.averageRating || 0;
   const reviewCount = product.reviewCount || 0;
-  const hasDiscount = product.discountOffer && product.discountOffer > 0;
+  const hasDiscount = !!(product.discountOffer && product.discountOffer > 0);
   const discountedPrice = hasDiscount
     ? product.price * (1 - product.discountOffer! / 100)
     : product.price;
@@ -720,6 +720,7 @@ export const ProductDetailPage = () => {
                     stock: p.stock,
                     image: `http://localhost:8085/uploads/productos/${p.imageProduct}`,
                     category: p.category,
+                    discountOffer: p.discountOffer,
                     images: p.images,
                   }}
                 />

@@ -41,7 +41,7 @@ const ProductCard = ({ product }: Props) => {
   const hasStock = product.stock && product.stock > 0;
   const isOwner = false;
 
-  const hasDiscount = product.discountOffer && product.discountOffer > 0;
+  const hasDiscount = !!(product.discountOffer && product.discountOffer > 0);
   const discountedPrice = hasDiscount
     ? product.price * (1 - product.discountOffer! / 100)
     : product.price;

@@ -1088,12 +1088,6 @@ public class LoginController {
     /**
      * Método helper para obtener URL de redirección según el rol
      */
-    private String getRedirectUrlByRole(Long roleId) {
-        if (roleId != null && roleId == 1) {
-            return "/admin-dashboard";
-        }
-        return "/HomePage";
-    }
 
     public static class ChangePasswordRequest {
         private String currentPassword;

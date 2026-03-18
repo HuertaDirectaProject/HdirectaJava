@@ -49,14 +49,14 @@ public class StatsServiceImpl implements StatsService {
                 .monthlyUserRegistrations(users.stream()
                         .filter(u -> u.getCreacionDate() != null)
                         .collect(Collectors.groupingBy(u -> u.getCreacionDate().getMonth()
-                                .getDisplayName(TextStyle.FULL, new Locale("es", "ES")), Collectors.counting())))
+                                .getDisplayName(TextStyle.FULL, Locale.of("es", "ES")), Collectors.counting())))
                 .categoryCount(products.stream()
                         .collect(Collectors.groupingBy(Product::getCategory, Collectors.counting())))
                 .unitCount(products.stream()
                         .collect(Collectors.groupingBy(Product::getUnit, Collectors.counting())))
                 .monthlySales(payments.stream()
                         .collect(Collectors.groupingBy(p -> p.getPaymentDate().getMonth()
-                                .getDisplayName(TextStyle.FULL, new Locale("es", "ES")),
+                                .getDisplayName(TextStyle.FULL, Locale.of("es", "ES")),
                                 Collectors.reducing(BigDecimal.ZERO, 
                                     p -> p.getItems().stream()
                                             .map(item -> item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
@@ -67,7 +67,7 @@ public class StatsServiceImpl implements StatsService {
                         .collect(Collectors.groupingBy(PaymentItem::getTitle, Collectors.summingLong(PaymentItem::getQuantity))))
                 .revenueTrends(payments.stream()
                         .collect(Collectors.groupingBy(p -> p.getPaymentDate().getMonth()
-                                .getDisplayName(TextStyle.FULL, new Locale("es", "ES")),
+                                .getDisplayName(TextStyle.FULL, Locale.of("es", "ES")),
                                 Collectors.reducing(BigDecimal.ZERO, 
                                     p -> p.getItems().stream()
                                             .map(item -> item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())))

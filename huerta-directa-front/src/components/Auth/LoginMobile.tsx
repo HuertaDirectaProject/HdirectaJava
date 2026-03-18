@@ -170,9 +170,17 @@ export const LoginMobile = () => {
 
               {/* Password */}
               <div className="w-full mb-2">
-                <label className="text-sm font-normal block dark:text-gray-300">
-                  Ingrese su contraseña
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-normal block dark:text-gray-300">
+                    Ingrese su contraseña
+                  </label>
+                  <a
+                    href="/forgot-password"
+                    className="text-[#333] dark:text-gray-300 text-[13px] no-underline mb-1 hover:text-[#8dc84b] transition-colors duration-500"
+                  >
+                    ¿La Olvidaste?
+                  </a>
+                </div>
 
                 <PasswordInput
                   name="password"
@@ -182,21 +190,23 @@ export const LoginMobile = () => {
                   required
                 />
               </div>
-              <div className="flex flex-col justify-center items-center"> 
+              <div className="flex flex-col justify-center items-center">
+                <div className="flex justify-baseline items-center gap-3">
+                  <p   className="text-[#333] dark:text-gray-300 text-[15px] no-underline my-2  transition-colors duration-500">¿No tienes una cuenta?</p>
+                  <a
+                    href="/RegisterMobile"
+                    className="text-[#333] dark:text-gray-300 text-[15px] no-underline my-2 hover:text-[#8dc84b] transition-colors duration-500"
+                  >
+                    Registrarse
+                  </a>
+                </div>
 
-              <a
-                href="/forgot-password"
-                className="text-[#333] dark:text-gray-300 text-[13px] no-underline mb-1 hover:text-[#8dc84b] transition-colors duration-500"
-              >
-                ¿Olvidaste tu contraseña?
-              </a>
-
-              <Button
-                iconRight={faArrowRight}
-                text="Ingresar"
-                type="submit"
-                className="text-[17px] inline-block py-3 px-8 text-white bg-[#8dc84b] rounded-[15px] transition-all duration-500 mt-2.5 hover:bg-[#004d00] font-semibold uppercase text-xs tracking-wider cursor-pointer"
-              />
+                <Button
+                  iconRight={faArrowRight}
+                  text="Ingresar"
+                  type="submit"
+                  className="text-[17px] inline-block py-3 px-8 text-white bg-[#8dc84b] rounded-[15px] transition-all duration-500 mt-2.5 hover:bg-[#004d00] font-semibold uppercase text-xs tracking-wider cursor-pointer"
+                />
               </div>
             </form>
           )}

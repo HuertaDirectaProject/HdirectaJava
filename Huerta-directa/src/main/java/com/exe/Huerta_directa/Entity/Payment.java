@@ -22,10 +22,20 @@ public class Payment {
     @Column(nullable = false)
     private String status; // Ej: "pending", "approved", "rejected"
 
+    @Column(nullable = false)
+    private java.time.LocalDate paymentDate = java.time.LocalDate.now();
+
     @OneToMany(mappedBy = "payment", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PaymentItem> items;
 
     // --- Getters y Setters ---
+    public java.time.LocalDate getPaymentDate() {
+        return paymentDate;
+    }
+
+    public void setPaymentDate(java.time.LocalDate paymentDate) {
+        this.paymentDate = paymentDate;
+    }
     public Long getId() {
         return id;
     }

@@ -29,6 +29,7 @@ public class PaymentController {
 
     private final MercadoPagoServicePaymentRequest mercadoPagoService;
     private final ProductService productService;
+    private final com.exe.Huerta_directa.Repository.PaymentRepository paymentRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
     
     // Constantes para email (igual que en UserController)
@@ -67,14 +68,41 @@ public class PaymentController {
             System.out.println("🔢 Payment ID: " + paymentId);
             System.out.println("💳 Método usado: " + paymentMethodId);
 
-            // ⭐ Si el pago fue aprobado, descontar stock y enviar correo
+            // ⭐ Si el pago fue aprobado, descontar stock, guardar en BD y enviar correo
             if ("approved".equals(status)) {
-                System.out.println("✅ Pago APROBADO - Descontando stock...");
+                System.out.println("✅ Pago APROBADO - Descontando stock y guardando en BD...");
                 
                 // Obtener carrito antes de limpiarlo
                 @SuppressWarnings("unchecked")
                 List<CarritoItem> carrito = (List<CarritoItem>) session.getAttribute("carrito");
                 
+                // --- GUARDAR EN BASE DE DATOS PARA ESTADÍSTICAS ---
+                try {
+                    com.exe.Huerta_directa.Entity.Payment paymentEntity = new com.exe.Huerta_directa.Entity.Payment();
+                    paymentEntity.setPreferenceId((String) paymentResult.get("id").toString());
+                    paymentEntity.setPayerEmail(paymentRequest.getPayer().getEmail());
+                    paymentEntity.setStatus(status);
+                    paymentEntity.setPaymentDate(java.time.LocalDate.now());
+                    
+                    if (carrito != null) {
+                        List<com.exe.Huerta_directa.Entity.PaymentItem> paymentItems = carrito.stream().map(item -> {
+                            com.exe.Huerta_directa.Entity.PaymentItem pItem = new com.exe.Huerta_directa.Entity.PaymentItem();
+                            pItem.setTitle(item.getNombre());
+                            pItem.setUnitPrice(item.getPrecio());
+                            pItem.setQuantity(item.getCantidad());
+                            pItem.setPayment(paymentEntity);
+                            return pItem;
+                        }).collect(java.util.stream.Collectors.toList());
+                        paymentEntity.setItems(paymentItems);
+                    }
+                    
+                    paymentRepository.save(paymentEntity);
+                    System.out.println("💾 Pago persistido en BD correctamente.");
+                } catch (Exception dbError) {
+                    System.err.println("⚠️ Error al persistir pago (no afecta el pago): " + dbError.getMessage());
+                }
+                // --------------------------------------------------
+
                 descontarStockDelCarrito(session);
                 
                 // Enviar correo de confirmación

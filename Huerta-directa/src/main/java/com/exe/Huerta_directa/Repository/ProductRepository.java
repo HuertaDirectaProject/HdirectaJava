@@ -23,6 +23,9 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findByCategoryIgnoreCase(String category);
     // este es de prueba de react
     List<Product> findByCategorySlug(String categorySlug);
+    
+    @Query("SELECT p FROM Product p LEFT JOIN FETCH p.user WHERE p.discountOffer >= 1")
+    List<Product> findByDiscountOfferGreaterThanZero();
 
     // Método para verificar duplicados exactos
     boolean existsByNameProductIgnoreCaseAndCategoryIgnoreCase(String nameProduct, String category);

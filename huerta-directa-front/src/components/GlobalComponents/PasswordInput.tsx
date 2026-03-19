@@ -25,7 +25,7 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
 
   return (
     <div className="w-full mb-2">
-      <div className="flex items-center min-w-[320px] relative">
+      <div className="flex items-center min-w-full relative">
         
         {/* 🔒 Icono izquierdo */}
         <div className="absolute left-3 text-[#888]">
@@ -40,7 +40,7 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
           onChange={onChange}
           placeholder={placeholder}
           required={required}
-          className="py-2.5 pl-10 pr-12 w-full my-1.5 dark:text-gray-300! border-2 border-[#8dc84b] rounded-[15px] outline-none text-base text-[#333128] transition-all duration-300 focus:border-[#004d00] focus:shadow-[0_0_8px_rgba(0,77,0,0.4)]"
+          className="py-2.5 pl-10 pr-12 w-full my-1.5 dark:text-gray-200! border-2 border-[#8dc84b] dark:bg-[#26322a] rounded-[15px] outline-none text-base text-[#333128] transition-all duration-300 focus:border-[#004d00] focus:shadow-[0_0_8px_rgba(0,77,0,0.4)]"
         />
 
         {/* 👁 Icono derecho dinámico */}

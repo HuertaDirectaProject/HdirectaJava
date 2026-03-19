@@ -55,7 +55,7 @@ public class LoginController {
     }
 
     private static final String EMAIL_HOST = "smtp.gmail.com";
-    private static final String EMAIL_PORT = "587";
+    private static final String EMAIL_PORT = "465";
     @Value("${mail.sender.email:hdirecta@gmail.com}")
     private String SENDER_EMAIL;
     private static final Pattern PHONE_PATTERN = Pattern.compile("^\\d{10}$");
@@ -73,16 +73,22 @@ public class LoginController {
     private Session crearSesionCorreo() {
         Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.ssl.enable", "true");         // ← SSL para puerto 465
-        props.put("mail.smtp.starttls.enable", "false");
         props.put("mail.smtp.host", EMAIL_HOST);
         props.put("mail.smtp.port", EMAIL_PORT);
+
+        // SSL explícito para puerto 465 — Railway compatible
+        props.put("mail.smtp.ssl.enable", "true");
+        props.put("mail.smtp.starttls.enable", "false");
+        props.put("mail.smtp.starttls.required", "false");
         props.put("mail.smtp.ssl.trust", "smtp.gmail.com");
-        
-        // Timeout configuration
-        props.put("mail.smtp.connectiontimeout", "5000");
-        props.put("mail.smtp.timeout", "5000");
-        props.put("mail.smtp.writetimeout", "5000");
+        props.put("mail.smtp.socketFactory.port", "465");
+        props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+        props.put("mail.smtp.socketFactory.fallback", "false");
+
+        // Timeouts
+        props.put("mail.smtp.connectiontimeout", "10000");
+        props.put("mail.smtp.timeout", "10000");
+        props.put("mail.smtp.writetimeout", "10000");
 
         return Session.getInstance(props, new Authenticator() {
             protected PasswordAuthentication getPasswordAuthentication() {

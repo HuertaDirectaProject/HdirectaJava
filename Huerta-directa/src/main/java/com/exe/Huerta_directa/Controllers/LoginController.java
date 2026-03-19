@@ -72,7 +72,8 @@ public class LoginController {
     private Session crearSesionCorreo() {
         Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.ssl.enable", "true");         // ← SSL para puerto 465
+        props.put("mail.smtp.starttls.enable", "false");
         props.put("mail.smtp.host", EMAIL_HOST);
         props.put("mail.smtp.port", EMAIL_PORT);
         props.put("mail.smtp.ssl.trust", EMAIL_HOST);

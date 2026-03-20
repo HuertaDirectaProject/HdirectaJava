@@ -442,6 +442,36 @@ public class LoginController {
                 .body(new ErrorResponse("Este endpoint fue reemplazado por /api/login/verify-email"));
     }
 
+    @PostMapping("/complete-sms")
+    @ResponseBody
+    public ResponseEntity<?> completeSmsLogin(HttpSession session) {
+        User pendingUser = (User) session.getAttribute("pendingUser");
+
+        if (pendingUser == null) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(new ErrorResponse("No hay verificación pendiente. Inicia sesión nuevamente."));
+        }
+
+        session.setAttribute("user", pendingUser);
+        session.setAttribute("userId", pendingUser.getId());
+        session.setAttribute("userRole", pendingUser.getRole() != null ? pendingUser.getRole().getIdRole() : null);
+        clearPendingEmailSession(session);
+
+        LoginResponse response = new LoginResponse();
+        response.setId(pendingUser.getId());
+        response.setName(pendingUser.getName());
+        response.setEmail(pendingUser.getEmail());
+        response.setIdRole(pendingUser.getRole() != null ? pendingUser.getRole().getIdRole() : null);
+        response.setProfileImageUrl(pendingUser.getProfileImageUrl());
+        response.setStatus("success");
+        response.setMessage("Login exitoso");
+        response.setRedirect(pendingUser.getRole() != null && pendingUser.getRole().getIdRole() == 1
+                ? "/admin-dashboard" : "/HomePage");
+
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("/verify-email")
     @ResponseBody
     public ResponseEntity<?> verifyEmail(@RequestBody VerifyEmailRequest verifyRequest, HttpSession session) {

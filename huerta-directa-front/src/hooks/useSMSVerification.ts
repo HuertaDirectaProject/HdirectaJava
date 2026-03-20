@@ -51,7 +51,7 @@ export const useSMSVerification = (phone: string) => {
             await confirmationResult.confirm(code);
 
             // Completar login en el backend
-            const response = await fetch(`${API_BASE}/api/login/complete-login`, {
+            const response = await fetch(`${API_BASE}/api/login/complete-sms`, {
                 method: "POST",
                 credentials: "include",
             });

@@ -1,6 +1,7 @@
 package com.exe.Huerta_directa.Controllers;
 
 import com.exe.Huerta_directa.DTO.BulkEmailByRoleRequest;
+import com.exe.Huerta_directa.DTO.BulkEmailByRoleRequest;
 import com.exe.Huerta_directa.DTO.BulkEmailFilteredRequest;
 import com.exe.Huerta_directa.DTO.BulkEmailRequest;
 import com.exe.Huerta_directa.DTO.BulkEmailResponse;
@@ -14,13 +15,6 @@ import com.lowagie.text.Phrase;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import jakarta.mail.MessagingException;
-import jakarta.mail.Authenticator;
-import jakarta.mail.Message;
-import jakarta.mail.PasswordAuthentication;
-import jakarta.mail.Session;
-import jakarta.mail.Transport;
-import jakarta.mail.internet.InternetAddress;
-import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
@@ -30,15 +24,12 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
-//import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-//import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.beans.factory.annotation.Value;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,6 +40,10 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.util.*;
 import java.util.stream.Collectors;
+import com.resend.Resend;
+import com.resend.services.emails.model.CreateEmailOptions;
+
+
 
 @Controller
 @RequestMapping("/api/users")
@@ -57,13 +52,6 @@ public class UserController {
     private final UserRepository userRepository;
     private final ProductService productService;
     // Constantes para email centralizadas para evitar duplicación
-    private static final String EMAIL_HOST = "smtp.gmail.com";
-    private static final String EMAIL_PORT = "587";
-    private static final String SENDER_EMAIL = "hdirecta@gmail.com";
-    // Nota: la contraseña de aplicación idealmente debe guardarse en
-    // properties/secret manager
-    @Value("${mail.sender.password}")
-    private String SENDER_PASSWORD;
 
     public UserController(UserService userService, UserRepository userRepository, ProductService productService) {
         this.userRepository = userRepository;
@@ -562,18 +550,6 @@ public class UserController {
     private PasswordEncoder passwordEncoder; // o BCryptPasswordEncoder, pero mejor PasswordEncoder
 
     // Método reutilizable para crear la sesión de correo con las constantes
-    private Session crearSesionCorreo() {
-        Properties props = new Properties();
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.smtp.host", EMAIL_HOST);
-        props.put("mail.smtp.port", EMAIL_PORT);
-        return Session.getInstance(props, new Authenticator() {
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(SENDER_EMAIL, SENDER_PASSWORD);
-            }
-        });
-    }
 
     // ========== MÃ‰TODOS AUXILIARES PARA EXPORTACIÃ“N ==========
     private List<UserDTO> obtenerUsuariosFiltrados(String dato, String valor) {
@@ -805,60 +781,45 @@ public class UserController {
      * Método para envío masivo optimizado - Configuración SMTP mejorada
      */
     private void enviarCorreoMasivoOptimizado(List<User> users, String asunto, String cuerpo) throws MessagingException {
-        // Configuración SMTP optimizada
-        Properties props = new Properties();
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.smtp.host", EMAIL_HOST);
-        props.put("mail.smtp.port", EMAIL_PORT);
-        // Optimizaciones de rendimiento
-        props.put("mail.smtp.connectionpoolsize", "10");
-        props.put("mail.smtp.connectionpooltimeout", "30000");
-        props.put("mail.smtp.timeout", "10000");
-        props.put("mail.smtp.writetimeout", "10000");
-        
-        Session session = Session.getInstance(props, new Authenticator() {
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(SENDER_EMAIL, SENDER_PASSWORD);
+        try {
+            String apiKey = System.getenv("RESEND_API_KEY");
+            Resend resend = new Resend(apiKey);
+            String htmlContent = crearContenidoHTMLEnvioMasivo("Usuario", cuerpo);
+            for (User user : users) {
+                try {
+                    CreateEmailOptions emailOptions = CreateEmailOptions.builder()
+                            .from("Huerta Directa <onboarding@resend.dev>")
+                            .to(user.getEmail())
+                            .subject(asunto)
+                            .html(htmlContent)
+                            .build();
+                    resend.emails().send(emailOptions);
+                } catch (Exception e) {
+                    System.err.println("Error enviando a " + user.getEmail() + ": " + e.getMessage());
+                }
             }
-        });
-        
-        MimeMessage message = new MimeMessage(session);
-        message.setFrom(new InternetAddress(SENDER_EMAIL));
-        
-        // Agregar todos los destinatarios usando BCC
-        InternetAddress[] destinatarios = new InternetAddress[users.size()];
-        for (int i = 0; i < users.size(); i++) {
-            destinatarios[i] = new InternetAddress(users.get(i).getEmail());
+        } catch (Exception e) {
+            throw new MessagingException("Error en envío masivo: " + e.getMessage());
         }
-        message.setRecipients(Message.RecipientType.BCC, destinatarios);
-        message.setSubject(asunto);
-        
-        // Aplicar estilo HTML
-        String htmlContent = crearContenidoHTMLEnvioMasivo("Usuario", cuerpo);
-        message.setContent(htmlContent, "text/html; charset=utf-8");
-        
-        // Envío optimizado
-        Transport.send(message);
     }
 
     /**
      * Método para enviar correo individual
      */
     private void enviarCorreoIndividual(String destinatario, String asunto, String cuerpo) throws MessagingException {
-        Session session = crearSesionCorreo();
-        MimeMessage message = new MimeMessage(session);
-        message.setFrom(new InternetAddress(SENDER_EMAIL));
-        message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(destinatario));
-        message.setSubject(asunto);
-
-        if (cuerpo.trim().startsWith("<!DOCTYPE") || cuerpo.trim().startsWith("<html")) {
-            message.setContent(cuerpo, "text/html; charset=utf-8");
-        } else {
-            message.setText(cuerpo, "utf-8");
+        try {
+            String apiKey = System.getenv("RESEND_API_KEY");
+            Resend resend = new Resend(apiKey);
+            CreateEmailOptions emailOptions = CreateEmailOptions.builder()
+                    .from("Huerta Directa <onboarding@resend.dev>")
+                    .to(destinatario)
+                    .subject(asunto)
+                    .html(cuerpo)
+                    .build();
+            resend.emails().send(emailOptions);
+        } catch (Exception e) {
+            throw new MessagingException("Error enviando correo: " + e.getMessage());
         }
-
-        Transport.send(message);
     }
 
     /**

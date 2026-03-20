@@ -4,11 +4,9 @@ import com.exe.Huerta_directa.DTO.UserDTO;
 import com.exe.Huerta_directa.Entity.User;
 import com.exe.Huerta_directa.Repository.UserRepository;
 import com.exe.Huerta_directa.Service.UserService;
-import jakarta.mail.*;
-import jakarta.mail.internet.InternetAddress;
-import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import jakarta.mail.MessagingException;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,13 +25,15 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.time.Period;
-import java.util.Properties;
 import java.util.Random;
 import java.security.SecureRandom;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.resend.Resend;
+import com.resend.services.emails.model.CreateEmailOptions;
+import com.resend.services.emails.model.CreateEmailResponse;
 
 @Controller
 @RequestMapping("/api/login")
@@ -70,32 +70,7 @@ public class LoginController {
     private String SENDER_PASSWORD;
 
     // Metodo para crear la sesion de correo
-    private Session crearSesionCorreo() {
-        Properties props = new Properties();
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.host", EMAIL_HOST);
-        props.put("mail.smtp.port", EMAIL_PORT);
 
-        // SSL explícito para puerto 465 — Railway compatible
-        props.put("mail.smtp.ssl.enable", "true");
-        props.put("mail.smtp.starttls.enable", "false");
-        props.put("mail.smtp.starttls.required", "false");
-        props.put("mail.smtp.ssl.trust", "smtp.gmail.com");
-        props.put("mail.smtp.socketFactory.port", "465");
-        props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
-        props.put("mail.smtp.socketFactory.fallback", "false");
-
-        // Timeouts
-        props.put("mail.smtp.connectiontimeout", "10000");
-        props.put("mail.smtp.timeout", "10000");
-        props.put("mail.smtp.writetimeout", "10000");
-
-        return Session.getInstance(props, new Authenticator() {
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(SENDER_EMAIL, SENDER_PASSWORD);
-            }
-        });
-    }
 
     /**
      * Endpoint para registro de usuarios
@@ -188,17 +163,27 @@ public class LoginController {
     }
 
     // Metodo para enviar correo de confirmacion de que si se registro
+    private void enviarCorreoIndividual(String destinatario, String asunto, String cuerpo) throws MessagingException {
+        try {
+            log.info("Enviando correo a: {} con asunto: {}", destinatario, asunto);
+            String apiKey = System.getenv("RESEND_API_KEY");
+            Resend resend = new Resend(apiKey);
+            CreateEmailOptions emailOptions = CreateEmailOptions.builder()
+                    .from("Huerta Directa <onboarding@resend.dev>")
+                    .to(destinatario)
+                    .subject(asunto)
+                    .html(cuerpo)
+                    .build();
+            resend.emails().send(emailOptions);
+            log.info("Correo enviado satisfactoriamente a: {}", destinatario);
+        } catch (Exception e) {
+            log.error("Fallo al enviar correo a {}: {}", destinatario, e.getMessage());
+            throw new MessagingException("Error enviando correo: " + e.getMessage());
+        }
+    }
+
     private void enviarCorreoConfirmacion(String nombre, String email) throws MessagingException {
-        Session session = crearSesionCorreo();
-        MimeMessage message = new MimeMessage(session);
-        message.setFrom(new InternetAddress(SENDER_EMAIL));
-        message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(email));
-        message.setSubject("Registro exitoso en Huerta Directa");
-        // Crear el contenido HTML del correo
-        String htmlContent = crearContenidoHTMLCorreo(nombre);
-        // Configurar el mensaje como HTML
-        message.setContent(htmlContent, "text/html; charset=utf-8");
-        Transport.send(message);
+        enviarCorreoIndividual(email, "Registro exitoso en Huerta Directa", crearContenidoHTMLCorreo(nombre));
     }
 
     // CONTENIDO HTML DEL CORREO DE REGISTRO
@@ -897,16 +882,8 @@ public class LoginController {
     /**
      * Metodo para enviar correo con la nueva contraseÃ±a
      */
-    private void enviarCorreoNuevaContrasena(String nombre, String email, String nuevaContrasena)
-            throws MessagingException {
-        Session session = crearSesionCorreo();
-        MimeMessage message = new MimeMessage(session);
-        message.setFrom(new InternetAddress(SENDER_EMAIL));
-        message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(email));
-        message.setSubject("Tu nueva contraseña - Huerta Directa");
-        String htmlContent = crearContenidoHTMLNuevaContrasena(nombre, nuevaContrasena);
-        message.setContent(htmlContent, "text/html; charset=utf-8");
-        Transport.send(message);
+    private void enviarCorreoNuevaContrasena(String nombre, String email, String nuevaContrasena) throws MessagingException {
+        enviarCorreoIndividual(email, "Tu nueva contraseña - Huerta Directa", crearContenidoHTMLNuevaContrasena(nombre, nuevaContrasena));
     }
 
     /**
@@ -1352,22 +1329,6 @@ public class LoginController {
                 """.formatted(nombre, codigo);
     }
 
-    private void enviarCorreoIndividual(String destinatario, String asunto, String cuerpo) throws MessagingException {
-        try {
-            log.info("Enviando correo a: {} con asunto: {}", destinatario, asunto);
-            Session session = crearSesionCorreo();
-            MimeMessage message = new MimeMessage(session);
-            message.setFrom(new InternetAddress(SENDER_EMAIL));
-            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(destinatario));
-            message.setSubject(asunto);
-            message.setContent(cuerpo, "text/html; charset=utf-8");
-            Transport.send(message);
-            log.info("Correo enviado satisfactoriamente a: {}", destinatario);
-        } catch (MessagingException e) {
-            log.error("Fallo al enviar correo a {}: {}", destinatario, e.getMessage());
-            throw e;
-        }
-    }
 
     private String generateEmailOtpCode() {
         int max = (int) Math.pow(10, EMAIL_CODE_LENGTH);

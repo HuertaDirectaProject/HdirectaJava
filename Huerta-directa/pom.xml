@@ -85,6 +85,15 @@
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
+        <!-- resend para envio de correos) -->
+
+        <dependency>
+            <groupId>com.resend</groupId>
+            <artifactId>resend-java</artifactId>
+            <version>3.1.0</version>
+        </dependency>
+
+
 
         <!-- ModelMapper -->
         <dependency>

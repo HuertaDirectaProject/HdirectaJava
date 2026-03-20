@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSMSVerification } from "../../hooks/useSMSVerification";
-import authService from "../../services/authService";
 
 export const SMSVerification = () => {
     const navigate = useNavigate();
     const [code, setCode] = useState(["", "", "", "", "", ""]);
-    const user = authService.getCurrentUser();
-    const phone = user?.phone ?? "";
+    const phone = sessionStorage.getItem("pendingPhone") ?? "";
+
 
     const { sendSMS, verifyCode, loading, error, success } = useSMSVerification(phone);
 

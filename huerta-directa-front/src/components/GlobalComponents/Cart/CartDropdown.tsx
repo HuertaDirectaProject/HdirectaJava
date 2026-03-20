@@ -173,9 +173,10 @@ export const CartDropdown = ({ open, onClose }: Props) => {
             />
 
             <Button
-              text="Proceder al Pago"
-              iconLetf={faCreditCard}
-              className="bg-[#8cc63f] hover:bg-[#6da82f] px-7 py-3 rounded-md text-white"
+                text="Proceder al Pago"
+                to="/payment/checkout"
+                iconLetf={faCreditCard}
+                className="bg-[#8cc63f] hover:bg-[#6da82f] px-7 py-3 rounded-md text-white"
             />
           </div>
 

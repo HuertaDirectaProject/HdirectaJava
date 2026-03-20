@@ -21,6 +21,8 @@ export interface LoginResponse {
   redirect?: string;
   maskedEmail?: string;
   hasPhone?: boolean;
+  phone?: string;
+
 }
 
 export interface RegisterResponse {
@@ -30,6 +32,7 @@ export interface RegisterResponse {
   idRole: number | null;
   profileImageUrl?: string;
   message: string;
+  phone?: string;
 }
 
 export interface ForgotPasswordResponse {
@@ -86,6 +89,7 @@ class AuthService {
       email: data.email,
       idRole: data.idRole,
       profileImageUrl: data.profileImageUrl,
+      phone: data.phone,
     });
 
     return data;

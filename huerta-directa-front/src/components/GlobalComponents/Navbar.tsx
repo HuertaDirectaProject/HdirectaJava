@@ -41,7 +41,7 @@ export const Navbar = ({
         {/* Logo */}
         <Link
           to="/"
-          className="text-[#8dc84b] text-[14px] mr-1 sm:text-[23px] font-bold tracking-wide hover:scale-105 transition  duration-500"
+          className="text-[#8dc84b] text-[18px] mr-1 sm:text-[23px] font-bold tracking-wide hover:scale-105 transition  duration-500"
         >
           HUERTA DIRECTA
         </Link>

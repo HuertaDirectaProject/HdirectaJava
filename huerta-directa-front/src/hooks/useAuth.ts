@@ -86,6 +86,8 @@ export const useAuth = () => {
         setEmailCode("");
         setResendCooldown(0);
         setOtpSecondsLeft(OTP_EXPIRATION_SECONDS);
+        // ← guardar email para que SMSVerification sepa quién es
+        sessionStorage.setItem("pendingPhone", response.phone ?? "");
         setSuccess("Elige el canal para recibir el código");
         return;
       }

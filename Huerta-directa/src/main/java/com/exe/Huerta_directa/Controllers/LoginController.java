@@ -350,6 +350,7 @@ public class LoginController {
             verifyResponse.setMessage("Selecciona cómo deseas recibir el código");
             verifyResponse.setMaskedEmail(maskEmail(user.getEmail()));
             verifyResponse.setHasPhone(user.getPhone() != null && !user.getPhone().isBlank());
+            verifyResponse.setPhone(user.getPhone()); // ← agregar esta línea
             return ResponseEntity.ok(verifyResponse);
 
             // ============================================================================
@@ -1162,6 +1163,7 @@ public class LoginController {
         private String profileImageUrl;
         private String maskedEmail;
         private boolean hasPhone;
+        private String phone;
 
         // Getters y Setters
         public Long getId() {
@@ -1242,6 +1244,14 @@ public class LoginController {
 
         public void setHasPhone(boolean hasPhone) {
             this.hasPhone = hasPhone;
+        }
+        // ← agregar estos al final de la clase
+        public String getPhone() {
+            return phone;
+        }
+
+        public void setPhone(String phone) {
+            this.phone = phone;
         }
     }
 

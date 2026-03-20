@@ -1,8 +1,11 @@
 import { Link } from "react-router-dom";
-import { faCarrot } from "@fortawesome/free-solid-svg-icons";
+import { faBars, faCarrot } from "@fortawesome/free-solid-svg-icons";
 import { Button } from "./Button";
 import { ProfileMenu } from "./ProfileMenu";
 import { CartButton } from "./Cart/CartButton";
+import { useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { MobileNav } from "./MobileNav";
 
 interface NavbarProp {
   className?: string;
@@ -28,6 +31,8 @@ export const Navbar = ({
   const baseClasses =
     "max-w-330 mx-auto bg-transparent   px-10 py-4 flex items-center justify-between text-[15px] ";
 
+  const [openMenu, setOpenMenu] = useState(false);
+
   return (
     <section className="max-w-full  dark:bg-[#1A221C] dark:from-[#1A221C] dark:via-white/20 dark:to-[#1A221C] ">
       <header
@@ -41,8 +46,16 @@ export const Navbar = ({
           HUERTA DIRECTA
         </Link>
 
+        {/* 🔥 BOTÓN MOBILE */}
+        <button
+          onClick={() => setOpenMenu(true)}
+          className="md:hidden text-2xl text-[#8dc84b]"
+        >
+          <FontAwesomeIcon icon={faBars} />
+        </button>
+
         {/* Navegación */}
-        <nav className="flex items-center gap-2 sm:gap-6 ">
+        <nav className="hidden md:flex items-center gap-6">
           {showInicio && (
             <Link
               to="/HomePage"
@@ -79,7 +92,7 @@ export const Navbar = ({
           )}
 
           {showAddProduct && (
-            <Button 
+            <Button
               text="Agrega productos"
               to="/DashBoardAgregarProducto"
               iconRight={faCarrot}
@@ -93,6 +106,17 @@ export const Navbar = ({
           {showProfile && <ProfileMenu />}
         </nav>
       </header>
+      <MobileNav
+        open={openMenu}
+        onClose={() => setOpenMenu(false)}
+        showInicio={showInicio}
+        showCategorias={showCategorias}
+        showProductos={showProductos}
+        showQuienesSomos={showQuienesSomos}
+        showAddProduct={showAddProduct}
+        showProfile={showProfile}
+        showCart={showCart}
+      />
     </section>
   );
 };

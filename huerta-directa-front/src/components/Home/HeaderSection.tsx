@@ -8,7 +8,7 @@ export const HeaderSection = () => {
     <section className="max-w-full dark:bg-[#1A221C] dark:from-[#1A221C] dark:via-white/20 dark:to-[#1A221C] ">
       {/* Texto */}
       <div className="max-w-300 mx-auto flex items-center py-4 transition-colors! duration-500!  dark:bg-[#1A221C] dark:from-[#1A221C] dark:via-white/20 dark:to-[#1A221C]">
-        <div className="flex-1">
+        <div className="flex-1 px-3 text-center md:text-left flex flex-col items-center md:items-start">
           <h1 className="text-[#333128] text-[55px] mb-6 leading-none dark:text-white">
             Frutas y verduras
           </h1>
@@ -29,7 +29,7 @@ export const HeaderSection = () => {
         </div>
 
         {/* Imagen con efecto flip */}
-        <div className="flex-1 flex justify-center">
+        <div className="flex-1  justify-center hidden md:flex ">
           <div className="relative w-100 h-100 perspective">
             <div className="flip-card-inner">
               {/* Imagen frontal */}

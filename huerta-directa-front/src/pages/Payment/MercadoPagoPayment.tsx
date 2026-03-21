@@ -47,39 +47,22 @@ export const MercadoPagoPayment = () => {
           onReady: () => console.log("✅ Brick cargado"),
           onSubmit: async (data: any) => {
             console.log("🔥 onSubmit disparado:", JSON.stringify(data));
-            console.log("🔥 formData:", JSON.stringify(data.formData)); // ← agrega
-            console.log("🔥 payment_method_id root:", data.payment_method_id); // ← agrega
-            console.log(
-              "🔥 payment_method_id formData:",
-              data.formData?.payment_method_id,
-            ); // ← agrega
             try {
               const payload = {
-                ...data,
                 transaction_amount: Math.floor(totals.total),
                 description: CONFIG.DESCRIPTION,
+                payment_method_id: data.formData.payment_method_id,
+                token: data.formData.token,
+                installments: data.formData.installments,
+                issuer_id: data.formData.issuer_id,
                 payer: {
-                  email:
-                    data.payer?.email ??
-                    data.formData?.payer?.email ??
-                    CONFIG.PAYER_EMAIL,
-                  first_name:
-                    data.payer?.firstName ??
-                    data.formData?.payer?.firstName ??
-                    "",
-                  last_name:
-                    data.payer?.lastName ??
-                    data.formData?.payer?.lastName ??
-                    "",
+                  email: data.formData.payer?.email ?? CONFIG.PAYER_EMAIL,
+                  first_name: data.formData.payer?.firstName ?? "",
+                  last_name: data.formData.payer?.lastName ?? "",
                   identification: {
-                    type:
-                      data.payer?.identification?.type ??
-                      data.formData?.payer?.identification?.docType ??
-                      "CC",
+                    type: data.formData.payer?.identification?.docType ?? "CC",
                     number:
-                      data.payer?.identification?.number ??
-                      data.formData?.payer?.identification?.docNumber ??
-                      "",
+                      data.formData.payer?.identification?.docNumber ?? "",
                   },
                 },
               };

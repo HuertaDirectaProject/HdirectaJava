@@ -16,15 +16,18 @@ export const useSMSVerification = (phone: string) => {
     };
 
     const initRecaptcha = () => {
-        if (!(window as any).recaptchaVerifier) {
-            (window as any).recaptchaVerifier = new RecaptchaVerifier(
-                auth,
-                "recaptcha-container",
-                { size: "normal" }
-            );
-        }
-        return (window as any).recaptchaVerifier;
-    };
+    if (!(window as any).recaptchaVerifier) {
+        const container = document.getElementById("recaptcha-container");
+        if (!container) throw new Error("recaptcha-container no encontrado");
+        
+        (window as any).recaptchaVerifier = new RecaptchaVerifier(
+            auth,
+            container,  // ← elemento DOM, no string
+            { size: "normal" }
+        );
+    }
+    return (window as any).recaptchaVerifier;
+  };
 
     const sendSMS = async () => {
         try {

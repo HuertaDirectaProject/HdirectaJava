@@ -55,6 +55,20 @@ function App() {
                         <Route path="/quienessomos" element={<QuienesSomos />} />
                     </Route>
 
+                    {/* Auth */}
+                    <Route element={<AuthLayout />}>
+                        <Route path="/login" element={<Login />} />
+                        <Route path="/register" element={<Login />} />
+                        <Route path="/forgot-password" element={<ForgotPassword />} />
+                        <Route path="/forgot-password-mobile" element={<ForgotPasswordMobile />} />
+                        <Route path="/RegisterMobile" element={<RegisterMobilePage />} />
+                    </Route>
+
+                    {/* SMS - flujo de login, sin protección */}
+                    <Route path="/verify-sms" element={<SMSVerification />} />
+
+                    <Route path="*" element={<Navigate to="/" />} />
+
                     {/* Rutas protegidas */}
                     <Route element={<ProtectedRoute />}>
 
@@ -87,7 +101,6 @@ function App() {
                             <Route path="/actualizacionUsuario" element={<ActualizacionUsuario />} />
                         </Route>
 
-                        <Route path="/verify-sms" element={<SMSVerification />} />
 
                         <Route element={<PaymentProvider><PaymentLayout /></PaymentProvider>}>
                             <Route path="/payment/checkout" element={<CheckoutSummaryPage />} />

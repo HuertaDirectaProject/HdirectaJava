@@ -47,18 +47,39 @@ export const MercadoPagoPayment = () => {
           onReady: () => console.log("✅ Brick cargado"),
           onSubmit: async (data: any) => {
             console.log("🔥 onSubmit disparado:", JSON.stringify(data));
+            console.log("🔥 formData:", JSON.stringify(data.formData)); // ← agrega
+            console.log("🔥 payment_method_id root:", data.payment_method_id); // ← agrega
+            console.log(
+              "🔥 payment_method_id formData:",
+              data.formData?.payment_method_id,
+            ); // ← agrega
             try {
               const payload = {
                 ...data,
                 transaction_amount: Math.floor(totals.total),
                 description: CONFIG.DESCRIPTION,
                 payer: {
-                  email: data.payer?.email ?? data.formData?.payer?.email ?? CONFIG.PAYER_EMAIL,
-                  first_name: data.payer?.firstName ?? data.formData?.payer?.firstName ?? "",
-                  last_name: data.payer?.lastName ?? data.formData?.payer?.lastName ?? "",
+                  email:
+                    data.payer?.email ??
+                    data.formData?.payer?.email ??
+                    CONFIG.PAYER_EMAIL,
+                  first_name:
+                    data.payer?.firstName ??
+                    data.formData?.payer?.firstName ??
+                    "",
+                  last_name:
+                    data.payer?.lastName ??
+                    data.formData?.payer?.lastName ??
+                    "",
                   identification: {
-                    type: data.payer?.identification?.type ?? data.formData?.payer?.identification?.docType ?? "CC",
-                    number: data.payer?.identification?.number ?? data.formData?.payer?.identification?.docNumber ?? "",
+                    type:
+                      data.payer?.identification?.type ??
+                      data.formData?.payer?.identification?.docType ??
+                      "CC",
+                    number:
+                      data.payer?.identification?.number ??
+                      data.formData?.payer?.identification?.docNumber ??
+                      "",
                   },
                 },
               };
@@ -68,7 +89,10 @@ export const MercadoPagoPayment = () => {
               if (result.status === "approved") {
                 clearCart();
                 navigate("/payment/success");
-              } else if (result.status === "pending" || result.status === "in_process") {
+              } else if (
+                result.status === "pending" ||
+                result.status === "in_process"
+              ) {
                 navigate("/payment/pending");
               } else {
                 navigate("/payment/failure");
@@ -88,7 +112,7 @@ export const MercadoPagoPayment = () => {
     };
 
     const existingScript = document.querySelector(
-      'script[src="https://sdk.mercadopago.com/js/v2"]'
+      'script[src="https://sdk.mercadopago.com/js/v2"]',
     );
 
     if (existingScript) {

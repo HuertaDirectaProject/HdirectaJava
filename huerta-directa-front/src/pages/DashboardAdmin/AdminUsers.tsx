@@ -13,6 +13,7 @@ import {
 import { usePageTitle } from "../../hooks/usePageTitle";
 import { Button } from "../../components/GlobalComponents/Button";
 import { EditUserModal } from "../../components/Modals/EditUserModal";
+import { API_URL } from "../../config/api";
 
 interface UserInfo {
   id: number;
@@ -36,7 +37,7 @@ export const AdminUsers: React.FC = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await fetch("/api/users");
+       const response = await fetch(`${API_URL}/api/users`);
         if (response.ok) {
           const data = await response.json();
           const mappedUsers: UserInfo[] = data.map((u: any) => ({

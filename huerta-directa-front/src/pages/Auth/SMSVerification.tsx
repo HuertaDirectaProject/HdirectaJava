@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSMSVerification } from "../../hooks/useSMSVerification";
+import { Button } from "../../components/GlobalComponents/Button";
 
 export const SMSVerification = () => {
     const navigate = useNavigate();
@@ -61,13 +62,14 @@ export const SMSVerification = () => {
                 {error && <p className="text-red-500 text-center mb-4">{error}</p>}
                 {success && <p className="text-green-500 text-center mb-4">✅ Verificación exitosa</p>}
 
-                <button
+                <Button
                     onClick={() => verifyCode(code.join(""))}
-                    disabled={loading || code.some(d => d === "")}
-                    className="w-full py-3 bg-[#8dc84b] text-white font-bold rounded-xl disabled:opacity-50"
-                >
-                    {loading ? "Verificando..." : "Continuar"}
-                </button>
+                    disabled={code.some(d => d === "")}
+                    isLoading={loading}
+                    loadingText="Verificando..."
+                    text="Continuar"
+                    className="w-full py-3 text-white font-bold rounded-xl"
+                />
             </div>
         </div>
     );

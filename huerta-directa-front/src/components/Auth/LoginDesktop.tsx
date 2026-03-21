@@ -37,6 +37,11 @@ const LoginDesktop: React.FC = () => {
     maskedEmail,
     resendCooldown,
     otpSecondsLeft,
+    isRegistering,
+    isLoggingIn,
+    isSelectingChannel,
+    isVerifyingEmailCode,
+    isResendingEmailCode,
     handleRegisterChange,
     handleLoginChange,
     handleRegisterSubmit,
@@ -155,6 +160,9 @@ const LoginDesktop: React.FC = () => {
               text="Registrar"
               iconRight={faUserPlus}
               type="submit"
+              isLoading={isRegistering}
+              loadingType="dots"
+              loadingText="Creando cuenta..."
               className="text-[17px] inline-block py-3 px-8 text-white bg-[#8dc84b] rounded-[15px] transition-all duration-500 mt-2.5 hover:bg-[#004d00] font-semibold uppercase text-xs tracking-wider cursor-pointer"
             />
           </form>
@@ -178,10 +186,11 @@ const LoginDesktop: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => handleSelectVerificationChannel("email")}
+                  disabled={isSelectingChannel}
                   className="w-full py-3 px-4 rounded-[15px] border-2 border-[#8dc84b] text-[#2e7d32] font-semibold flex items-center justify-center gap-2 hover:bg-[#eef8e1] transition-all"
                 >
                   <FontAwesomeIcon icon={faEnvelope} />
-                  Recibir por correo
+                  {isSelectingChannel ? "Enviando..." : "Recibir por correo"}
                 </button>
 
                 <button
@@ -255,6 +264,8 @@ const LoginDesktop: React.FC = () => {
                 iconRight={faArrowRight}
                 text="Validar código"
                 type="submit"
+                isLoading={isVerifyingEmailCode}
+                loadingText="Validando..."
                 className="text-[17px] inline-block py-3 px-8 text-white bg-[#8dc84b] rounded-[15px] transition-all duration-500 mt-2.5 hover:bg-[#004d00] font-semibold uppercase text-xs tracking-wider cursor-pointer"
               />
 
@@ -262,10 +273,12 @@ const LoginDesktop: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleResendEmailCode}
-                  disabled={resendCooldown > 0}
+                  disabled={resendCooldown > 0 || isResendingEmailCode}
                   className="text-xs px-4 py-2 rounded-xl border border-[#8dc84b] text-[#2e7d32] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {resendCooldown > 0
+                  {isResendingEmailCode
+                    ? "Reenviando..."
+                    : resendCooldown > 0
                     ? `Reenviar (${resendCooldown}s)`
                     : "Reenviar"}
                 </button>
@@ -337,6 +350,9 @@ const LoginDesktop: React.FC = () => {
                 iconRight={faArrowRight}
                 text="Ingresar"
                 type="submit"
+                isLoading={isLoggingIn}
+                loadingType="dots"
+                loadingText="Ingresando..."
                 className="text-[17px] inline-block py-3 px-8 text-white bg-[#8dc84b] rounded-[15px] transition-all duration-500 mt-2.5 hover:bg-[#004d00] font-semibold uppercase text-xs tracking-wider cursor-pointer"
               />
             </form>

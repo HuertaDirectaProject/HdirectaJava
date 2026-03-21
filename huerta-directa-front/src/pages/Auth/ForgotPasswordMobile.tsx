@@ -118,10 +118,12 @@ return (
 
           {/* BOTÓN */}
           <Button
-            text={isSubmitting ? "Enviando..." : "Enviar recuperación"}
+            text="Enviar recuperación"
             iconRight={faPaperPlane}
             type="submit"
-            disabled={isSubmitting}
+            isLoading={isSubmitting}
+            loadingType="dots"
+            loadingText="Enviando..."
             className="text-[17px] inline-block py-3 px-8 text-white bg-[#8dc84b] rounded-[15px] transition-all duration-500 mt-2.5 hover:bg-[#004d00] font-semibold uppercase text-xs tracking-wider cursor-pointer"
           />
 

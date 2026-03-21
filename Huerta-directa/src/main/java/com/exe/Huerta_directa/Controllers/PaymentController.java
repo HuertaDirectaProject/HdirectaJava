@@ -15,12 +15,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Properties;
 
-import jakarta.mail.*;
-import jakarta.mail.internet.InternetAddress;
-import jakarta.mail.internet.MimeMessage;
-import org.springframework.beans.factory.annotation.Value;
+import jakarta.mail.MessagingException;
+
+import com.resend.Resend;
+import com.resend.services.emails.model.CreateEmailOptions;
 
 @RestController
 @RequestMapping("/api/payments")
@@ -32,12 +31,7 @@ public class PaymentController {
     private final com.exe.Huerta_directa.Repository.PaymentRepository paymentRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
     
-    // Constantes para email (igual que en UserController)
-    private static final String EMAIL_HOST = "smtp.gmail.com";
-    private static final String EMAIL_PORT = "587";
-    private static final String SENDER_EMAIL = "hdirecta@gmail.com";
-    @Value("${mail.sender.password}")
-    private String SENDER_PASSWORD;
+
 
 
     @PostMapping("/process")
@@ -191,36 +185,27 @@ public class PaymentController {
     /**
      * Método para crear sesión de correo (igual que en UserController)
      */
-    private Session crearSesionCorreo() {
-        Properties props = new Properties();
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.smtp.host", EMAIL_HOST);
-        props.put("mail.smtp.port", EMAIL_PORT);
-        return Session.getInstance(props, new Authenticator() {
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(SENDER_EMAIL, SENDER_PASSWORD);
-            }
-        });
-    }
+
     
     /**
      * Método para enviar correo individual (igual que en UserController)
      */
     private void enviarCorreoIndividual(String destinatario, String asunto, String cuerpo) throws MessagingException {
-        Session session = crearSesionCorreo();
-        MimeMessage message = new MimeMessage(session);
-        message.setFrom(new InternetAddress(SENDER_EMAIL));
-        message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(destinatario));
-        message.setSubject(asunto);
-
-        if (cuerpo.trim().startsWith("<!DOCTYPE") || cuerpo.trim().startsWith("<html")) {
-            message.setContent(cuerpo, "text/html; charset=utf-8");
-        } else {
-            message.setText(cuerpo, "utf-8");
+        try {
+            String apiKey = System.getenv("RESEND_API_KEY");
+            Resend resend = new Resend(apiKey);
+            CreateEmailOptions emailOptions = CreateEmailOptions.builder()
+                    .from("Huerta Directa <onboarding@resend.dev>")
+                    .to(destinatario)
+                    .subject(asunto)
+                    .html(cuerpo)
+                    .build();
+            resend.emails().send(emailOptions);
+            System.out.println("✉️ Correo enviado a: " + destinatario);
+        } catch (Exception e) {
+            System.err.println("❌ Error enviando correo: " + e.getMessage());
+            throw new MessagingException("Error enviando correo: " + e.getMessage());
         }
-
-        Transport.send(message);
     }
     
     /**

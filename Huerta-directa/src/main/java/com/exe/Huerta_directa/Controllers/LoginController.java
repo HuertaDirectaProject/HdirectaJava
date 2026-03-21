@@ -4,11 +4,9 @@ import com.exe.Huerta_directa.DTO.UserDTO;
 import com.exe.Huerta_directa.Entity.User;
 import com.exe.Huerta_directa.Repository.UserRepository;
 import com.exe.Huerta_directa.Service.UserService;
-import jakarta.mail.*;
-import jakarta.mail.internet.InternetAddress;
-import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import jakarta.mail.MessagingException;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,13 +25,14 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.time.Period;
-import java.util.Properties;
 import java.util.Random;
 import java.security.SecureRandom;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.resend.Resend;
+import com.resend.services.emails.model.CreateEmailOptions;
 
 @Controller
 @RequestMapping("/api/login")
@@ -55,7 +54,7 @@ public class LoginController {
     }
 
     private static final String EMAIL_HOST = "smtp.gmail.com";
-    private static final String EMAIL_PORT = "587";
+    private static final String EMAIL_PORT = "465";
     @Value("${mail.sender.email:hdirecta@gmail.com}")
     private String SENDER_EMAIL;
     private static final Pattern PHONE_PATTERN = Pattern.compile("^\\d{10}$");
@@ -70,25 +69,7 @@ public class LoginController {
     private String SENDER_PASSWORD;
 
     // Metodo para crear la sesion de correo
-    private Session crearSesionCorreo() {
-        Properties props = new Properties();
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.smtp.host", EMAIL_HOST);
-        props.put("mail.smtp.port", EMAIL_PORT);
-        props.put("mail.smtp.ssl.trust", "smtp.gmail.com");
-        
-        // Timeout configuration
-        props.put("mail.smtp.connectiontimeout", "5000");
-        props.put("mail.smtp.timeout", "5000");
-        props.put("mail.smtp.writetimeout", "5000");
 
-        return Session.getInstance(props, new Authenticator() {
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(SENDER_EMAIL, SENDER_PASSWORD);
-            }
-        });
-    }
 
     /**
      * Endpoint para registro de usuarios
@@ -181,17 +162,27 @@ public class LoginController {
     }
 
     // Metodo para enviar correo de confirmacion de que si se registro
+    private void enviarCorreoIndividual(String destinatario, String asunto, String cuerpo) throws MessagingException {
+        try {
+            log.info("Enviando correo a: {} con asunto: {}", destinatario, asunto);
+            String apiKey = System.getenv("RESEND_API_KEY");
+            Resend resend = new Resend(apiKey);
+            CreateEmailOptions emailOptions = CreateEmailOptions.builder()
+                    .from("Huerta Directa <onboarding@resend.dev>")
+                    .to(destinatario)
+                    .subject(asunto)
+                    .html(cuerpo)
+                    .build();
+            resend.emails().send(emailOptions);
+            log.info("Correo enviado satisfactoriamente a: {}", destinatario);
+        } catch (Exception e) {
+            log.error("Fallo al enviar correo a {}: {}", destinatario, e.getMessage());
+            throw new MessagingException("Error enviando correo: " + e.getMessage());
+        }
+    }
+
     private void enviarCorreoConfirmacion(String nombre, String email) throws MessagingException {
-        Session session = crearSesionCorreo();
-        MimeMessage message = new MimeMessage(session);
-        message.setFrom(new InternetAddress(SENDER_EMAIL));
-        message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(email));
-        message.setSubject("Registro exitoso en Huerta Directa");
-        // Crear el contenido HTML del correo
-        String htmlContent = crearContenidoHTMLCorreo(nombre);
-        // Configurar el mensaje como HTML
-        message.setContent(htmlContent, "text/html; charset=utf-8");
-        Transport.send(message);
+        enviarCorreoIndividual(email, "Registro exitoso en Huerta Directa", crearContenidoHTMLCorreo(nombre));
     }
 
     // CONTENIDO HTML DEL CORREO DE REGISTRO
@@ -358,6 +349,7 @@ public class LoginController {
             verifyResponse.setMessage("Selecciona cómo deseas recibir el código");
             verifyResponse.setMaskedEmail(maskEmail(user.getEmail()));
             verifyResponse.setHasPhone(user.getPhone() != null && !user.getPhone().isBlank());
+            verifyResponse.setPhone(user.getPhone()); // ← agregar esta línea
             return ResponseEntity.ok(verifyResponse);
 
             // ============================================================================
@@ -448,6 +440,36 @@ public class LoginController {
         return ResponseEntity
                 .status(HttpStatus.GONE)
                 .body(new ErrorResponse("Este endpoint fue reemplazado por /api/login/verify-email"));
+    }
+
+    @PostMapping("/complete-sms")
+    @ResponseBody
+    public ResponseEntity<?> completeSmsLogin(HttpSession session) {
+        User pendingUser = (User) session.getAttribute("pendingUser");
+
+        if (pendingUser == null) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(new ErrorResponse("No hay verificación pendiente. Inicia sesión nuevamente."));
+        }
+
+        session.setAttribute("user", pendingUser);
+        session.setAttribute("userId", pendingUser.getId());
+        session.setAttribute("userRole", pendingUser.getRole() != null ? pendingUser.getRole().getIdRole() : null);
+        clearPendingEmailSession(session);
+
+        LoginResponse response = new LoginResponse();
+        response.setId(pendingUser.getId());
+        response.setName(pendingUser.getName());
+        response.setEmail(pendingUser.getEmail());
+        response.setIdRole(pendingUser.getRole() != null ? pendingUser.getRole().getIdRole() : null);
+        response.setProfileImageUrl(pendingUser.getProfileImageUrl());
+        response.setStatus("success");
+        response.setMessage("Login exitoso");
+        response.setRedirect(pendingUser.getRole() != null && pendingUser.getRole().getIdRole() == 1
+                ? "/admin-dashboard" : "/HomePage");
+
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/verify-email")
@@ -890,16 +912,8 @@ public class LoginController {
     /**
      * Metodo para enviar correo con la nueva contraseÃ±a
      */
-    private void enviarCorreoNuevaContrasena(String nombre, String email, String nuevaContrasena)
-            throws MessagingException {
-        Session session = crearSesionCorreo();
-        MimeMessage message = new MimeMessage(session);
-        message.setFrom(new InternetAddress(SENDER_EMAIL));
-        message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(email));
-        message.setSubject("Tu nueva contraseña - Huerta Directa");
-        String htmlContent = crearContenidoHTMLNuevaContrasena(nombre, nuevaContrasena);
-        message.setContent(htmlContent, "text/html; charset=utf-8");
-        Transport.send(message);
+    private void enviarCorreoNuevaContrasena(String nombre, String email, String nuevaContrasena) throws MessagingException {
+        enviarCorreoIndividual(email, "Tu nueva contraseña - Huerta Directa", crearContenidoHTMLNuevaContrasena(nombre, nuevaContrasena));
     }
 
     /**
@@ -1148,6 +1162,7 @@ public class LoginController {
         private String profileImageUrl;
         private String maskedEmail;
         private boolean hasPhone;
+        private String phone;
 
         // Getters y Setters
         public Long getId() {
@@ -1228,6 +1243,14 @@ public class LoginController {
 
         public void setHasPhone(boolean hasPhone) {
             this.hasPhone = hasPhone;
+        }
+        // ← agregar estos al final de la clase
+        public String getPhone() {
+            return phone;
+        }
+
+        public void setPhone(String phone) {
+            this.phone = phone;
         }
     }
 
@@ -1345,22 +1368,6 @@ public class LoginController {
                 """.formatted(nombre, codigo);
     }
 
-    private void enviarCorreoIndividual(String destinatario, String asunto, String cuerpo) throws MessagingException {
-        try {
-            log.info("Enviando correo a: {} con asunto: {}", destinatario, asunto);
-            Session session = crearSesionCorreo();
-            MimeMessage message = new MimeMessage(session);
-            message.setFrom(new InternetAddress(SENDER_EMAIL));
-            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(destinatario));
-            message.setSubject(asunto);
-            message.setContent(cuerpo, "text/html; charset=utf-8");
-            Transport.send(message);
-            log.info("Correo enviado satisfactoriamente a: {}", destinatario);
-        } catch (MessagingException e) {
-            log.error("Fallo al enviar correo a {}: {}", destinatario, e.getMessage());
-            throw e;
-        }
-    }
 
     private String generateEmailOtpCode() {
         int max = (int) Math.pow(10, EMAIL_CODE_LENGTH);

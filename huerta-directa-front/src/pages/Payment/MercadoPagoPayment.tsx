@@ -30,7 +30,7 @@ export const MercadoPagoPayment = () => {
 
       const settings = {
         initialization: {
-          amount: totals.total,
+          amount: Math.floor(totals.total),
           payer: { email: CONFIG.PAYER_EMAIL },
         },
         customization: {
@@ -50,7 +50,7 @@ export const MercadoPagoPayment = () => {
             try {
               const payload = {
                 ...data,
-                transaction_amount: totals.total,
+                transaction_amount: Math.floor(totals.total),
                 description: CONFIG.DESCRIPTION,
                 payer: {
                   email: data.payer?.email ?? data.formData?.payer?.email ?? CONFIG.PAYER_EMAIL,

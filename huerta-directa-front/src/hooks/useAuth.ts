@@ -143,6 +143,11 @@ export const useAuth = () => {
     setIsSelectingChannel(true);
 
     if (channel === "sms") {
+      if (!hasPhoneChannel) {
+        setError("Debes registrar un número celular para usar verificación por SMS");
+        setIsSelectingChannel(false);
+        return;
+      }
       navigate("/verify-sms");
       setIsSelectingChannel(false);
       return;

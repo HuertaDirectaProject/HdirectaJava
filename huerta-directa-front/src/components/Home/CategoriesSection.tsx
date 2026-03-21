@@ -30,7 +30,7 @@ const CategoriesSection = () => {
     id="categorias"
     className="
       py-12
-      bg-gradient-to-b
+      bg-linear-to-b
       from-[#FEF5DC] via-white to-[#FEF5DC]
       dark:bg-[#1A221C]
       dark:from-[#1A221C]
@@ -86,8 +86,8 @@ const CategoriesSection = () => {
           <Link key={index} to={`/categoria/${category.slug}`}>
             <div
               className="
-                w-full max-w-[140px]
-                sm:max-w-[160px]
+                w-full max-w-35
+                sm:max-w-40
 
                 bg-white dark:bg-[#1A221C]
                 rounded-2xl

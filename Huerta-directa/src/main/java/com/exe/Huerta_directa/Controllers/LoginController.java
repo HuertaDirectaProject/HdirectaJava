@@ -53,8 +53,7 @@ public class LoginController {
         this.userService = userService;
     }
 
-    private static final String EMAIL_HOST = "smtp.gmail.com";
-    private static final String EMAIL_PORT = "465";
+
     @Value("${mail.sender.email:hdirecta@gmail.com}")
     private String SENDER_EMAIL;
     private static final Pattern PHONE_PATTERN = Pattern.compile("^\\d{10}$");

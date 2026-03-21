@@ -19,13 +19,12 @@ export const MercadoPagoPayment = () => {
   };
 
   useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://sdk.mercadopago.com/js/v2";
-    script.async = true;
-    document.head.appendChild(script);
-    return () => {
-      script.remove();
-    };
+    const timer = setTimeout(() => {
+      if (!(window as any).MercadoPago) return;
+      // ... resto del código
+    }, 1000); // aumenta a 1000ms para dar tiempo al script
+
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {

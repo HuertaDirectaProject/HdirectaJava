@@ -196,11 +196,11 @@ const LoginDesktop: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => handleSelectVerificationChannel("sms")}
-                  disabled={!hasPhoneChannel || isSelectingChannel}
+                  disabled={isSelectingChannel}
                   className={`w-full py-3 px-4 rounded-[15px] border-2 font-semibold flex items-center justify-center gap-2 transition-all ${
                     hasPhoneChannel
                       ? "border-[#8dc84b] text-[#2e7d32] hover:bg-[#eef8e1]"
-                      : "border-[#d9d9d9] text-[#666] cursor-not-allowed opacity-70"
+                      : "border-[#d9d9d9] text-[#666] hover:bg-red-300 cursor-pointer"
                   }`}
                 >
                   <FontAwesomeIcon icon={faMobile} />

@@ -40,45 +40,65 @@ const slides = [
 ];
 
 export const HeroSlider = () => {
-  return (
-    <section
-      className=" transition-colors! duration-500! 
+return (
+  <section
+    className="
+      transition-colors duration-500
       py-10
-      bg-linear-to-b from-[#FEF5DC] via-white to-[#FEF5DC] dark:bg-[#1A221C] dark:from-[#1A221C] dark:via-white/20 dark:to-[#1A221C]
-      "
-    >
-      <div className="max-w-330 mx-auto">
-        <Swiper
-          modules={[Pagination, Autoplay]}
-          pagination={{ clickable: true }}
-          autoplay={{ delay: 8000 }}
-          loop={true}
-          className="h-150"
-        >
-          {slides.map((slide, index) => (
-            <SwiperSlide key={index}>
-              <div className="relative h-150 flex items-center justify-center overflow-hidden">
-                {/* Imagen */}
-                <img
-                  src={slide.image}
-                  alt={slide.tag}
-                  className={slide.imageClass}
-                />
+      bg-linear-to-b from-[#FEF5DC] via-white to-[#FEF5DC]
+      dark:bg-[#1A221C] dark:from-[#1A221C] dark:via-white/20 dark:to-[#1A221C]
+    "
+  >
+    <div className="max-w-6xl mx-auto px-4">
+      <Swiper
+        modules={[Pagination, Autoplay]}
+        pagination={{ clickable: true }}
+        autoplay={{ delay: 8000 }}
+        loop={true}
+        className="h-125 sm:h-137.5 lg:h-150"
+      >
+        {slides.map((slide, index) => (
+          <SwiperSlide key={index}>
+            <div className="relative h-full flex items-center justify-center overflow-hidden">
 
-                {/* Contenido */}
-                <div
-                  className="
-                  relative z-10 mr-100 max-w-120
-                  bg-white/70 dark:bg-[#111814]/80
+              {/* IMAGEN */}
+              <img
+                src={slide.image}
+                alt={slide.tag}
+                className="
+                  absolute
+                  lg:right-30
+                  bottom-0
+                  w-[90%]
+                  sm:w-[70%]
+                  lg:w-[50%]
+                  object-contain
+                "
+              />
+
+              {/* CONTENIDO */}
+              <div
+                className="
+                  relative z-10
+                  w-full
+                  max-w-md
+                  
+                  bg-white/80 dark:bg-[#111814]/80
                   backdrop-blur-sm
-                  p-8
+                  
+                  p-6 sm:p-8
                   rounded-2xl
                   shadow-2xl
-                  transition
-                  "
-                >
-                  <h4
-                    className="
+                  
+                  text-center
+                  sm:text-left
+                  
+                  sm:ml-10
+                  lg:mr-50
+                "
+              >
+                <h4
+                  className="
                     inline-block
                     bg-[#8dc84b]
                     text-white
@@ -86,33 +106,35 @@ export const HeroSlider = () => {
                     rounded-full
                     text-sm
                     mb-4
-                    "
-                  >
-                    {slide.tag}
-                  </h4>
+                  "
+                >
+                  {slide.tag}
+                </h4>
 
-                  <h2
-                    className="
-                    text-3xl
+                <h2
+                  className="
+                    text-2xl sm:text-3xl
                     font-normal
                     text-[#8dc84b]
                     dark:text-[#9be15d]
                     leading-snug
                     mb-5
-                    "
-                  >
-                    <span className="dark:text-gray-200">{slide.title1}</span>
-                    <br />
-                    <strong className="text-4xl font-bold">
-                      {slide.title2}
-                    </strong>
-                  </h2>
+                  "
+                >
+                  <span className="dark:text-gray-200">
+                    {slide.title1}
+                  </span>
+                  <br />
+                  <strong className="text-3xl sm:text-4xl font-bold">
+                    {slide.title2}
+                  </strong>
+                </h2>
 
-                  <a
-                    href="#"
-                    className="
+                <a
+                  href="#"
+                  className="
                     inline-block
-                    px-8 py-4
+                    px-6 py-3 sm:px-8 sm:py-4
                     bg-[#8dc84b]
                     text-white
                     font-semibold
@@ -122,16 +144,16 @@ export const HeroSlider = () => {
                     transform
                     hover:scale-105
                     hover:bg-[#004d00]
-                    "
-                  >
-                    Ver Más
-                  </a>
-                </div>
+                  "
+                >
+                  Ver Más
+                </a>
               </div>
-            </SwiperSlide>
-          ))}
-        </Swiper>
-      </div>
-    </section>
-  );
+            </div>
+          </SwiperSlide>
+        ))}
+      </Swiper>
+    </div>
+  </section>
+);
 };

@@ -10,8 +10,7 @@ export const MercadoPagoPayment = () => {
   usePageTitle("MercadoPayment");
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
-  const { totals, clearCart } = useCart();
-
+  const { totals, clearCart, items } = useCart();
   const CONFIG = {
     PUBLIC_KEY: import.meta.env.VITE_MP_PUBLIC_KEY,
     DESCRIPTION: "Compra Huerta Directa",

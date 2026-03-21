@@ -5,6 +5,8 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.util.Map;
+import java.util.List;
+import com.exe.Huerta_directa.DTO.CarritoItem;
 
 @Data
 public class PaymentRequest {
@@ -38,6 +40,7 @@ public class PaymentRequest {
 
     @JsonProperty("notification_url")
     private String notificationUrl;
+    
 
     // Campos adicionales para pagos sin tarjeta
     @JsonProperty("transaction_details")
@@ -45,6 +48,8 @@ public class PaymentRequest {
 
     @JsonProperty("additional_info")
     private Map<String, Object> additionalInfo;
+
+    
 
     @Data
     public static class Payer {

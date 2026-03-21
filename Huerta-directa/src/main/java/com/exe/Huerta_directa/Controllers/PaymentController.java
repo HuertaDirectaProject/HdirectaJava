@@ -99,7 +99,7 @@ public class PaymentController {
                 }
                 // --------------------------------------------------
 
-                descontarStockDelCarrito(session);
+                descontarStockDelCarrito(paymentRequest.getCarrito());
 
                 // Enviar correo de confirmación
                 try {
@@ -139,11 +139,8 @@ public class PaymentController {
         }
     }
 
-    private void descontarStockDelCarrito(HttpSession session) {
+    private void descontarStockDelCarrito(List<CarritoItem> carrito) {
         try {
-            @SuppressWarnings("unchecked")
-            List<CarritoItem> carrito = (List<CarritoItem>) session.getAttribute("carrito");
-
             if (carrito == null || carrito.isEmpty()) {
                 System.out.println("⚠️ No hay productos en el carrito para descontar");
                 return;
@@ -155,17 +152,10 @@ public class PaymentController {
                 try {
                     productService.descontarStock(item.getProductId(), item.getCantidad());
                     System.out.println("  ✅ " + item.getNombre() + " - Cantidad: " + item.getCantidad());
-
                 } catch (RuntimeException e) {
                     System.err.println("  ❌ Error con producto " + item.getNombre() + ": " + e.getMessage());
-                    // Continuamos con los demás productos
                 }
             }
-
-            // Limpiar el carrito de la sesión
-            session.removeAttribute("carrito");
-            System.out.println("🗑️ Carrito limpiado de la sesión");
-
         } catch (Exception e) {
             System.err.println("❌ Error general al descontar stock: " + e.getMessage());
             e.printStackTrace();

@@ -13,7 +13,7 @@ export const MercadoPagoPayment = () => {
     const { totals, clearCart } = useCart();
 
     const CONFIG = {
-        PUBLIC_KEY: 'TEST-4d1be8e9-6270-47e0-b83b-b8d27d41bcfe',
+        PUBLIC_KEY: import.meta.env.VITE_MP_PUBLIC_KEY,
         DESCRIPTION: 'Compra Huerta Directa',
         PAYER_EMAIL: 'test@test.com'
     };
@@ -50,7 +50,6 @@ export const MercadoPagoPayment = () => {
                         debitCard: 'all',
                         ticket: 'all',
                         bankTransfer: 'all',
-                        mercadoPago: 'all',
                         maxInstallments: 12
                     }
                 },

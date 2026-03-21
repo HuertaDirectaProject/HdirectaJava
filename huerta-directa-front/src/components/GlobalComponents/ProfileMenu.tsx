@@ -87,6 +87,7 @@ export const ProfileMenu = () => {
   }
 
   const [open, setOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Cerrar al hacer click afuera
@@ -101,6 +102,7 @@ export const ProfileMenu = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
   const handleLogout = async () => {
+    setIsLoggingOut(true);
     try {
       await fetch(`${API_URL}/api/login/logout`, {
         method: "POST",
@@ -110,6 +112,7 @@ export const ProfileMenu = () => {
       window.location.href = "/login";
     } catch (error) {
       console.error("Error cerrando sesión");
+      setIsLoggingOut(false);
     }
   };
 
@@ -162,6 +165,8 @@ export const ProfileMenu = () => {
             text="Cerrar Sesión"
             iconRight={faRightFromBracket}
             onClick={handleLogout}
+            isLoading={isLoggingOut}
+            loadingText="Cerrando sesión..."
             className="w-full bg-[#d6031f] hover:bg-[#df707f] rounded-xl py-2"
           />
 

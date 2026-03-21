@@ -13,7 +13,7 @@ export const DashboardLayout: React.FC = () => {
 
 
       {/* Top Header Controls */}
-      <DashboardHeader />
+      <DashboardHeader onToggleSidebar={toggleSidebar} />
 
       {/* Sidebar logic extracted to component */}
       <Sidebar isOpen={isSidebarOpen} onToggle={toggleSidebar} />

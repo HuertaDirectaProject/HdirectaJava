@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 
 export const UserInfo = () => {
   const [user, setUser] = useState<User | null>(null);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -27,9 +28,14 @@ export const UserInfo = () => {
   };
 
   const handleLogout = async () => {
-    await authService.logout();
-    setUser(null);
-    navigate("/login");
+    setIsLoggingOut(true);
+    try {
+      await authService.logout();
+      setUser(null);
+      navigate("/login");
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   const getRoleName = (idRole: number | null): string => {
@@ -50,9 +56,10 @@ export const UserInfo = () => {
       </div>
       <button
         onClick={handleLogout}
-        className="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1 rounded-full transition-colors"
+        disabled={isLoggingOut}
+        className="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1 rounded-full transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
       >
-        Cerrar sesión
+        {isLoggingOut ? "Cerrando..." : "Cerrar sesión"}
       </button>
     </div>
   );

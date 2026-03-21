@@ -33,6 +33,11 @@ export const useAuth = () => {
   const [maskedEmail, setMaskedEmail] = useState<string | null>(null);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [otpSecondsLeft, setOtpSecondsLeft] = useState(OTP_EXPIRATION_SECONDS);
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isSelectingChannel, setIsSelectingChannel] = useState(false);
+  const [isVerifyingEmailCode, setIsVerifyingEmailCode] = useState(false);
+  const [isResendingEmailCode, setIsResendingEmailCode] = useState(false);
 
   const handleRegisterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setRegisterData({ ...registerData, [e.target.name]: e.target.value });
@@ -46,6 +51,7 @@ export const useAuth = () => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
+    setIsRegistering(true);
 
     try {
       const response = await authService.register(
@@ -64,6 +70,8 @@ export const useAuth = () => {
     } catch (err: any) {
       console.error("Error en registro:", err);
       setError(err.message || "Error de conexión con el servidor");
+    } finally {
+      setIsRegistering(false);
     }
   };
 
@@ -71,6 +79,7 @@ export const useAuth = () => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
+    setIsLoggingIn(true);
 
     try {
       const response = await authService.login(
@@ -123,15 +132,19 @@ export const useAuth = () => {
     } catch (err: any) {
       console.error("Error en login:", err);
       setError(err.message || "Error al iniciar sesión");
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
   const handleSelectVerificationChannel = async (channel: "email" | "sms") => {
     setError(null);
     setSuccess(null);
+    setIsSelectingChannel(true);
 
     if (channel === "sms") {
       navigate("/verify-sms");
+      setIsSelectingChannel(false);
       return;
     }
 
@@ -149,6 +162,8 @@ export const useAuth = () => {
     } catch (err: any) {
       console.error("Error iniciando verificación:", err);
       setError(err.message || "No se pudo iniciar la verificación");
+    } finally {
+      setIsSelectingChannel(false);
     }
   };
 
@@ -156,6 +171,7 @@ export const useAuth = () => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
+    setIsVerifyingEmailCode(true);
 
     try {
       const response = await authService.verifyEmailCode(emailCode);
@@ -179,16 +195,19 @@ export const useAuth = () => {
     } catch (err: any) {
       console.error("Error verificando código:", err);
       setError(err.message || "Código inválido");
+    } finally {
+      setIsVerifyingEmailCode(false);
     }
   };
 
   const handleResendEmailCode = async () => {
-    if (resendCooldown > 0) {
+    if (resendCooldown > 0 || isResendingEmailCode) {
       return;
     }
 
     setError(null);
     setSuccess(null);
+    setIsResendingEmailCode(true);
     try {
       await authService.resendEmailCode();
       setResendCooldown(RESEND_COOLDOWN_SECONDS);
@@ -197,6 +216,8 @@ export const useAuth = () => {
     } catch (err: any) {
       console.error("Error reenviando código:", err);
       setError(err.message || "No se pudo reenviar el código");
+    } finally {
+      setIsResendingEmailCode(false);
     }
   };
 
@@ -241,6 +262,11 @@ export const useAuth = () => {
     maskedEmail,
     resendCooldown,
     otpSecondsLeft,
+    isRegistering,
+    isLoggingIn,
+    isSelectingChannel,
+    isVerifyingEmailCode,
+    isResendingEmailCode,
     handleRegisterChange,
     handleLoginChange,
     handleRegisterSubmit,

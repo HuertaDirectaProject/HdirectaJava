@@ -16,6 +16,7 @@ export const RegisterMobile = () => {
     registerData,
     handleRegisterChange,
     handleRegisterSubmit,
+    isRegistering,
     error,
     setError,
     success,
@@ -147,6 +148,9 @@ return (
             text="Registrar"
             iconRight={faUserPlus}
             type="submit"
+            isLoading={isRegistering}
+            loadingType="dots"
+            loadingText="Creando cuenta..."
             className="text-[17px] inline-block py-3 px-8 text-white bg-[#8dc84b] rounded-[15px] transition-all duration-500 mt-2.5 hover:bg-[#004d00] font-semibold uppercase text-xs tracking-wider cursor-pointer"
           />
 

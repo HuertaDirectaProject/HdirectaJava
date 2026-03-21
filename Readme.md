@@ -370,6 +370,67 @@ huerta-directa-front/
 
 ---
 
+## ⚙️ Instalación del sistema (obligatorio)
+
+Esta sección reemplaza la instalación típica de PHP/XAMPP porque este proyecto está construido con Spring Boot + PostgreSQL + React/Vite.
+
+### ✅ Requisitos
+
+- Java 21 (JDK)
+- Maven 3.9+ (o usar `mvnw.cmd` cuando el wrapper esté completo)
+- Node.js 20+ y npm
+- PostgreSQL 14+
+- Git
+- Navegador web (Chrome, Edge o Firefox)
+
+### 🧩 Pasos de instalación
+
+1. Descargar o clonar el proyecto
+
+   - Repositorio: `https://github.com/152004E/HdirectaJava.git`
+
+2. Entrar a las carpetas del backend y frontend
+
+   - Backend: `HdirectaJava/Huerta-directa`
+   - Frontend: `HdirectaJava/huerta-directa-front`
+
+3. Crear la base de datos en PostgreSQL
+
+   - Nombre sugerido: `huerta_directa`
+
+4. Importar el script SQL
+
+   - Opción 1: usar `Huerta-directa/src/main/resources/schema.sql`
+   - Opción 2: usar `Huerta-directa/Scrip base de datos.txt`
+
+5. Configurar conexión a base de datos y entorno local
+
+   - Editar `Huerta-directa/src/main/resources/application-dev.properties`
+   - Revisar al menos:
+     - `spring.datasource.url`
+     - `spring.datasource.username`
+     - `spring.datasource.password`
+     - `server.port` (actualmente `8085`)
+
+6. Instalar dependencias del frontend
+
+   - En `huerta-directa-front`: ejecutar `npm install`
+
+7. Ejecutar backend (Spring Boot)
+
+   - En `Huerta-directa`: ejecutar `mvn spring-boot:run`
+
+8. Ejecutar frontend (React + Vite)
+
+   - En `huerta-directa-front`: ejecutar `npm run dev`
+
+9. Abrir en navegador
+
+   - Frontend: `http://localhost:5173`
+   - Backend/API: `http://localhost:8085`
+
+---
+
 ## ⚙️ Instalación y configuración de Tailwind CSS
 
 A continuación se explican **todos los pasos necesarios** para instalar y ejecutar **Tailwind CSS** dentro del proyecto **Spring Boot**.
@@ -457,7 +518,7 @@ mvn spring-boot:run
 ### 🌐 Abrir en el navegador
 
 ```bash
-http://localhost:8080
+http://localhost:8085
 
 ```
 

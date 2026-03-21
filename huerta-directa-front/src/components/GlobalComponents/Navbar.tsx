@@ -49,7 +49,7 @@ export const Navbar = ({
         {/* 🔥 BOTÓN MOBILE */}
         <button
           onClick={() => setOpenMenu(true)}
-          className="md:hidden text-2xl text-[#8dc84b]"
+          className="md:hidden text-2xl cursor-pointer text-[#8dc84b] hover:text-[#8dc84b]/80 transition-all duration-500"
         >
           <FontAwesomeIcon icon={faBars} />
         </button>
@@ -96,7 +96,7 @@ export const Navbar = ({
               text="Agrega productos"
               to="/DashBoardAgregarProducto"
               iconRight={faCarrot}
-              className="bg-[#78d64b] hover:bg-[#5aaa37] rounded-lg px-5 py-2 "
+              className="bg-[#78d64b]  gap-0 hover:bg-[#5aaa37] rounded-lg px-2 py-2 "
             />
           )}
 

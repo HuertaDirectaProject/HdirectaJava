@@ -121,7 +121,7 @@ export const MobileNav = ({
             <Link
               to="/DashBoardAgregarProducto"
               onClick={onClose}
-              className="flex gap-3 bg-[#78d64b] text-white px-4 py-2 rounded-lg hover:bg-[#5aaa37] transition-all duration-500 cursor-pointer"
+              className="flex items-center gap-3 bg-[#78d64b] text-white px-4 py-2 rounded-lg hover:bg-[#5aaa37] transition-all duration-500 cursor-pointer"
             >
               <FontAwesomeIcon icon={faPlus} />
               Agregar producto

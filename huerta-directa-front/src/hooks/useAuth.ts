@@ -143,6 +143,11 @@ export const useAuth = () => {
     setIsSelectingChannel(true);
 
     if (channel === "sms") {
+      if (!hasPhoneChannel) {
+        setError("Aún no tienes tu número registrado, debes completar los datos en tu perfil");
+        setIsSelectingChannel(false);
+        return;
+      }
       navigate("/verify-sms");
       setIsSelectingChannel(false);
       return;

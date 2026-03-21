@@ -19,16 +19,9 @@ export const MercadoPagoPayment = () => {
   };
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const initBrick = () => {
       if (!(window as any).MercadoPago) return;
-      // ... resto del código
-    }, 1000); // aumenta a 1000ms para dar tiempo al script
 
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
       const mp = new (window as any).MercadoPago(CONFIG.PUBLIC_KEY, {
         locale: "es-CO",
       });
@@ -38,14 +31,10 @@ export const MercadoPagoPayment = () => {
       const settings = {
         initialization: {
           amount: totals.total,
-          payer: {
-            email: CONFIG.PAYER_EMAIL,
-          },
+          payer: { email: CONFIG.PAYER_EMAIL },
         },
         customization: {
-          visual: {
-            style: { theme: "default" },
-          },
+          visual: { style: { theme: "default" } },
           paymentMethods: {
             creditCard: "all",
             debitCard: "all",
@@ -55,35 +44,21 @@ export const MercadoPagoPayment = () => {
           },
         },
         callbacks: {
+          onReady: () => console.log("✅ Brick cargado"),
           onSubmit: async (data: any) => {
-            console.log("🔥 onSubmit disparado:", JSON.stringify(data)); // ← AGREGA ESTO
+            console.log("🔥 onSubmit disparado:", JSON.stringify(data));
             try {
               const payload = {
                 ...data,
                 transaction_amount: totals.total,
                 description: CONFIG.DESCRIPTION,
                 payer: {
-                  email:
-                    data.payer?.email ??
-                    data.formData?.payer?.email ??
-                    CONFIG.PAYER_EMAIL,
-                  first_name:
-                    data.payer?.firstName ??
-                    data.formData?.payer?.firstName ??
-                    "",
-                  last_name:
-                    data.payer?.lastName ??
-                    data.formData?.payer?.lastName ??
-                    "",
+                  email: data.payer?.email ?? data.formData?.payer?.email ?? CONFIG.PAYER_EMAIL,
+                  first_name: data.payer?.firstName ?? data.formData?.payer?.firstName ?? "",
+                  last_name: data.payer?.lastName ?? data.formData?.payer?.lastName ?? "",
                   identification: {
-                    type:
-                      data.payer?.identification?.type ??
-                      data.formData?.payer?.identification?.docType ??
-                      "CC",
-                    number:
-                      data.payer?.identification?.number ??
-                      data.formData?.payer?.identification?.docNumber ??
-                      "",
+                    type: data.payer?.identification?.type ?? data.formData?.payer?.identification?.docType ?? "CC",
+                    number: data.payer?.identification?.number ?? data.formData?.payer?.identification?.docNumber ?? "",
                   },
                 },
               };
@@ -93,10 +68,7 @@ export const MercadoPagoPayment = () => {
               if (result.status === "approved") {
                 clearCart();
                 navigate("/payment/success");
-              } else if (
-                result.status === "pending" ||
-                result.status === "in_process"
-              ) {
+              } else if (result.status === "pending" || result.status === "in_process") {
                 navigate("/payment/pending");
               } else {
                 navigate("/payment/failure");
@@ -113,10 +85,22 @@ export const MercadoPagoPayment = () => {
       if (containerRef.current) {
         bricksBuilder.create("payment", "paymentBrick_container", settings);
       }
-    }, 500);
+    };
 
-    return () => clearTimeout(timer);
-  }, [totals.total]);
+    const existingScript = document.querySelector(
+      'script[src="https://sdk.mercadopago.com/js/v2"]'
+    );
+
+    if (existingScript) {
+      initBrick();
+    } else {
+      const script = document.createElement("script");
+      script.src = "https://sdk.mercadopago.com/js/v2";
+      script.async = true;
+      script.onload = initBrick;
+      document.head.appendChild(script);
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#F5F0E8] py-8 px-4">

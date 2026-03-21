@@ -23,6 +23,10 @@ export const LoginMobile = () => {
     maskedEmail,
     resendCooldown,
     otpSecondsLeft,
+    isLoggingIn,
+    isSelectingChannel,
+    isVerifyingEmailCode,
+    isResendingEmailCode,
 
     handleSelectVerificationChannel,
     handleVerifyEmailSubmit,
@@ -97,9 +101,10 @@ export const LoginMobile = () => {
 
               <button
                 onClick={() => handleSelectVerificationChannel("email")}
+                disabled={isSelectingChannel}
                 className="w-full flex justify-center items-center gap-3 cursor-pointer py-3 rounded-xl hover:bg-[#8dc84b]/50 transition-all duration-500 bg-[#8dc84b] text-white font-semibold"
               >
-                <p>Recibir por correo</p>{" "}
+                <p>{isSelectingChannel ? "Enviando..." : "Recibir por correo"}</p>{" "}
                 <FontAwesomeIcon icon={faEnvelopeCircleCheck} />
               </button>
 
@@ -140,21 +145,24 @@ export const LoginMobile = () => {
                 required
               />
 
-              <button
+              <Button
                 type="submit"
+                text="Verificar"
+                iconRight={faEnvelopeCircleCheck}
+                isLoading={isVerifyingEmailCode}
+                loadingText="Verificando..."
                 className="w-full flex justify-center items-center gap-3 cursor-pointer py-3 rounded-xl hover:bg-[#8dc84b]/50 transition-all duration-500 bg-[#8dc84b] text-black font-semibold"
-              >
-                <p>Verificar</p>
-                <FontAwesomeIcon icon={faEnvelopeCircleCheck} />
-              </button>
+              />
 
               <button
                 type="button"
-                disabled={resendCooldown > 0}
+                disabled={resendCooldown > 0 || isResendingEmailCode}
                 onClick={handleResendEmailCode}
                 className="w-full text-sm text-[#405f1c] cursor-pointer hover:text-[#8dc84b]/70 transition-all duration-500  dark:text-[#8dc84b]"
               >
-                {resendCooldown > 0
+                {isResendingEmailCode
+                  ? "Reenviando..."
+                  : resendCooldown > 0
                   ? `Reenviar en ${resendCooldown}s`
                   : "Reenviar código"}
               </button>
@@ -235,6 +243,9 @@ export const LoginMobile = () => {
                   iconRight={faArrowRight}
                   text="Ingresar"
                   type="submit"
+                  isLoading={isLoggingIn}
+                  loadingType="dots"
+                  loadingText="Ingresando..."
                   className="text-[17px] inline-block py-3 px-8 text-white bg-[#8dc84b] rounded-[15px] transition-all duration-500 mt-2.5 hover:bg-[#004d00] font-semibold uppercase text-xs tracking-wider cursor-pointer"
                 />
               </div>

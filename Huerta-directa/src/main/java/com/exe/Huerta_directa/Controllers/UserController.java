@@ -1,7 +1,6 @@
 package com.exe.Huerta_directa.Controllers;
 
 import com.exe.Huerta_directa.DTO.BulkEmailByRoleRequest;
-import com.exe.Huerta_directa.DTO.BulkEmailByRoleRequest;
 import com.exe.Huerta_directa.DTO.BulkEmailFilteredRequest;
 import com.exe.Huerta_directa.DTO.BulkEmailRequest;
 import com.exe.Huerta_directa.DTO.BulkEmailResponse;
@@ -29,7 +28,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.beans.factory.annotation.Value;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;

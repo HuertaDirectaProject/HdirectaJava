@@ -55,7 +55,7 @@ export const MercadoPagoPayment = () => {
                     }
                 },
                 callbacks: {
-                    onReady: () => console.log('✅ Brick cargado'),
+                    onReady: () => {},
                     onSubmit: async (data: any) => {
                         try {
                             const payload = {

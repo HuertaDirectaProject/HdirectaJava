@@ -269,7 +269,7 @@ export const AdminProducts: React.FC = () => {
         isOpen={isNotifyModalOpen}
         onClose={() => setIsNotifyModalOpen(false)}
         product={selectedProduct}
-        onSend={(data) => console.log("Notificación a enviar:", data)}
+        onSend={() => {}}
       />
     </div>
   );

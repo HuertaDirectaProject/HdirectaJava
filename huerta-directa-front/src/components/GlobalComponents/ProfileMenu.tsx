@@ -68,7 +68,7 @@ export const ProfileMenu = () => {
         }
       })
       .catch(() => {
-        console.log("No hay sesión");
+        // No action needed when there is no active session.
       });
 
     const handleProfilePhotoUpdated = (event: Event) => {

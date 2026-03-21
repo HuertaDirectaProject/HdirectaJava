@@ -21,12 +21,10 @@ public class MercadoPagoServicePaymentRequest {
     @Value("${mercadopago.access_token}")
     private String accessToken;
 
-    // Métodos de pago que NO requieren token (efectivo, PSE, transferencias)
     private static final List<String> NON_CARD_METHODS = Arrays.asList(
             "pse", "efecty", "bancolombia_transfer", "davivienda",
             "pix", "bolbradesco", "account_money", "baloto", "su_red",
-            "gana", "point", "redservi"
-    );
+            "gana", "point", "redservi");
 
     public String processPayment(PaymentRequest request) {
         try {
@@ -39,7 +37,6 @@ public class MercadoPagoServicePaymentRequest {
             con.setRequestProperty("X-Idempotency-Key", java.util.UUID.randomUUID().toString());
             con.setDoOutput(true);
 
-            // Construcción dinámica del payload según el tipo de pago
             Map<String, Object> mpPayload = buildPayload(request);
 
             ObjectMapper mapper = new ObjectMapper();
@@ -80,31 +77,28 @@ public class MercadoPagoServicePaymentRequest {
     private Map<String, Object> buildPayload(PaymentRequest request) {
         Map<String, Object> payload = new HashMap<>();
 
-        // Campos obligatorios para todos los pagos
         payload.put("transaction_amount", request.getTransactionAmount());
         payload.put("payment_method_id", request.getPaymentMethodId());
-        payload.put("description", request.getDescription() != null ?
-                request.getDescription() : "Compra en Huerta Directa");
+        payload.put("description",
+                request.getDescription() != null ? request.getDescription() : "Compra en Huerta Directa");
 
         // Payer (obligatorio)
         Map<String, Object> payer = new HashMap<>();
-        payer.put("email", request.getPayer().getEmail());
-
-        if (request.getPayer().getFirstName() != null) {
-            payer.put("first_name", request.getPayer().getFirstName());
+        if (request.getPayer() != null) {
+            payer.put("email", request.getPayer().getEmail());
+            if (request.getPayer().getFirstName() != null)
+                payer.put("first_name", request.getPayer().getFirstName());
+            if (request.getPayer().getLastName() != null)
+                payer.put("last_name", request.getPayer().getLastName());
+            if (request.getPayer().getIdentification() != null) {
+                Map<String, String> identification = new HashMap<>();
+                identification.put("type", request.getPayer().getIdentification().getType());
+                identification.put("number", request.getPayer().getIdentification().getNumber());
+                payer.put("identification", identification);
+            }
+        } else {
+            payer.put("email", "test@test.com");
         }
-        if (request.getPayer().getLastName() != null) {
-            payer.put("last_name", request.getPayer().getLastName());
-        }
-
-        // Identificación (importante para Colombia)
-        if (request.getPayer().getIdentification() != null) {
-            Map<String, String> identification = new HashMap<>();
-            identification.put("type", request.getPayer().getIdentification().getType());
-            identification.put("number", request.getPayer().getIdentification().getNumber());
-            payer.put("identification", identification);
-        }
-
         payload.put("payer", payer);
 
         // Campos SOLO para pagos con tarjeta (crédito/débito)
@@ -120,7 +114,6 @@ public class MercadoPagoServicePaymentRequest {
             }
         }
 
-        // Campos opcionales pero recomendados
         if (request.getStatementDescriptor() != null) {
             payload.put("statement_descriptor", request.getStatementDescriptor());
         }
@@ -131,7 +124,6 @@ public class MercadoPagoServicePaymentRequest {
             payload.put("notification_url", request.getNotificationUrl());
         }
 
-        // Información adicional (útil para disputas y análisis)
         if (request.getAdditionalInfo() != null) {
             payload.put("additional_info", request.getAdditionalInfo());
         }

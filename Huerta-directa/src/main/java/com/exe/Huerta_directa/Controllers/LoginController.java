@@ -162,23 +162,44 @@ public class LoginController {
 
     // Metodo para enviar correo de confirmacion de que si se registro
     private void enviarCorreoIndividual(String destinatario, String asunto, String cuerpo) throws MessagingException {
-        try {
-            log.info("Enviando correo a: {} con asunto: {}", destinatario, asunto);
-            String apiKey = System.getenv("RESEND_API_KEY");
-            Resend resend = new Resend(apiKey);
-            CreateEmailOptions emailOptions = CreateEmailOptions.builder()
-                    .from("Huerta Directa <onboarding@resend.dev>")
-                    .to(destinatario)
-                    .subject(asunto)
-                    .html(cuerpo)
-                    .build();
-            resend.emails().send(emailOptions);
-            log.info("Correo enviado satisfactoriamente a: {}", destinatario);
-        } catch (Exception e) {
-            log.error("Fallo al enviar correo a {}: {}", destinatario, e.getMessage());
-            throw new MessagingException("Error enviando correo: " + e.getMessage());
+    try {
+        log.info("Enviando correo a: {} con asunto: {}", destinatario, asunto);
+
+        String json = new com.fasterxml.jackson.databind.ObjectMapper()
+            .writeValueAsString(java.util.Map.of(
+                "sender", java.util.Map.of(
+                    "name", "Huerta Directa",
+                    "email", "jjpp142007@gmail.com"
+                ),
+                "to", java.util.List.of(
+                    java.util.Map.of("email", destinatario)
+                ),
+                "subject", asunto,
+                "htmlContent", cuerpo
+            ));
+
+        var request = java.net.http.HttpRequest.newBuilder()
+            .uri(java.net.URI.create("https://api.brevo.com/v3/smtp/email"))
+            .header("api-key", System.getenv("BREVO_API_KEY"))
+            .header("Content-Type", "application/json")
+            .POST(java.net.http.HttpRequest.BodyPublishers.ofString(json))
+            .build();
+
+        var response = java.net.http.HttpClient.newHttpClient()
+            .send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() >= 400) {
+            throw new MessagingException("Brevo error " + response.statusCode() + ": " + response.body());
         }
+
+        log.info("Correo enviado satisfactoriamente a: {}", destinatario);
+    } catch (MessagingException e) {
+        throw e;
+    } catch (Exception e) {
+        log.error("Fallo al enviar correo a {}: {}", destinatario, e.getMessage());
+        throw new MessagingException("Error enviando correo: " + e.getMessage());
     }
+}
 
     private void enviarCorreoConfirmacion(String nombre, String email) throws MessagingException {
         enviarCorreoIndividual(email, "Registro exitoso en Huerta Directa", crearContenidoHTMLCorreo(nombre));

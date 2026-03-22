@@ -68,7 +68,7 @@ export const ProfileMenu = () => {
         }
       })
       .catch(() => {
-        console.log("No hay sesión");
+        // No action needed when there is no active session.
       });
 
     const handleProfilePhotoUpdated = (event: Event) => {
@@ -147,7 +147,7 @@ export const ProfileMenu = () => {
           <div className="flex flex-col gap-3 border-b border-gray-300 dark:border-gray-600 pb-4">
             <Button
               text="Mi perfil"
-              to="/actualizacionUsuario"
+              to={userRole === "Administrador" ? "/admin/perfil" : "/actualizacionUsuario"}
               iconRight={faUser}
               className="w-full bg-[#20571b] hover:bg-[#52a54a] rounded-xl py-2"
             />

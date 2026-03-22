@@ -159,6 +159,82 @@ public class LoginController {
         }
     }
 
+    /**
+     * Endpoint para registro de administradores desde React.
+     * Requiere sesión activa con rol administrador.
+     */
+    @PostMapping("/admin/register")
+    @ResponseBody
+    public ResponseEntity<?> registerAdminFromReact(@RequestBody UserDTO userDTO, HttpSession session) {
+        User currentUser = (User) session.getAttribute("user");
+
+        if (currentUser == null) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(new ErrorResponse("Debes iniciar sesión para registrar administradores"));
+        }
+
+        if (currentUser.getRole() == null || currentUser.getRole().getIdRole() == null
+                || currentUser.getRole().getIdRole() != 1L) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body(new ErrorResponse("Solo un administrador puede registrar otro administrador"));
+        }
+
+        try {
+            if (userDTO.getName() == null || userDTO.getName().isBlank()) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(new ErrorResponse("El nombre es requerido"));
+            }
+
+            if (userDTO.getEmail() == null || userDTO.getEmail().isBlank()) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(new ErrorResponse("El correo electrónico es requerido"));
+            }
+
+            if (userDTO.getPassword() == null || userDTO.getPassword().isBlank()) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(new ErrorResponse("La contraseña es requerida"));
+            }
+
+            if (userRepository.findByEmail(userDTO.getEmail().trim()).isPresent()) {
+                return ResponseEntity
+                        .status(HttpStatus.CONFLICT)
+                        .body(new ErrorResponse("El correo electrónico ya está registrado"));
+            }
+
+            userDTO.setName(userDTO.getName().trim());
+            userDTO.setEmail(userDTO.getEmail().trim());
+            userDTO.setIdRole(1L);
+            userDTO.setCreacionDate(LocalDate.now());
+
+            // crearAdmin -> crearUser -> passwordEncoder.encode(...)
+            UserDTO adminCreado = userService.crearAdmin(userDTO);
+
+            UserResponse response = new UserResponse();
+            response.setId(adminCreado.getId());
+            response.setName(adminCreado.getName());
+            response.setEmail(adminCreado.getEmail());
+            response.setIdRole(adminCreado.getIdRole());
+            response.setProfileImageUrl(adminCreado.getProfileImageUrl());
+            response.setMessage("Administrador registrado exitosamente");
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body(new ErrorResponse("El correo electrónico ya está registrado"));
+        } catch (Exception e) {
+            log.error("Error al registrar administrador desde React: {}", userDTO.getEmail(), e);
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponse("Error al registrar administrador: " + e.getMessage()));
+        }
+    }
+
     // Metodo para enviar correo de confirmacion de que si se registro
     private void enviarCorreoIndividual(String destinatario, String asunto, String cuerpo) throws MessagingException {
     try {

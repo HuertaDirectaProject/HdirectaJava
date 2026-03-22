@@ -356,11 +356,6 @@ public class RutasPagina {
 
         try (FileOutputStream fos = new FileOutputStream(outputFile)) {
             ChartUtils.writeChartAsPNG(fos, chart, 700, 400);
-            try {
-                Thread.sleep(3000); // 3 segundos
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -607,13 +602,10 @@ public class RutasPagina {
                 System.out.println("⚠️ No se pudo verificar email duplicado, continuando...");
             }
 
-            // Asignar rol de administrador (ID 1) automáticamente
-            userDTO.setIdRole(1L);
-
             // Establecer fecha de creación
             userDTO.setCreacionDate(LocalDate.now());
 
-            UserDTO adminCreado = userService.crearUser(userDTO);
+            UserDTO adminCreado = userService.crearAdmin(userDTO);
 
             // Log de la acción para auditoria
             System.out.println("🔐 ADMIN REGISTRADO: " + userSession.getName() +

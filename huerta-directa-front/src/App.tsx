@@ -122,6 +122,7 @@ function App() {
                             <Route path="/admin/reportes" element={<AdminReports />} />
                             <Route path="/admin/config" element={<AdminConfig />} />
                             <Route path="/admin/registrar" element={<AdminRegister />} />
+                            <Route path="/admin/perfil" element={<ActualizacionUsuario />} />
                         </Route>
                     </Route>
 

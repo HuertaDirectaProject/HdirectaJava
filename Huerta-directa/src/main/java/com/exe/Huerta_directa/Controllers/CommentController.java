@@ -240,8 +240,6 @@ public class CommentController {
                 ChartUtils.writeChartAsPNG(out, chart, 650, 450);
             }
 
-            Thread.sleep(2000);
-
         } catch (Exception e) {
             e.printStackTrace();
         }

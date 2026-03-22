@@ -117,13 +117,13 @@ export const AdminProducts: React.FC = () => {
             <Button 
               text="Exportar Excel" 
               iconLetf={faFileExcel} 
-              className="bg-[#8dc84b] text-white rounded-xl py-3 px-6 h-[46px]" 
+              className="bg-[#8dc84b] text-white rounded-xl py-3 px-6 h-11.5" 
               onClick={handleExportExcel}
             />
             <Button 
               text="Exportar PDF" 
               iconLetf={faFilePdf} 
-              className="bg-[#004d00] text-white rounded-xl py-3 px-6 h-[46px]" 
+              className="bg-[#004d00] text-white rounded-xl py-3 px-6 h-11.5" 
               onClick={handleExportPdf}
             />
           </div>

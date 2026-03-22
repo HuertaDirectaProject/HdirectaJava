@@ -40,7 +40,7 @@ export const DashboardAdminMobile: React.FC = () => {
         {/* Stats Scrollable */}
         <div className="flex gap-4 overflow-x-auto py-4 no-scrollbar">
           {adminInsights.map((item, idx) => (
-            <div key={idx} className="bg-white/10 backdrop-blur-md p-4 rounded-3xl min-w-[160px] border border-white/20">
+            <div key={idx} className="bg-white/10 backdrop-blur-md p-4 rounded-3xl min-w-40 border border-white/20">
               <div className="flex justify-between items-start mb-2">
                 <FontAwesomeIcon icon={item.icon} className="text-[#8dc84b]" />
                 <span className="text-[#8dc84b] text-[10px] font-bold">+{item.percentage}%</span>
@@ -97,7 +97,7 @@ export const DashboardAdminMobile: React.FC = () => {
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex flex-col">
                     <span className="font-bold text-gray-900 dark:text-white">{user.fullName}</span>
-                    <span className="text-xs text-gray-400 truncate max-w-[180px]">{user.email}</span>
+                    <span className="text-xs text-gray-400 truncate max-w-45">{user.email}</span>
                   </div>
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                     user.role === 'Administrador' ? 'bg-blue-50 text-blue-600' : 'bg-orange-50 text-orange-600'

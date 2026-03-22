@@ -14,7 +14,6 @@ export const OffersSection = () => {
         });
         if (response.ok) {
           const data = await response.json();
-          console.log("Offers fetched:", data);
           setOffers(data);
         } else {
           console.error("Failed to fetch offers:", response.status, response.statusText);
@@ -103,4 +102,4 @@ export const OffersSection = () => {
       </div>
     </section>
   );
-};
+};

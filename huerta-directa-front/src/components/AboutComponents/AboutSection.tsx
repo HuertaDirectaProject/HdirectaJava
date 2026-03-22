@@ -11,8 +11,6 @@ export const AboutSection = () => {
 
     if (!accepted) return;
 
-    console.log("Comentario enviado:", comment);
-
     setComment("");
     setAccepted(false);
   };

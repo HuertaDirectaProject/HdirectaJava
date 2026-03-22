@@ -96,6 +96,67 @@ class AuthService {
   }
 
   /**
+   * Registrar nuevo administrador (requiere sesión admin activa en backend)
+   */
+  async registerAdmin(name: string, email: string, password: string): Promise<RegisterResponse> {
+    const response = await this.safeFetch(`${this.BASE_URL}/api/login/admin/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ name, email, password }),
+    });
+
+    if (response.ok) {
+      return (await response.json()) as RegisterResponse;
+    }
+
+    // Fallback para backend antiguo que no tiene /api/login/admin/register
+    if (response.status === 404) {
+      return this.registerAdminLegacy(name, email, password);
+    }
+
+    const errorMessage = await this.extractErrorMessage(response, 'Error al registrar administrador');
+    throw new Error(errorMessage);
+  }
+
+  private async registerAdminLegacy(name: string, email: string, password: string): Promise<RegisterResponse> {
+    const payload = new URLSearchParams({
+      name,
+      email,
+      password,
+    });
+
+    const response = await this.safeFetch(`${this.BASE_URL}/registrarAdmin`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      credentials: 'include',
+      body: payload.toString(),
+      redirect: 'follow',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error al registrar administrador (HTTP ${response.status})`);
+    }
+
+    const finalUrl = response.url || '';
+    if (finalUrl.includes('/agregar_admin')) {
+      throw new Error('No se pudo registrar el administrador. Verifica si el correo ya existe.');
+    }
+
+    if (finalUrl.includes('/login')) {
+      throw new Error('Tu sesión expiró. Inicia sesión nuevamente como administrador.');
+    }
+
+    return {
+      id: 0,
+      name,
+      email,
+      idRole: 1,
+      message: 'Administrador registrado exitosamente',
+    };
+  }
+
+  /**
    * Iniciar sesión
    */
   async login(email: string, password: string): Promise<LoginResponse> {

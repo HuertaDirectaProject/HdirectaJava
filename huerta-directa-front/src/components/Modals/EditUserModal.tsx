@@ -120,7 +120,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
           />
           <Button
             text="Actualizar Usuario"
-            className="bg-[#004d00] text-white rounded-2xl py-4 flex-[2] font-bold shadow-xl shadow-[#004d00]/20 hover:scale-[1.02] transition-all border-none"
+            className="bg-[#004d00] text-white rounded-2xl py-4 flex-2 font-bold shadow-xl shadow-[#004d00]/20 hover:scale-[1.02] transition-all border-none"
             onClick={handleUpdate}
           />
         </div>

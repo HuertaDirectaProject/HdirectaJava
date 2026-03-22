@@ -607,13 +607,10 @@ public class RutasPagina {
                 System.out.println("⚠️ No se pudo verificar email duplicado, continuando...");
             }
 
-            // Asignar rol de administrador (ID 1) automáticamente
-            userDTO.setIdRole(1L);
-
             // Establecer fecha de creación
             userDTO.setCreacionDate(LocalDate.now());
 
-            UserDTO adminCreado = userService.crearUser(userDTO);
+            UserDTO adminCreado = userService.crearAdmin(userDTO);
 
             // Log de la acción para auditoria
             System.out.println("🔐 ADMIN REGISTRADO: " + userSession.getName() +

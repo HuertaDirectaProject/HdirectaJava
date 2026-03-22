@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUserShield, faUserPlus } from "@fortawesome/free-solid-svg-icons";
+import { faUserShield, faUserPlus, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { usePageTitle } from "../../hooks/usePageTitle";
 import { Button } from "../../components/GlobalComponents/Button";
+import authService from "../../services/authService";
 
 export const AdminRegister: React.FC = () => {
   usePageTitle("Registrar Administrador");
@@ -14,6 +15,11 @@ export const AdminRegister: React.FC = () => {
     confirmPassword: "",
     rolNivel: "Nivel 1 (Básico)",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({
@@ -22,23 +28,37 @@ export const AdminRegister: React.FC = () => {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage("");
+    setSuccessMessage("");
+
     if (formData.password !== formData.confirmPassword) {
-      alert("Las contraseñas no coinciden");
+      setErrorMessage("Las contraseñas no coinciden");
       return;
     }
-    // Lógica para enviar el registro a la base de datos
-    alert(`Administrador ${formData.nombreCompleto} registrado con éxito.`);
-    
-    // Resetear formulario
-    setFormData({
-      nombreCompleto: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-      rolNivel: "Nivel 1 (Básico)",
-    });
+
+    setIsSubmitting(true);
+    try {
+      const response = await authService.registerAdmin(
+        formData.nombreCompleto.trim(),
+        formData.email.trim(),
+        formData.password
+      );
+
+      setSuccessMessage(response.message || `Administrador ${response.name} registrado con éxito.`);
+      setFormData({
+        nombreCompleto: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+        rolNivel: "Nivel 1 (Básico)",
+      });
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "No se pudo registrar el administrador");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -57,6 +77,18 @@ export const AdminRegister: React.FC = () => {
             <p className="text-gray-500 text-sm">Crea una nueva cuenta con privilegios de gestión global.</p>
           </div>
         </div>
+
+        {errorMessage && (
+          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+            {errorMessage}
+          </div>
+        )}
+
+        {successMessage && (
+          <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
+            {successMessage}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -92,30 +124,50 @@ export const AdminRegister: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="flex flex-col gap-2">
               <label htmlFor="password" className="text-sm font-bold text-gray-700">Contraseña Segura</label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="••••••••"
-                className="w-full p-4 border-2 border-gray-100 rounded-xl outline-none focus:border-[#8dc84b] transition-all bg-gray-50 focus:bg-white"
-                required
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  id="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="••••••••"
+                  className="w-full p-4 pr-12 border-2 border-gray-100 rounded-xl outline-none focus:border-[#8dc84b] transition-all bg-gray-50 focus:bg-white"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#20571b]"
+                  aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                >
+                  <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+                </button>
+              </div>
             </div>
 
             <div className="flex flex-col gap-2">
               <label htmlFor="confirmPassword" className="text-sm font-bold text-gray-700">Confirmar Contraseña</label>
-              <input
-                type="password"
-                id="confirmPassword"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                placeholder="••••••••"
-                className="w-full p-4 border-2 border-gray-100 rounded-xl outline-none focus:border-[#8dc84b] transition-all bg-gray-50 focus:bg-white"
-                required
-              />
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  placeholder="••••••••"
+                  className="w-full p-4 pr-12 border-2 border-gray-100 rounded-xl outline-none focus:border-[#8dc84b] transition-all bg-gray-50 focus:bg-white"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword((prev) => !prev)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#20571b]"
+                  aria-label={showConfirmPassword ? "Ocultar confirmación de contraseña" : "Mostrar confirmación de contraseña"}
+                >
+                  <FontAwesomeIcon icon={showConfirmPassword ? faEyeSlash : faEye} />
+                </button>
+              </div>
             </div>
           </div>
 
@@ -123,10 +175,12 @@ export const AdminRegister: React.FC = () => {
 
           <div className="flex justify-end pt-4 border-t border-gray-100">
             <Button
-              text="Registrar en el Sistema"
+              text="Registrar administrador"
               iconLetf={faUserPlus}
               className="bg-[#8dc84b] text-white py-4 px-8 rounded-xl text-lg w-full md:w-auto hover:bg-[#7ab13e]"
               type="submit"
+              isLoading={isSubmitting}
+              loadingText="Registrando..."
             />
           </div>
         </form>

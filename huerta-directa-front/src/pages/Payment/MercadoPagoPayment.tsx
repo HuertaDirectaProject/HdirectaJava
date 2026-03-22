@@ -11,6 +11,7 @@ export const MercadoPagoPayment = () => {
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
   const { totals, clearCart, items } = useCart();
+
   const CONFIG = {
     PUBLIC_KEY: import.meta.env.VITE_MP_PUBLIC_KEY,
     DESCRIPTION: "Compra Huerta Directa",
@@ -20,6 +21,10 @@ export const MercadoPagoPayment = () => {
   useEffect(() => {
     const initBrick = () => {
       if (!(window as any).MercadoPago) return;
+
+      if (containerRef.current) {
+        containerRef.current.innerHTML = "";
+      }
 
       const mp = new (window as any).MercadoPago(CONFIG.PUBLIC_KEY, {
         locale: "es-CO",
@@ -68,8 +73,7 @@ export const MercadoPagoPayment = () => {
                   last_name: data.formData.payer?.lastName ?? "",
                   identification: {
                     type: data.formData.payer?.identification?.docType ?? "CC",
-                    number:
-                      data.formData.payer?.identification?.docNumber ?? "",
+                    number: data.formData.payer?.identification?.docNumber ?? "",
                   },
                 },
               };
@@ -79,10 +83,7 @@ export const MercadoPagoPayment = () => {
               if (result.status === "approved") {
                 clearCart();
                 navigate("/payment/success");
-              } else if (
-                result.status === "pending" ||
-                result.status === "in_process"
-              ) {
+              } else if (result.status === "pending" || result.status === "in_process") {
                 navigate("/payment/pending");
               } else {
                 navigate("/payment/failure");
@@ -102,11 +103,11 @@ export const MercadoPagoPayment = () => {
     };
 
     const existingScript = document.querySelector(
-      'script[src="https://sdk.mercadopago.com/js/v2"]',
+        'script[src="https://sdk.mercadopago.com/js/v2"]',
     );
 
     if (existingScript) {
-      initBrick();
+      setTimeout(initBrick, 300);
     } else {
       const script = document.createElement("script");
       script.src = "https://sdk.mercadopago.com/js/v2";
@@ -114,32 +115,38 @@ export const MercadoPagoPayment = () => {
       script.onload = initBrick;
       document.head.appendChild(script);
     }
+
+    return () => {
+      if (containerRef.current) {
+        containerRef.current.innerHTML = "";
+      }
+    };
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#F5F0E8] py-8 px-4">
-      <div className="max-w-7xl mx-auto">
-        <CheckoutHeader />
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-3 space-y-6">
-            <div
-              ref={containerRef}
-              id="paymentBrick_container"
-              className="bg-white rounded-lg shadow-lg p-6"
-            ></div>
+      <div className="min-h-screen bg-[#F5F0E8] py-8 px-4">
+        <div className="max-w-7xl mx-auto">
+          <CheckoutHeader />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-3 space-y-6">
+              <div
+                  ref={containerRef}
+                  id="paymentBrick_container"
+                  className="bg-white rounded-lg shadow-lg p-6"
+              ></div>
+            </div>
+          </div>
+          <SecureFooter />
+          <div className="mt-8 flex justify-center">
+            <button
+                onClick={() => navigate("/HomePage")}
+                className="px-6 py-2 bg-gray-400 hover:bg-gray-500 text-white font-bold rounded-lg transition-colors"
+            >
+              ← Volver a comprar
+            </button>
           </div>
         </div>
-        <SecureFooter />
-        <div className="mt-8 flex justify-center">
-          <button
-            onClick={() => navigate("/HomePage")}
-            className="px-6 py-2 bg-gray-400 hover:bg-gray-500 text-white font-bold rounded-lg transition-colors"
-          >
-            ← Volver a comprar
-          </button>
-        </div>
       </div>
-    </div>
   );
 };
 

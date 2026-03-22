@@ -39,14 +39,13 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Calcular totales
   const calculateTotals = useCallback((): CartTotals => {
-    const subtotal = items.reduce((sum, item) => sum + item.subtotal, 0);
-    const descuento = subtotal * (DESCUENTO_PERCENT / 100);
-    const iva = (subtotal - descuento) * (IVA_PERCENT / 100);
+    const subtotal = Math.floor(items.reduce((sum, item) => sum + item.subtotal, 0));
+    const descuento = Math.floor(subtotal * (DESCUENTO_PERCENT / 100));
+    const iva = Math.floor((subtotal - descuento) * (IVA_PERCENT / 100));
     const total = subtotal - descuento + iva;
 
     return { subtotal, descuento, iva, total };
-  }, [items]);
-
+}, [items]);
   // Agregar producto
   const addItem = useCallback((item: CartItem) => {
     setItems((prev) => {

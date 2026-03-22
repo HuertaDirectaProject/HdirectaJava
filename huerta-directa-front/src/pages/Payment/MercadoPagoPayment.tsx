@@ -54,6 +54,14 @@ export const MercadoPagoPayment = () => {
                 token: data.formData.token,
                 installments: data.formData.installments,
                 issuer_id: data.formData.issuer_id,
+                carrito: items.map(item => ({
+                  productId: item.id,
+                  nombre: item.nombre,
+                  cantidad: item.cantidad,
+                  precio: item.precio,
+                  descripcion: item.descripcion ?? "",
+                  imagen: item.imagen ?? ""
+                })),
                 payer: {
                   email: data.formData.payer?.email ?? CONFIG.PAYER_EMAIL,
                   first_name: data.formData.payer?.firstName ?? "",

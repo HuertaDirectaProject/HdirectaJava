@@ -49,6 +49,9 @@ public class PaymentRequest {
     @JsonProperty("additional_info")
     private Map<String, Object> additionalInfo;
 
+    @JsonProperty("carrito")
+    private List<CarritoItem> carrito;
+
     
 
     @Data

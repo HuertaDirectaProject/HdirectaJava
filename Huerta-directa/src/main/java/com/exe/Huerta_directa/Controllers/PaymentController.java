@@ -70,8 +70,7 @@ public class PaymentController {
 
                 // Obtener carrito antes de limpiarlo
                 @SuppressWarnings("unchecked")
-                List<CarritoItem> carrito = (List<CarritoItem>) session.getAttribute("carrito");
-
+                List<CarritoItem> carrito = paymentRequest.getCarrito();
                 // --- GUARDAR EN BASE DE DATOS PARA ESTADÍSTICAS ---
                 try {
                     com.exe.Huerta_directa.Entity.Payment paymentEntity = new com.exe.Huerta_directa.Entity.Payment();

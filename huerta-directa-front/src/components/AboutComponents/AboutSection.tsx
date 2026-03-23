@@ -1,24 +1,70 @@
 import { useState } from "react";
 import { Button } from "../GlobalComponents/Button";
 import { faLeaf, faPaperPlane } from "@fortawesome/free-solid-svg-icons";
+import commentService from "../../services/commentservice";
+import Swal from "sweetalert2";
 
-export const AboutSection = () => {
+interface AboutSectionProps {
+  onCommentCreated: () => void;
+}
+export const AboutSection = ({ onCommentCreated }: AboutSectionProps) => {
   const [comment, setComment] = useState("");
   const [accepted, setAccepted] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!accepted) return;
 
-    setComment("");
-    setAccepted(false);
+    setLoading(true);
+
+    // 👈 detectas si el modo dark está activo en el documento
+    const isDark = document.documentElement.classList.contains("dark");
+
+    try {
+      onCommentCreated();
+      await commentService.createComment({
+        commentCommenter: comment,
+      });
+
+      setComment("");
+      setAccepted(false);
+
+      Swal.fire({
+        icon: "success",
+        title: "¡Comentario enviado!",
+        text: "Gracias por tu opinión.",
+        timer: 2000,
+        showConfirmButton: false,
+        iconColor: "#8dc84b",
+        background: isDark ? "#1A221C" : "#ffffff", // 👈 usa el color de tu dark mode
+        color: isDark ? "#ffffff" : "#1f2937",
+        customClass: {
+          popup: "rounded-3xl shadow-2xl",
+          title: "text-2xl font-black",
+        },
+      });
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: err instanceof Error ? err.message : "Error al enviar comentario",
+        confirmButtonColor: "#8dc84b",
+        background: isDark ? "#1A221C" : "#ffffff",
+        color: isDark ? "#ffffff" : "#1f2937",
+        customClass: {
+          popup: "rounded-3xl",
+        },
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <section className="bg-linear-to-b from-[#FEF5DC] via-white to-[#FEF5DC]  dark:bg-[#1A221C] dark:from-[#1A221C] dark:via-white/20 dark:to-[#1A221C] pt-5 transition-colors duration-500 ">
       <div className="bg-white dark:bg-[#111814] max-w-350 mx-auto flex flex-col lg:flex-row items-start justify-center gap-10 mt-8 p-8 rounded-2xl transition-colors duration-500">
-        
         {/* LEFT SIDE */}
         <div className="text-left p-8 border border-gray-400/60 dark:border-slate-700 rounded-2xl flex-1">
           <h1 className="text-4xl font-bold text-[#2e7d32] mb-6 text-center dark:text-green-400">
@@ -60,7 +106,6 @@ export const AboutSection = () => {
 
         {/* RIGHT SIDE */}
         <div className="border border-gray-400/60 dark:border-slate-700 rounded-2xl p-8 flex flex-col gap-16 flex-1">
-
           {/* COMMENT SECTION */}
           <article>
             <h2 className="text-2xl font-semibold mb-5 text-[#333] dark:text-white">
@@ -101,6 +146,8 @@ export const AboutSection = () => {
                   text="Enviar"
                   type="submit"
                   iconLetf={faPaperPlane}
+                  isLoading={loading}
+                  loadingText="Enviando..."
                   disabled={!accepted}
                   className="px-4 py-2"
                 />

@@ -23,13 +23,14 @@ export const AboutSection = ({ onCommentCreated }: AboutSectionProps) => {
     const isDark = document.documentElement.classList.contains("dark");
 
     try {
-      onCommentCreated();
       await commentService.createComment({
         commentCommenter: comment,
       });
 
       setComment("");
       setAccepted(false);
+      onCommentCreated();
+
 
       Swal.fire({
         icon: "success",

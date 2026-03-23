@@ -172,31 +172,25 @@ public class CommentController {
         return "DashBoard/EditarComentario";
     }
 
-    @PostMapping("/actualizarComentario/{id}")
-    public RedirectView actualizarCome(@PathVariable long id, @RequestParam("commentCommenter") String commentCommenter,
+    @PutMapping("/{id}")
+    public ResponseEntity<?> actualizarComentarioRest(
+            @PathVariable Long id,
+            @RequestBody CommentDTO commentDTO,
             HttpSession session) {
         try {
-            // verificar sesion
-            User userSesion = (User) session.getAttribute("user");
-            if (userSesion == null) {
-                return new RedirectView("redirect:/login?error=session&message=Debe+iniciar+sesión");
+            User userSession = (User) session.getAttribute("user");
+            if (userSession == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Debe iniciar sesión");
             }
 
-            // crear dto con los datos actualizados
-
-            CommentDTO commentDTO = new CommentDTO();
-            commentDTO.setCommentCommenter(commentCommenter);
-            commentDTO.setCreationComment(java.time.LocalDate.now());
-
-            // llamar al servicio
-
+            commentDTO.setCreationComment(LocalDate.now());
             commentService.actualizarComment(id, commentDTO);
-            return new RedirectView("/MensajesComentarios?success=Comentario+actualizado+correctamente");
+            return ResponseEntity.ok("Comentario actualizado");
+
         } catch (Exception e) {
             e.printStackTrace();
-            return new RedirectView("/MensajesComentarios?error=No+se+pudo+actualizar+el+comentario");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al actualizar");
         }
-
     }
 
     @GetMapping("/reporteFc")

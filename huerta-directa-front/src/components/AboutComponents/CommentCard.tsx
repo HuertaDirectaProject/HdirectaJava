@@ -7,6 +7,9 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import type { Comment } from "../../types/Comment";
 import { API_URL } from "../../config/api";
+import { useState } from "react";
+import Swal from "sweetalert2";
+import commentService from "../../services/commentservice";
 
 const getImageSrc = (imageUrl?: string) => {
   if (!imageUrl) return null;
@@ -19,10 +22,53 @@ interface CommentCardProps {
   comment: Comment;
   currentUserId?: number;
   onDelete?: (id: number) => void;
+  onEdit?: () => void; 
 }
 
-export const CommentCard = ({ comment, currentUserId , onDelete }: CommentCardProps) => {
+export const CommentCard = ({
+  comment,
+  currentUserId,
+  onDelete,
+  onEdit
+}: CommentCardProps) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editText, setEditText] = useState(comment.commentCommenter);
+  const [saving, setSaving] = useState(false);
   const isOwner = currentUserId === comment.user.id;
+
+  const handleSave = async () => {
+    if (!editText.trim()) return;
+    setSaving(true);
+    const isDark = document.documentElement.classList.contains("dark");
+
+    try {
+      await commentService.updateComment(comment.idComment, editText);
+      setIsEditing(false);
+      onEdit?.(); // recarga la lista
+      Swal.fire({
+        icon: "success",
+        title: "Comentario actualizado",
+        timer: 1500,
+        showConfirmButton: false,
+        background: isDark ? "#1A221C" : "#ffffff",
+        color: isDark ? "#ffffff" : "#1f2937",
+        iconColor: "#8dc84b",
+        customClass: { popup: "rounded-3xl" },
+      });
+    } catch {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo actualizar el comentario",
+        confirmButtonColor: "#8dc84b",
+        background: isDark ? "#1A221C" : "#ffffff",
+        color: isDark ? "#ffffff" : "#1f2937",
+        customClass: { popup: "rounded-3xl" },
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
   return (
     <div className="bg-white dark:bg-[#1a1f1b] rounded-2xl shadow-md p-6 flex flex-col gap-5 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer border border-gray-100 dark:border-white/10">
       {/* Header — avatar + nombre + fecha */}
@@ -70,26 +116,58 @@ export const CommentCard = ({ comment, currentUserId , onDelete }: CommentCardPr
 
       {/* Mensaje */}
       <div className="bg-[#f2f5e6] dark:bg-[#111814] rounded-xl p-4">
-        <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-3">
-          {comment.commentCommenter}
-        </p>
+        {isEditing ? (
+          <textarea
+            value={editText}
+            onChange={(e) => setEditText(e.target.value)}
+            rows={3}
+            className="w-full bg-transparent text-sm text-gray-700 dark:text-gray-300 resize-none focus:outline-none focus:ring-2 focus:ring-[#8dc84b] rounded-lg p-1"
+          />
+        ) : (
+          <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-3">
+            {editText}
+          </p>
+        )}
       </div>
 
       {/* Acción */}
       <div className="flex justify-end">
         {isOwner ? (
           <div className="flex gap-2">
-            <Button
-              text="Editar"
-              iconLetf={faPen}
-              className="px-5 py-2 text-sm rounded-full bg-[#3e6a00]"
-            />
-            <Button
-              text="Eliminar"
-               onClick={() => onDelete?.(comment.idComment)} 
-              iconLetf={faTrash}
-              className="px-5 py-2 text-sm rounded-full bg-red-600 hover:bg-red-700"
-            />
+            {isEditing ? (
+              <>
+                <Button
+                  text="Guardar"
+                  isLoading={saving}
+                  loadingText="Guardando..."
+                  onClick={handleSave}
+                  className="px-5 py-2 text-sm rounded-full bg-[#3e6a00]"
+                />
+                <Button
+                  text="Cancelar"
+                  onClick={() => {
+                    setIsEditing(false);
+                    setEditText(comment.commentCommenter);
+                  }}
+                  className="px-5 py-2 text-sm rounded-full bg-gray-500"
+                />
+              </>
+            ) : (
+              <>
+                <Button
+                  text="Editar"
+                  iconLetf={faPen}
+                  onClick={() => setIsEditing(true)}
+                  className="px-5 py-2 text-sm rounded-full bg-[#3e6a00]"
+                />
+                <Button
+                  text="Eliminar"
+                  iconLetf={faTrash}
+                  onClick={() => onDelete?.(comment.idComment)}
+                  className="px-5 py-2 text-sm rounded-full bg-red-600 hover:bg-red-700"
+                />
+              </>
+            )}
           </div>
         ) : (
           <Button

@@ -150,10 +150,19 @@ public class CommentController {
         return "Dashboard_Admin/MensajesComentariosAdmin";
     }
 
-    @GetMapping("/deleteComment/{id}")
-    public RedirectView eliminarComentario(@PathVariable Long id) {
-        commentService.eliminarComment(id);
-        return new RedirectView("/MensajesComentarios?deleted=true");
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> eliminarComentario(@PathVariable Long id, HttpSession session) {
+        try {
+            User userSession = (User) session.getAttribute("user");
+            if (userSession == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Debe iniciar sesión");
+            }
+            commentService.eliminarComment(id);
+            return ResponseEntity.ok("Comentario eliminado");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al eliminar");
+        }
     }
 
     @GetMapping("/editComment/{id}")

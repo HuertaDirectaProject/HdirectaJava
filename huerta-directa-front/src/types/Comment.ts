@@ -4,6 +4,7 @@ export interface Comment {
   commentCommenter: string;
   creationComment: string;
   user: {
+    id: number;
     name: string;
     profileImageUrl?: string; 
   };

@@ -8,6 +8,8 @@ import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "users")
 @Data
@@ -23,11 +25,13 @@ public class User {
     @Size(max = 100)
     private String name;
 
+    @JsonIgnore
     @Column(name = "email", nullable = false, length = 250, unique = true)
     @NotBlank
     @Size(max = 250)
     private String email;
 
+    @JsonIgnore
     @Column(name = "password", nullable = false, length = 250)
     @NotBlank
     @Size(max = 250)
@@ -58,11 +62,13 @@ public class User {
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @lombok.ToString.Exclude
     @lombok.EqualsAndHashCode.Exclude
     private Set<Product> products;
 
+    @JsonIgnore
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "user_favorites",

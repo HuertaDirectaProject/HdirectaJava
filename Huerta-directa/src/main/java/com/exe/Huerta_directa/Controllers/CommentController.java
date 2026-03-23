@@ -4,14 +4,13 @@ import java.io.FileOutputStream;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.http.*;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.data.general.DefaultPieDataset;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.ui.Model;
-
 import com.exe.Huerta_directa.DTO.CommentDTO;
 import com.exe.Huerta_directa.Entity.Comment;
 import com.exe.Huerta_directa.Entity.CommentType;
@@ -24,10 +23,9 @@ import java.io.File;
 import java.io.OutputStream;
 
 import jakarta.servlet.http.HttpSession;
-import org.springframework.web.bind.annotation.PostMapping;
 
-@Controller
-@CrossOrigin(origins = "*")
+@RestController
+@RequestMapping("/api/comments")
 public class CommentController {
 
     private final CommentService commentService;
@@ -37,36 +35,37 @@ public class CommentController {
     }
 
     @PostMapping("/create")
-    public RedirectView crearComentario(@RequestParam("commentCommenter") String commentCommenter,
+    public ResponseEntity<?> crearComentario(@RequestBody CommentDTO commentDTO,
             HttpSession session) {
         try {
-            // ✅ Obtener usuario desde la sesión
+            // 🔐 Validar sesión
             User userSession = (User) session.getAttribute("user");
+
             if (userSession == null) {
-                // 🚫 Si no hay usuario en sesión, agregar mensaje de alerta y redirigir al
-                // login
-                return new RedirectView("/login?error=session&message=Debe+iniciar+sesión+para+dejar+un+comentario");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Debe iniciar sesión");
             }
 
-            // ✅ PERMITIR A CUALQUIER USUARIO REGISTRADO DEJAR COMENTARIOS
-            // (No solo admins, cualquier usuario autenticado puede dejar su opinión o
-            // reseña)
-
-            CommentDTO commentDTO = new CommentDTO();
-            commentDTO.setCommentCommenter(commentCommenter);
+            // 🧠 Completar datos
             commentDTO.setCreationComment(LocalDate.now());
             commentDTO.setUserId(userSession.getId());
 
-            commentService.crearComment(commentDTO, userSession.getId(), null);
+            // 🔥 LÓGICA CLAVE
+            if (commentDTO.getProductId() != null) {
+                // 👉 Comentario de PRODUCTO
+                commentService.crearComment(commentDTO, userSession.getId(), commentDTO.getProductId());
+            } else {
+                // 👉 Comentario de SITIO
+                commentService.crearComment(commentDTO, userSession.getId(), null);
+            }
 
-            return new RedirectView("/Quienes_somos?success=¡Gracias+por+tu+comentario!");
+            return ResponseEntity.ok("Comentario creado correctamente");
 
         } catch (Exception e) {
-            // 🚫 En caso de error, redirigir con mensaje de error
             e.printStackTrace();
-            return new RedirectView("/Quienes_somos?error=No+se+pudo+enviar+tu+comentario,+inténtalo+de+nuevo");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al crear comentario");
         }
-
     }
 
     @PostMapping("/comment/add")
@@ -105,16 +104,11 @@ public class CommentController {
     }
 
     // ✅ GET — Mostrar comentarios tipo SITE (para la página "quienes somos")
-    @GetMapping("/Quienes_somos")
-    public String mostrarComentariosSitio(Model model) {
-        // Obtener lista de comentarios tipo SITE
+    @GetMapping("/site")
+    @ResponseBody
+    public ResponseEntity<List<Comment>> obtenerComentariosSitio() {
         List<Comment> comments = commentService.obtenerComentariosPorTipo(CommentType.SITE);
-
-        // Agregar lista al modelo para Thymeleaf
-        model.addAttribute("comments", comments);
-
-        // Renderiza la plantilla Quienes_somos.html
-        return "Quienes_somos/quienes_somos";
+        return ResponseEntity.ok(comments);
     }
 
     @GetMapping("/MensajesComentarios")

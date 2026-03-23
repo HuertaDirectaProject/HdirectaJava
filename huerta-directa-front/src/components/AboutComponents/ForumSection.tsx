@@ -1,6 +1,5 @@
 import Swal from "sweetalert2";
 import type { Comment } from "../../types/Comment";
-import { ThemeToggle } from "../GlobalComponents/ThemeToggle";
 import { CommentCard } from "./CommentCard";
 import commentService from "../../services/commentservice";
 
@@ -61,9 +60,7 @@ export const ForumSection = ({
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white border-b border-gray-300 dark:border-gray-700 pb-4">
             Foro De Huerta Directa
             {/* Theme */}
-            <div className="pt-2">
-              <ThemeToggle />
-            </div>
+          
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

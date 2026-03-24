@@ -37,7 +37,7 @@ export const AdminUsers: React.FC = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await fetch(`${API_URL}/api/users`);
+        const response = await fetch(`${API_URL}/api/users`, { credentials: "include" });
         if (response.ok) {
           const data = await response.json();
           const mappedUsers: UserInfo[] = data.map((u: any) => ({
@@ -60,11 +60,24 @@ export const AdminUsers: React.FC = () => {
     fetchUsers();
   }, []);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   const filteredUsers = users.filter(
     (u) =>
       u.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       u.email.toLowerCase().includes(searchTerm.toLowerCase()),
   );
+
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const paginatedUsers = filteredUsers.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   const handleEditUser = (user: UserInfo) => {
     setSelectedUser(user);
@@ -82,7 +95,7 @@ export const AdminUsers: React.FC = () => {
       params.append("dato", "name_user");
       params.append("valor", searchTerm);
     }
-    window.location.href = `/api/users/exportExcel?${params.toString()}`;
+    window.location.href = `${API_URL}/api/users/exportExcel?${params.toString()}`;
   };
 
   const handleExportPdf = () => {
@@ -91,7 +104,7 @@ export const AdminUsers: React.FC = () => {
       params.append("dato", "name_user");
       params.append("valor", searchTerm);
     }
-    window.location.href = `/api/users/exportPdf?${params.toString()}`;
+    window.location.href = `${API_URL}/api/users/exportPdf?${params.toString()}`;
   };
   const handleDeleteUser = async (id: number) => {
     const confirmDelete = confirm("¿Seguro que quieres eliminar este usuario?");
@@ -198,7 +211,7 @@ export const AdminUsers: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {filteredUsers.map((user) => (
+                  {paginatedUsers.map((user) => (
                     <tr
                       key={user.id}
                       className="hover:bg-gray-50/50 transition-colors group"
@@ -259,7 +272,7 @@ export const AdminUsers: React.FC = () => {
                       </td>
                     </tr>
                   ))}
-                  {filteredUsers.length === 0 && (
+                  {paginatedUsers.length === 0 && (
                     <tr>
                       <td
                         colSpan={5}
@@ -282,8 +295,8 @@ export const AdminUsers: React.FC = () => {
                   Cargando usuarios...
                 </p>
               </div>
-            ) : filteredUsers.length > 0 ? (
-              filteredUsers.map((user) => (
+            ) : paginatedUsers.length > 0 ? (
+              paginatedUsers.map((user) => (
                 <div
                   key={user.id}
                   className="bg-white border-2 border-gray-100 rounded-3xl p-6 flex flex-col gap-4 hover:border-[#8dc84b] hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
@@ -355,6 +368,39 @@ export const AdminUsers: React.FC = () => {
                 </p>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-2 mt-10">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="px-4 py-2 rounded-xl bg-gray-100 text-gray-600 disabled:opacity-50 hover:bg-[#8dc84b] hover:text-white transition-all cursor-pointer"
+            >
+              Anterior
+            </button>
+            <div className="flex gap-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-10 h-10 rounded-xl font-bold transition-all cursor-pointer ${
+                    currentPage === page ? "bg-[#8dc84b] text-white shadow-md shadow-[#8dc84b]/30" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 rounded-xl bg-gray-100 text-gray-600 disabled:opacity-50 hover:bg-[#8dc84b] hover:text-white transition-all cursor-pointer"
+            >
+              Siguiente
+            </button>
           </div>
         )}
       </section>

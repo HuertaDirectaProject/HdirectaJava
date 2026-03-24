@@ -24,6 +24,9 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addMapping("/**")
                 .allowedOriginPatterns(
                         "http://localhost:5173",
+                        "http://127.0.0.1:5173",
+                        "http://localhost:3000",
+                        "http://127.0.0.1:3000",
                         "https://upbeat-abundance-production-ff52.up.railway.app"
                 )
                 // aca debe ir la url del fornt (jesus)

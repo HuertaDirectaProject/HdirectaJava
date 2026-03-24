@@ -18,11 +18,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByEmail(String email);
 
-    @Query("SELECT p FROM Product p JOIN FETCH p.user")
-
-    List<Product> findAllProductsWithUser();
+    // Buscar usuarios por ID de rol
+    List<User> findByRole_IdRole(Long idRole);
 
     List<User> findByEmailIn(List<String> emails);
+
+    List<User> findByRoleName(String roleName);
 
    // List<User> findByPhone(List<String> phones);
 

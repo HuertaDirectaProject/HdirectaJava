@@ -12,6 +12,7 @@ import {
   faChevronRight,
 } from "@fortawesome/free-solid-svg-icons";
 import { Button } from "../../components/GlobalComponents/Button";
+import { API_URL } from "../../config/api";
 import { useCart } from "../../hooks/useCart";
 import { usePageTitle } from "../../hooks/usePageTitle";
 import ProductCard from "../../components/Home/ProductCard";
@@ -62,7 +63,8 @@ export const ProductDetailPage = () => {
   const fetchComments = async () => {
     try {
       const response = await fetch(
-        `http://localhost:8085/api/comments/product/${id}`,
+        `${API_URL}/api/comments/product/${id}`,
+        { credentials: "include" }
       );
       if (response.ok) {
         const data = await response.json();
@@ -80,7 +82,8 @@ export const ProductDetailPage = () => {
       setLoading(true);
       try {
         const response = await fetch(
-          `http://localhost:8085/api/products/${id}`,
+          `${API_URL}/api/products/${id}`,
+          { credentials: "include" }
         );
         if (response.ok) {
           const data = await response.json();
@@ -93,7 +96,8 @@ export const ProductDetailPage = () => {
           // Fetch related products - Using a more robust category search
           if (data.category) {
             const relatedResponse = await fetch(
-              `http://localhost:8085/api/products/category/${encodeURIComponent(data.category)}`,
+              `${API_URL}/api/products/category/${encodeURIComponent(data.category)}`,
+              { credentials: "include" }
             );
             if (relatedResponse.ok) {
               const relatedData = await relatedResponse.json();
@@ -130,7 +134,7 @@ export const ProductDetailPage = () => {
         precio: discountedPrice,
         cantidad: quantity,
         subtotal: discountedPrice * quantity,
-        imagen: `http://localhost:8085/uploads/productos/${product.imageProduct}`,
+        imagen: `${API_URL}/uploads/productos/${product.imageProduct}`,
       });
     }
   };
@@ -192,27 +196,48 @@ export const ProductDetailPage = () => {
       formData.append("productId", id || "");
       formData.append("rating", newRating.toString());
 
-      const response = await fetch(`http://localhost:8085/comment/add`, {
+      const response = await fetch(`${API_URL}/api/comments/comment/add`, {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
         },
+        credentials: "include",
         body: formData.toString(),
       });
 
-      if (response.ok || response.redirected) {
+      if (response.ok) {
+        Swal.fire({
+          title: "¡Gracias!",
+          text: "Tu reseña ha sido publicada",
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false,
+          toast: true,
+          position: "top-end"
+        });
         setNewComment("");
         setNewRating(5);
         fetchComments();
         // also re-fetch product to get new average
-        const prodRes = await fetch(`http://localhost:8085/api/products/${id}`);
+        const prodRes = await fetch(`${API_URL}/api/products/${id}`, {
+          credentials: "include"
+        });
         if (prodRes.ok) {
           const prodData = await prodRes.json();
           setProduct(prodData);
         }
         setActiveTab("reviews");
       } else {
-        alert("Error al enviar la reseña. ¿Has iniciado sesión?");
+        const errorData = await response.json().catch(() => ({}));
+        Swal.fire({
+          title: "Error",
+          text: errorData.error || "Debe iniciar sesión para dejar una reseña",
+          icon: "error",
+          timer: 3000,
+          showConfirmButton: false,
+          toast: true,
+          position: "top-end"
+        });
       }
     } catch (error) {
       console.error("Error submitting review:", error);
@@ -245,8 +270,8 @@ export const ProductDetailPage = () => {
 
   const allImages = [product.imageProduct, ...(product.images || [])];
   const mainImageUrl = selectedImage
-    ? `http://localhost:8085/uploads/productos/${selectedImage}`
-    : `http://localhost:8085/uploads/productos/${product.imageProduct}`;
+    ? `${API_URL}/uploads/productos/${selectedImage}`
+    : `${API_URL}/uploads/productos/${product.imageProduct}`;
 
   const rating = product.averageRating || 0;
   const reviewCount = product.reviewCount || 0;
@@ -298,7 +323,7 @@ export const ProductDetailPage = () => {
                         className={`w-14 h-14 rounded-lg border-2 overflow-hidden cursor-pointer transition-all ${selectedImage === img ? "border-[#8dc84b]" : "border-gray-100 hover:border-gray-300"}`}
                       >
                         <img
-                          src={`http://localhost:8085/uploads/productos/${img}`}
+                          src={`${API_URL}/uploads/productos/${img}`}
                           alt=""
                           className="w-full h-full object-cover"
                         />
@@ -718,7 +743,7 @@ export const ProductDetailPage = () => {
                     name: p.nameProduct,
                     price: p.price,
                     stock: p.stock,
-                    image: `http://localhost:8085/uploads/productos/${p.imageProduct}`,
+                    image: `${API_URL}/uploads/productos/${p.imageProduct}`,
                     category: p.category,
                     discountOffer: p.discountOffer,
                     images: p.images,

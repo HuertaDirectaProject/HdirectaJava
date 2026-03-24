@@ -38,6 +38,11 @@ coverage/
 .env
 .env.local
 .env.*.local
+.env.development
+.env.production
+
+# AI / Chat Config
+**/chat-config.js
 
 # IDE / Editor settings
 .vscode/

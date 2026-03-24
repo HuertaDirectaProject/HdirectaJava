@@ -1,13 +1,9 @@
 // Variables globales
-      // NOTA: Cambiamos el nombre de la clave guardada para reflejar que usamos Groq
-      let apiKey = localStorage.getItem("groq_api_key") || "";
+      // NOTA: La clave se lee del archivo chat-config.js (ignorado por git)
+      let apiKey = (typeof GROQ_CONFIG !== 'undefined') ? GROQ_CONFIG.apiKey : "";
       let isLoading = false;
 
       // Elementos del DOM
-      const settingsPanel = document.getElementById("settingsPanel");
-      const btnSettings = document.getElementById("btnSettings");
-      const btnSaveKey = document.getElementById("btnSaveKey");
-      const apiKeyInput = document.getElementById("apiKeyInput");
       const messageInput = document.getElementById("messageInput");
       const btnSend = document.getElementById("btnSend");
       const messagesContainer = document.getElementById("messagesContainer");
@@ -25,20 +21,10 @@
         chatModalOverlay.classList.add("open");
         chatModalContent.style.display = "flex";
         scrollToBottom(); 
-
-        // Si la clave no está, abre la configuración
-        if (!apiKey) {
-            settingsPanel.classList.add("show");
-        }
       }
 
       function closeChatModal() {
         chatModalOverlay.classList.remove("open");
-      }
-
-      // Cargar API key al inicio
-      if (apiKey) {
-        apiKeyInput.value = apiKey;
       }
 
       // Event Listeners del Modal
@@ -50,25 +36,6 @@
           if (e.target === chatModalOverlay) {
               closeChatModal();
           }
-      });
-      
-      // Toggle settings
-      btnSettings.addEventListener("click", () => {
-        settingsPanel.classList.toggle("show");
-      });
-
-      // Guardar API key
-      btnSaveKey.addEventListener("click", () => {
-        const key = apiKeyInput.value.trim();
-        if (key) {
-          apiKey = key;
-          // Guardamos la clave con el nuevo nombre
-          localStorage.setItem("groq_api_key", key); 
-          settingsPanel.classList.remove("show");
-          alert("API Key guardada correctamente");
-        } else {
-          alert("Por favor ingresa una API key válida");
-        }
       });
 
       // Auto-resize textarea

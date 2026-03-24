@@ -16,6 +16,12 @@ export default defineConfig({
         target: 'http://localhost:8085',
         changeOrigin: true,
         secure: false,
+      },
+      '/groq': {
+        target: 'https://api.groq.com/openai/v1',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/groq/, ''),
+        secure: false,
       }
     }
   }

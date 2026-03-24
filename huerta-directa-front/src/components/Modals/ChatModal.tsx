@@ -1,85 +1,190 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import axios from "axios";
+
+interface Message {
+  role: "user" | "assistant";
+  content: string;
+}
 
 interface Props {
   onClose: () => void;
 }
 
+const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
+
 export const ChatModal = ({ onClose }: Props) => {
-  const [showSettings, setShowSettings] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleSendMessage = async () => {
+    if (!input.trim() || isLoading) return;
+
+    if (!GROQ_API_KEY) {
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: "Error: No se ha configurado la API Key de Groq." },
+      ]);
+      return;
+    }
+
+    const userMessage: Message = { role: "user", content: input };
+    setMessages((prev) => [...prev, userMessage]);
+    setInput("");
+    setIsLoading(true);
+
+    try {
+      // Use proxy in dev, direct URL in prod (though prod will likely need a real backend proxy for CORS)
+      const isDev = import.meta.env.DEV;
+      const apiUrl = isDev 
+        ? "/groq/chat/completions" 
+        : "https://api.groq.com/openai/v1/chat/completions";
+
+      console.log(`Sending request to Groq (${isDev ? "proxy" : "direct"}) with key:`, GROQ_API_KEY ? "Present" : "Missing");
+      
+      const response = await axios.post(
+        apiUrl,
+        {
+          model: "llama-3.3-70b-versatile",
+          messages: [
+            {
+              role: "system",
+              content: "Eres un Asistente Experto en Horticultura y Huerta Orgánica. Tu objetivo es responder todas las preguntas del usuario sobre cultivos, siembra, plagas, suelos y cosechas en el contexto de una huerta casera. Utiliza un tono amigable, didáctico y enfocado en métodos naturales y sostenibles. Responde siempre de forma práctica y concisa. NO hables de temas que no sean de jardinería o agricultura, da respuestas concretas y no tan extensas, ayuda al usuario con informacion de productos agricolas, lacteos y demas.",
+            },
+            ...messages,
+            userMessage,
+          ],
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${GROQ_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      console.log("Groq response received:", response.data);
+
+      const assistantMessage: Message = {
+        role: "assistant",
+        content: response.data.choices[0].message.content,
+      };
+
+      setMessages((prev) => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error("Error calling Groq API:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "Lo siento, hubo un error al procesar tu mensaje. Por favor intenta de nuevo.",
+        },
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-2000 animate-fadeIn">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[2000] animate-fadeIn">
       {/* CONTENEDOR */}
-      <div className="bg-white dark:bg-[#1A221C] w-[90%] max-w-200 h-[90%] max-h-175 rounded-xl shadow-2xl flex flex-col overflow-hidden">
+      <div className="bg-white dark:bg-[#1A221C] w-[90%] max-w-2xl h-[80%] rounded-xl shadow-2xl flex flex-col overflow-hidden m-4">
         
         {/* HEADER */}
-        <div className="bg-[#8dc84b] text-white px-8 py-6 flex justify-between items-center">
+        <div className="bg-[#8dc84b] text-white px-6 py-4 flex justify-between items-center shadow-md">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center text-xl">
+            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-xl">
               🤖
             </div>
             <div>
-              <h1 className="text-xl font-semibold">Asistente Huerta</h1>
-              <p className="text-sm opacity-90">Powered by Groq</p>
+              <h1 className="text-lg font-semibold">Asistente Huerta</h1>
+              <p className="text-xs opacity-90">IA Activa</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setShowSettings(!showSettings)}
-              className="bg-white/20 hover:bg-white/30 px-3 py-2 rounded-lg text-lg transition duration-500 cursor-pointer"
-            >
-              ⚙️
-            </button>
-
-            <button
-              onClick={onClose}
-              className="bg-white/20 hover:bg-white/30 px-3 py-2 rounded-lg text-lg transition duration-500 cursor-pointer"
-            >
-              ❌
-            </button>
-          </div>
+          <button
+            onClick={onClose}
+            className="bg-white/20 hover:bg-white/30 w-10 h-10 flex items-center justify-center rounded-lg text-lg transition duration-300 cursor-pointer"
+          >
+            ❌
+          </button>
         </div>
 
-        {/* SETTINGS */}
-        {showSettings && (
-          <div className="bg-yellow-100 dark:bg-yellow-900/30 border-b-2 border-yellow-400 dark:border-yellow-700 px-8 py-6">
-            <label className="block font-semibold mb-2 text-yellow-800 dark:text-yellow-300">
-              Groq API Key
-            </label>
-            <input
-              type="password"
-              placeholder="Ingresa tu clave aquí"
-              className="w-full p-3 border-2 border-yellow-400 dark:border-yellow-600 rounded-lg mb-3 bg-white dark:bg-[#222b24] text-gray-800 dark:text-gray-200"
-            />
-            <button className="bg-[#8dc84b] text-white px-6 py-2 rounded-lg font-semibold hover:bg-[#7ab63f] transition duration-500 cursor-pointer">
-              Guardar Configuración
-            </button>
-          </div>
-        )}
-
         {/* MENSAJES */}
-        <div className="flex-1 overflow-y-auto bg-gray-100 dark:bg-[#111814] p-8">
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            <div className="text-5xl mb-4">👋</div>
-            <h2 className="text-2xl font-semibold mb-2 text-gray-800 dark:text-white">
-              ¡Hola! Soy Huerta-IA
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400">
-              Configura tu Groq API Key en ⚙️
-            </p>
-          </div>
+        <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-[#111814] p-6 flex flex-col gap-4">
+          {messages.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full text-center">
+              <div className="text-5xl mb-4">👋</div>
+              <h2 className="text-2xl font-semibold mb-2 text-gray-800 dark:text-white">
+                ¡Hola! Soy Huerta-IA
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400">
+                ¿En qué puedo ayudarte hoy sobre productos del campo?
+              </p>
+            </div>
+          ) : (
+            messages.map((msg, index) => (
+              <div
+                key={index}
+                className={`flex ${
+                  msg.role === "user" ? "justify-end" : "justify-start"
+                }`}
+              >
+                <div
+                  className={`max-w-[80%] rounded-2xl px-4 py-2 shadow-sm ${
+                    msg.role === "user"
+                      ? "bg-[#8dc84b] text-white rounded-tr-none"
+                      : "bg-white dark:bg-[#222b24] text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-gray-800 rounded-tl-none"
+                  }`}
+                >
+                  <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                </div>
+              </div>
+            ))
+          )}
+          {isLoading && (
+            <div className="flex justify-start">
+              <div className="bg-white dark:bg-[#222b24] text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-gray-800 rounded-2xl rounded-tl-none px-4 py-2 shadow-sm">
+                <div className="flex gap-1">
+                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></span>
+                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:0.2s]"></span>
+                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:0.4s]"></span>
+                </div>
+              </div>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
         </div>
 
         {/* INPUT */}
-        <div className="bg-white dark:bg-[#1A221C] border-t-2 border-gray-200 dark:border-[#2a332c] p-6">
-          <div className="flex gap-4">
+        <div className="bg-white dark:bg-[#1A221C] border-t border-gray-100 dark:border-[#2a332c] p-4">
+          <div className="flex gap-3">
             <textarea
               rows={1}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage();
+                }
+              }}
               placeholder="Escribe tu mensaje..."
-              className="flex-1 border-2 border-gray-200 dark:border-[#2a332c] rounded-lg p-3 resize-none focus:outline-none focus:border-[#8dc84b] bg-white dark:bg-[#222b24] text-gray-800 dark:text-gray-200"
+              className="flex-1 border border-gray-200 dark:border-[#2a332c] rounded-xl px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-[#8dc84b] focus:border-transparent bg-gray-50 dark:bg-[#222b24] text-gray-800 dark:text-gray-200 transition-all"
             />
-            <button className="bg-[#8dc84b] px-6 rounded-lg text-xl text-white hover:bg-[#7ab63f] transition duration-500 cursor-pointer">
+            <button
+              onClick={handleSendMessage}
+              disabled={isLoading || !input.trim()}
+              className="bg-[#8dc84b] px-5 rounded-xl text-white hover:bg-[#7ab63f] disabled:opacity-50 disabled:cursor-not-allowed transition duration-300 cursor-pointer shadow-md"
+            >
               📤
             </button>
           </div>
@@ -87,4 +192,4 @@ export const ChatModal = ({ onClose }: Props) => {
       </div>
     </div>
   );
-};
+};

@@ -5,6 +5,9 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   envPrefix: 'VITE_',
+  define: {
+    global: 'globalThis',
+  },
   preview: {
     allowedHosts: ['upbeat-abundance-production-ff52.up.railway.app'],
     host: '0.0.0.0',

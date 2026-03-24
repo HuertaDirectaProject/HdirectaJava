@@ -5,6 +5,9 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   envPrefix: 'VITE_',
+  define: {
+    global: 'globalThis',
+  },
   preview: {
     allowedHosts: ['upbeat-abundance-production-ff52.up.railway.app'],
     host: '0.0.0.0',
@@ -15,6 +18,12 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:8085',
         changeOrigin: true,
+        secure: false,
+      },
+      '/groq': {
+        target: 'https://api.groq.com/openai/v1',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/groq/, ''),
         secure: false,
       }
     }

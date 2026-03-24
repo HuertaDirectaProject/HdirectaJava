@@ -4,6 +4,7 @@ import { faMagnifyingGlass, faEye, faTrash, faCheck, faBan, faBorderAll, faListU
 import { Button } from "../../components/GlobalComponents/Button";
 import { usePageTitle } from "../../hooks/usePageTitle";
 import { NotifyProducerModal } from "../../components/Modals/NotifyProducerModal";
+import { API_URL } from "../../config/api";
 
 interface ProductInfo {
   id: number;
@@ -29,7 +30,7 @@ export const AdminProducts: React.FC = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch("/api/products");
+        const response = await fetch(`${API_URL}/api/products`, { credentials: "include" });
         if (response.ok) {
           const data = await response.json();
           const mappedProducts: ProductInfo[] = data.map((p: any) => ({
@@ -39,13 +40,19 @@ export const AdminProducts: React.FC = () => {
             category: p.category,
             price: p.price,
             stock: p.stock,
-            status: p.stock > 0 ? "Aprobado" : "Pendiente",
-            image: p.imageProduct ? `/uploads/productos/${p.imageProduct}` : "https://via.placeholder.com/150"
+            // Soporta tanto el enum como strings previos si los hay
+            status: p.status === "APPROVED" || p.status === "Aprobado" ? "Aprobado" : 
+                    p.status === "REJECTED" || p.status === "Rechazado" ? "Rechazado" : "Pendiente",
+            image: p.imageProduct ? `${API_URL}/uploads/productos/${p.imageProduct}` : "https://via.placeholder.com/150"
           }));
           setProducts(mappedProducts);
+        } else {
+          console.error("Error response from server:", response.status);
+          alert("Error al cargar productos: " + response.statusText);
         }
       } catch (error) {
         console.error("Error fetching products:", error);
+        alert("Error de conexión al cargar productos.");
       } finally {
         setLoading(false);
       }
@@ -53,6 +60,40 @@ export const AdminProducts: React.FC = () => {
 
     fetchProducts();
   }, []);
+
+  const handleApprove = async (id: number) => {
+    try {
+      const response = await fetch(`${API_URL}/api/products/${id}/approve`, { method: "PUT", credentials: "include" });
+      if (response.ok) {
+        setProducts(prev => prev.map(p => p.id === id ? { ...p, status: "Aprobado" } : p));
+      }
+    } catch (error) {
+      console.error("Error approving product:", error);
+    }
+  };
+
+  const handleReject = async (id: number) => {
+    try {
+      const response = await fetch(`${API_URL}/api/products/${id}/reject`, { method: "PUT", credentials: "include" });
+      if (response.ok) {
+        setProducts(prev => prev.map(p => p.id === id ? { ...p, status: "Rechazado" } : p));
+      }
+    } catch (error) {
+      console.error("Error rejecting product:", error);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!window.confirm("¿Está seguro de eliminar este producto?")) return;
+    try {
+      const response = await fetch(`${API_URL}/api/products/${id}`, { method: "DELETE", credentials: "include" });
+      if (response.ok) {
+        setProducts(prev => prev.filter(p => p.id !== id));
+      }
+    } catch (error) {
+      console.error("Error deleting product:", error);
+    }
+  };
 
   const handleNotifyProducer = (product: ProductInfo) => {
     setSelectedProduct(product);
@@ -62,20 +103,32 @@ export const AdminProducts: React.FC = () => {
   const handleExportExcel = () => {
     const params = new URLSearchParams();
     if (searchTerm) params.append("buscar", searchTerm);
-    // category here could be added if you have a category state, but AdminProducts currently only uses searchTerm
-    window.location.href = `/exportar_productos_excel?${params.toString()}`;
+    window.location.href = `${API_URL}/api/products/exportExcel?${params.toString()}`;
   };
 
   const handleExportPdf = () => {
     const params = new URLSearchParams();
     if (searchTerm) params.append("buscar", searchTerm);
-    window.location.href = `/exportar_productos_pdf?${params.toString()}`;
+    window.location.href = `${API_URL}/api/products/exportPdf?${params.toString()}`;
   };
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const filteredProducts = products.filter(p => 
     p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     p.producer.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const paginatedProducts = filteredProducts.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   return (
     <div className="w-full">
@@ -148,7 +201,7 @@ export const AdminProducts: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {filteredProducts.map((product) => (
+                {paginatedProducts.map((product) => (
                   <tr key={product.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="py-5 px-4 font-bold text-gray-800">{product.name}</td>
                     <td className="py-5 px-4 text-gray-600 font-medium">{product.producer}</td>
@@ -172,20 +225,32 @@ export const AdminProducts: React.FC = () => {
                         >
                           <FontAwesomeIcon icon={faEye} />
                         </button>
-                        <button className="w-11 h-11 rounded-xl bg-gray-50 text-gray-400 hover:bg-green-500 hover:text-white transition-all cursor-pointer shadow-sm flex items-center justify-center" title="Aprobar">
+                        <button 
+                          className="w-11 h-11 rounded-xl bg-gray-50 text-gray-400 hover:bg-green-500 hover:text-white transition-all cursor-pointer shadow-sm flex items-center justify-center" 
+                          title="Aprobar"
+                          onClick={() => handleApprove(product.id)}
+                        >
                           <FontAwesomeIcon icon={faCheck} />
                         </button>
-                        <button className="w-11 h-11 rounded-xl bg-gray-50 text-gray-400 hover:bg-yellow-500 hover:text-white transition-all cursor-pointer shadow-sm flex items-center justify-center" title="Rechazar">
+                        <button 
+                          className="w-11 h-11 rounded-xl bg-gray-50 text-gray-400 hover:bg-yellow-500 hover:text-white transition-all cursor-pointer shadow-sm flex items-center justify-center" 
+                          title="Rechazar"
+                          onClick={() => handleReject(product.id)}
+                        >
                           <FontAwesomeIcon icon={faBan} />
                         </button>
-                        <button className="w-11 h-11 rounded-xl bg-gray-50 text-gray-400 hover:bg-red-500 hover:text-white transition-all cursor-pointer shadow-sm flex items-center justify-center" title="Eliminar">
+                        <button 
+                          className="w-11 h-11 rounded-xl bg-gray-50 text-gray-400 hover:bg-red-500 hover:text-white transition-all cursor-pointer shadow-sm flex items-center justify-center" 
+                          title="Eliminar"
+                          onClick={() => handleDelete(product.id)}
+                        >
                           <FontAwesomeIcon icon={faTrash} />
                         </button>
                       </div>
                     </td>
                   </tr>
                 ))}
-                {filteredProducts.length === 0 && (
+                {paginatedProducts.length === 0 && (
                   <tr>
                     <td colSpan={6} className="py-8 text-center text-gray-500">No hay productos.</td>
                   </tr>
@@ -195,7 +260,7 @@ export const AdminProducts: React.FC = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredProducts.map((product) => (
+            {paginatedProducts.map((product) => (
               <div key={product.id} className="bg-white border-2 border-gray-100 rounded-3xl p-6 flex flex-col gap-4 hover:border-[#8dc84b] hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
                 <div className="relative w-full h-48 mb-4 overflow-hidden rounded-2xl bg-gray-50 flex items-center justify-center">
                   <img 
@@ -243,23 +308,68 @@ export const AdminProducts: React.FC = () => {
                   >
                     <FontAwesomeIcon icon={faEye} />
                   </button>
-                  <button className="h-11 rounded-xl bg-gray-50 text-gray-400 hover:bg-green-500 hover:text-white transition-all cursor-pointer flex items-center justify-center col-span-1 shadow-sm" title="Aprobar">
+                  <button 
+                    className="h-11 rounded-xl bg-gray-50 text-gray-400 hover:bg-green-500 hover:text-white transition-all cursor-pointer flex items-center justify-center col-span-1 shadow-sm" 
+                    title="Aprobar"
+                    onClick={() => handleApprove(product.id)}
+                  >
                     <FontAwesomeIcon icon={faCheck} />
                   </button>
-                  <button className="h-11 rounded-xl bg-gray-50 text-gray-400 hover:bg-yellow-500 hover:text-white transition-all cursor-pointer flex items-center justify-center col-span-1 shadow-sm" title="Rechazar">
+                  <button 
+                    className="h-11 rounded-xl bg-gray-50 text-gray-400 hover:bg-yellow-500 hover:text-white transition-all cursor-pointer flex items-center justify-center col-span-1 shadow-sm" 
+                    title="Rechazar"
+                    onClick={() => handleReject(product.id)}
+                  >
                     <FontAwesomeIcon icon={faBan} />
                   </button>
-                  <button className="h-11 rounded-xl bg-gray-50 text-gray-400 hover:bg-red-500 hover:text-white transition-all cursor-pointer flex items-center justify-center col-span-1 shadow-sm" title="Eliminar">
+                  <button 
+                    className="h-11 rounded-xl bg-gray-50 text-gray-400 hover:bg-red-500 hover:text-white transition-all cursor-pointer flex items-center justify-center col-span-1 shadow-sm" 
+                    title="Eliminar"
+                    onClick={() => handleDelete(product.id)}
+                  >
                     <FontAwesomeIcon icon={faTrash} />
                   </button>
                 </div>
               </div>
             ))}
-            {filteredProducts.length === 0 && (
+            {paginatedProducts.length === 0 && (
               <div className="col-span-full py-12 text-center border-2 border-dashed border-gray-200 rounded-3xl">
                 <p className="text-gray-500 font-medium text-lg">No se encontraron productos con esos términos.</p>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-2 mt-10">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="px-4 py-2 rounded-xl bg-gray-100 text-gray-600 disabled:opacity-50 hover:bg-[#8dc84b] hover:text-white transition-all cursor-pointer"
+            >
+              Anterior
+            </button>
+            <div className="flex gap-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-10 h-10 rounded-xl font-bold transition-all cursor-pointer ${
+                    currentPage === page ? "bg-[#8dc84b] text-white shadow-md shadow-[#8dc84b]/30" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 rounded-xl bg-gray-100 text-gray-600 disabled:opacity-50 hover:bg-[#8dc84b] hover:text-white transition-all cursor-pointer"
+            >
+              Siguiente
+            </button>
           </div>
         )}
       </section>

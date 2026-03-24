@@ -3,6 +3,7 @@ package com.exe.Huerta_directa.Controllers;
 import java.io.FileOutputStream;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.*;
 import org.jfree.chart.ChartFactory;
@@ -69,15 +70,20 @@ public class CommentController {
     }
 
     @PostMapping("/comment/add")
-    public RedirectView crearComentarioProducto(
+    public ResponseEntity<?> crearComentarioProducto(
             @RequestParam("commentCommenter") String commentCommenter,
             @RequestParam("productId") Long productId,
             @RequestParam(value = "rating", required = false) Integer rating,
             HttpSession session) {
         try {
             User userSession = (User) session.getAttribute("user");
+            System.out.println("DEBUG: Intento de comentario para producto " + productId);
+            System.out.println("DEBUG: Session ID: " + session.getId());
+            System.out.println("DEBUG: User in session: " + (userSession != null ? userSession.getEmail() : "NULL"));
+
             if (userSession == null) {
-                return new RedirectView("/login?error=session&message=Debe+iniciar+sesión+para+dejar+una+reseña");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "Debe iniciar sesión para dejar una reseña"));
             }
 
             CommentDTO commentDTO = new CommentDTO();
@@ -87,17 +93,18 @@ public class CommentController {
             commentDTO.setProductId(productId);
             commentDTO.setRating(rating); // Set the rating
 
-            commentService.crearComment(commentDTO, userSession.getId(), productId);
+            CommentDTO created = commentService.crearComment(commentDTO, userSession.getId(), productId);
 
-            return new RedirectView("/producto/" + productId + "?success=¡Gracias+por+tu+reseña!");
+            return ResponseEntity.ok(created);
 
         } catch (Exception e) {
             e.printStackTrace();
-            return new RedirectView("/producto/" + productId + "?error=No+se+pudo+enviar+tu+reseña");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "No se pudo enviar tu reseña"));
         }
     }
 
-    @GetMapping("/api/comments/product/{productId}")
+    @GetMapping("/product/{productId}")
     @ResponseBody
     public List<CommentDTO> listarCommentsPorProducto(@PathVariable Long productId) {
         return commentService.listarCommentsPorProducto(productId);

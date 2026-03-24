@@ -72,7 +72,7 @@ function App() {
                     {/* Rutas protegidas */}
                     <Route element={<ProtectedRoute />}>
 
-                        <Route element={<MainLayout navbarProps={{ showProductos: true, showCategorias: true, showAddProduct: true, showCart: true, showProfile: true, showQuienesSomos: true }} />}>
+                        <Route element={<MainLayout navbarProps={{ showProductos: true, showCategorias: true, showAddProduct: true, showCart: true, showProfile: true, showQuienesSomos: false }} />}>
                             <Route path="/HomePage" element={<HomePage />} />
                         </Route>
 

@@ -8,11 +8,15 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import com.exe.Huerta_directa.Entity.ProductStatus;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
 public class ProductDTO {
+
+    private ProductStatus status;
 
     private Long idProduct;
     private String nameProduct;

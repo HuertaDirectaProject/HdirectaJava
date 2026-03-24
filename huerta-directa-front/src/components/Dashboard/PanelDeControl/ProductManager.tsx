@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import type { Product } from "../../../types/Product";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import SinImagenHuerta from "../../../assets/SinImagenHuerta.png";
@@ -50,6 +50,19 @@ export const ProductManager: React.FC<Props> = ({
   setIsUploadModalOpen,
   handleDeleteProduct,
 }) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const paginatedProducts = filteredProducts.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, category]);
+
   return (
     <section className="bg-white pb-42 dark:bg-[#1A221C] p-8 rounded-3xl shadow-sm mb-8 border border-gray-100 dark:border-[#24302A]">
       {/* Header */}
@@ -163,7 +176,7 @@ export const ProductManager: React.FC<Props> = ({
             </thead>
 
             <tbody className="divide-y divide-gray-50 dark:divide-[#24302A]">
-              {filteredProducts.map((p) => (
+              {paginatedProducts.map((p) => (
                 <tr
                   key={p.idProduct}
                   className="hover:bg-gray-50/50 dark:hover:bg-[#111712]"
@@ -213,13 +226,18 @@ export const ProductManager: React.FC<Props> = ({
                   </td>
                 </tr>
               ))}
+              {paginatedProducts.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="py-8 text-center text-gray-500">No hay productos.</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       ) : (
         /* GRID  SQUARE*/
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 ">
-          {filteredProducts.map((p) => (
+          {paginatedProducts.map((p) => (
             <div
               key={p.idProduct}
               className="bg-white dark:bg-[#1c2c21] border-2 border-gray-100 dark:border-[#24302A]
@@ -293,6 +311,44 @@ export const ProductManager: React.FC<Props> = ({
               </div>
             </div>
           ))}
+          {paginatedProducts.length === 0 && (
+            <div className="col-span-full py-12 text-center border-2 border-dashed border-gray-200 rounded-3xl">
+              <p className="text-gray-500 font-medium text-lg">No se encontraron productos.</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-2 mt-10">
+          <button
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="px-4 py-2 rounded-xl bg-gray-100 dark:bg-[#101922] text-gray-600 dark:text-gray-400 disabled:opacity-50 hover:bg-[#8dc84b] hover:text-white transition-all cursor-pointer"
+          >
+            Anterior
+          </button>
+          <div className="flex gap-1">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`w-10 h-10 rounded-xl font-bold transition-all cursor-pointer ${
+                  currentPage === page ? "bg-[#8dc84b] text-white shadow-md shadow-[#8dc84b]/30" : "bg-gray-100 dark:bg-[#101922] text-gray-500 hover:bg-gray-200 dark:hover:bg-[#1f2a22]"
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className="px-4 py-2 rounded-xl bg-gray-100 dark:bg-[#101922] text-gray-600 dark:text-gray-400 disabled:opacity-50 hover:bg-[#8dc84b] hover:text-white transition-all cursor-pointer"
+          >
+            Siguiente
+          </button>
         </div>
       )}
     </section>

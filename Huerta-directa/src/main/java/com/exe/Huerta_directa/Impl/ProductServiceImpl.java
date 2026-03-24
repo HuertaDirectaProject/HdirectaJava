@@ -33,19 +33,23 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public List<ProductDTO> listarProducts() {
-        return productRepository.findAllWithUsers()
+        List<ProductDTO> products = productRepository.findAllWithUsers()
                 .stream()
                 .map(this::convertirADTO)
                 .collect(Collectors.toList());
+        enrichProductsWithRatings(products);
+        return products;
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ProductDTO> listarProductosPorUsuario(Long userID) {
-        return productRepository.findByUserId(userID)
+        List<ProductDTO> products = productRepository.findByUserId(userID)
                 .stream()
                 .map(this::convertirADTO)
                 .collect(Collectors.toList());
+        enrichProductsWithRatings(products);
+        return products;
     }
 
     @Override
@@ -94,16 +98,20 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<ProductDTO> buscarPorNombre(String nombre) {
-        return productRepository.findByNameProductContainingIgnoreCase(nombre).stream()
+        List<ProductDTO> products = productRepository.findByNameProductContainingIgnoreCase(nombre).stream()
                 .map(this::convertirADTO)
                 .collect(Collectors.toList());
+        enrichProductsWithRatings(products);
+        return products;
     }
 
     @Override
     public List<ProductDTO> buscarPorCategoria(String categoria) {
-        return productRepository.findByCategoryIgnoreCase(categoria).stream()
+        List<ProductDTO> products = productRepository.findByCategoryIgnoreCase(categoria).stream()
                 .map(this::convertirADTO)
                 .collect(Collectors.toList());
+        enrichProductsWithRatings(products);
+        return products;
     }
 
     @Override
@@ -134,10 +142,12 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public List<ProductDTO> listarProductsPorCategoria(String slug) {
-        return productRepository.findByCategorySlug(slug)
+        List<ProductDTO> products = productRepository.findByCategorySlug(slug)
                 .stream()
                 .map(this::convertirADTO)
                 .collect(Collectors.toList());
+        enrichProductsWithRatings(products);
+        return products;
     }
 
     // Convertir Entity a DTO
@@ -349,10 +359,12 @@ public class ProductServiceImpl implements ProductService {
     @Transactional(readOnly = true)
     public List<ProductDTO> listarOfertas() {
         // Usamos findAllWithUsers para asegurar que tenemos toda la info necesaria
-        return productRepository.findAllWithUsers().stream()
+        List<ProductDTO> products = productRepository.findAllWithUsers().stream()
                 .filter(p -> p.getDiscountOffer() != null && p.getDiscountOffer() >= 1)
                 .map(this::convertirADTO)
                 .collect(Collectors.toList());
+        enrichProductsWithRatings(products);
+        return products;
     }
 
 }

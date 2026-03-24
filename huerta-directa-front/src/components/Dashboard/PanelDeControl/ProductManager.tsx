@@ -171,6 +171,7 @@ export const ProductManager: React.FC<Props> = ({
                 <th className="py-4 px-4">Categoría</th>
                 <th className="py-4 px-4">Precio</th>
                 <th className="py-4 px-4">Stock</th>
+                <th className="py-4 px-4">Estado</th>
                 <th className="py-4 px-4 text-center">Acciones</th>
               </tr>
             </thead>
@@ -195,6 +196,15 @@ export const ProductManager: React.FC<Props> = ({
 
                   <td className="py-5 px-4 text-gray-700 dark:text-gray-300">
                     {p.stock} {p.unit}
+                  </td>
+                  
+                  <td className="py-5 px-4">
+                    <span className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase ${
+                      p.status === 'APPROVED' ? 'bg-green-100 text-green-700' : 
+                      p.status === 'REJECTED' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
+                    }`}>
+                      {p.status === 'APPROVED' ? 'Aprobado' : p.status === 'REJECTED' ? 'Rechazado' : 'Pendiente'}
+                    </span>
                   </td>
 
                   <td className="py-5 px-4">
@@ -273,15 +283,25 @@ export const ProductManager: React.FC<Props> = ({
                   </p>
                 </div>
 
-                <span
-                  className={`px-2 py-1 rounded-lg text-xs font-bold ${
-                    p.stock > 0
-                      ? "bg-green-50 text-green-600"
-                      : "bg-red-50 text-red-500"
-                  }`}
-                >
-                  {p.stock} {p.unit}
-                </span>
+                <div className="flex flex-col gap-2 items-end">
+                   <span
+                    className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${
+                      p.status === 'APPROVED' ? 'bg-green-100 text-green-700' : 
+                      p.status === 'REJECTED' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
+                    }`}
+                  >
+                    {p.status === 'APPROVED' ? 'Aprobado' : p.status === 'REJECTED' ? 'Rechazado' : 'Pendiente'}
+                  </span>
+                  <span
+                    className={`px-2 py-1 rounded-lg text-xs font-bold ${
+                      p.stock > 0
+                        ? "bg-green-50 text-green-600"
+                        : "bg-red-50 text-red-500"
+                    }`}
+                  >
+                    {p.stock} {p.unit}
+                  </span>
+                </div>
               </div>
 
               <div className="flex gap-2 mt-4">

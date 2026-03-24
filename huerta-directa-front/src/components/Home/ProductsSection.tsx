@@ -32,7 +32,7 @@ export const ProductsSection = () => {
   };
 
   useEffect(() => {
-    fetch(`${API_URL}/api/products`, { credentials: "include" })
+    fetch(`${API_URL}/api/products/available`, { credentials: "include" })
       .then((res) => res.json())
       .then((data) => {
         const mappedProducts: Product[] = data.map((p: any) => ({

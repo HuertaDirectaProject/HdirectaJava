@@ -37,7 +37,7 @@ export const AdminUsers: React.FC = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await fetch(`${API_URL}/api/users`);
+        const response = await fetch(`${API_URL}/api/users`, { credentials: "include" });
         if (response.ok) {
           const data = await response.json();
           const mappedUsers: UserInfo[] = data.map((u: any) => ({
@@ -95,7 +95,7 @@ export const AdminUsers: React.FC = () => {
       params.append("dato", "name_user");
       params.append("valor", searchTerm);
     }
-    window.location.href = `/api/users/exportExcel?${params.toString()}`;
+    window.location.href = `${API_URL}/api/users/exportExcel?${params.toString()}`;
   };
 
   const handleExportPdf = () => {
@@ -104,7 +104,7 @@ export const AdminUsers: React.FC = () => {
       params.append("dato", "name_user");
       params.append("valor", searchTerm);
     }
-    window.location.href = `/api/users/exportPdf?${params.toString()}`;
+    window.location.href = `${API_URL}/api/users/exportPdf?${params.toString()}`;
   };
   const handleDeleteUser = async (id: number) => {
     const confirmDelete = confirm("¿Seguro que quieres eliminar este usuario?");

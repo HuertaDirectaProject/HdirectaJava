@@ -4,6 +4,7 @@ import { faMagnifyingGlass, faEye, faTrash, faCheck, faBan, faBorderAll, faListU
 import { Button } from "../../components/GlobalComponents/Button";
 import { usePageTitle } from "../../hooks/usePageTitle";
 import { NotifyProducerModal } from "../../components/Modals/NotifyProducerModal";
+import { API_URL } from "../../config/api";
 
 interface ProductInfo {
   id: number;
@@ -29,7 +30,7 @@ export const AdminProducts: React.FC = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch("/api/products");
+        const response = await fetch(`${API_URL}/api/products`, { credentials: "include" });
         if (response.ok) {
           const data = await response.json();
           const mappedProducts: ProductInfo[] = data.map((p: any) => ({
@@ -39,13 +40,19 @@ export const AdminProducts: React.FC = () => {
             category: p.category,
             price: p.price,
             stock: p.stock,
-            status: p.stock > 0 ? "Aprobado" : "Pendiente",
-            image: p.imageProduct ? `/uploads/productos/${p.imageProduct}` : "https://via.placeholder.com/150"
+            // Soporta tanto el enum como strings previos si los hay
+            status: p.status === "APPROVED" || p.status === "Aprobado" ? "Aprobado" : 
+                    p.status === "REJECTED" || p.status === "Rechazado" ? "Rechazado" : "Pendiente",
+            image: p.imageProduct ? `${API_URL}/uploads/productos/${p.imageProduct}` : "https://via.placeholder.com/150"
           }));
           setProducts(mappedProducts);
+        } else {
+          console.error("Error response from server:", response.status);
+          alert("Error al cargar productos: " + response.statusText);
         }
       } catch (error) {
         console.error("Error fetching products:", error);
+        alert("Error de conexión al cargar productos.");
       } finally {
         setLoading(false);
       }
@@ -53,6 +60,40 @@ export const AdminProducts: React.FC = () => {
 
     fetchProducts();
   }, []);
+
+  const handleApprove = async (id: number) => {
+    try {
+      const response = await fetch(`${API_URL}/api/products/${id}/approve`, { method: "PUT", credentials: "include" });
+      if (response.ok) {
+        setProducts(prev => prev.map(p => p.id === id ? { ...p, status: "Aprobado" } : p));
+      }
+    } catch (error) {
+      console.error("Error approving product:", error);
+    }
+  };
+
+  const handleReject = async (id: number) => {
+    try {
+      const response = await fetch(`${API_URL}/api/products/${id}/reject`, { method: "PUT", credentials: "include" });
+      if (response.ok) {
+        setProducts(prev => prev.map(p => p.id === id ? { ...p, status: "Rechazado" } : p));
+      }
+    } catch (error) {
+      console.error("Error rejecting product:", error);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!window.confirm("¿Está seguro de eliminar este producto?")) return;
+    try {
+      const response = await fetch(`${API_URL}/api/products/${id}`, { method: "DELETE", credentials: "include" });
+      if (response.ok) {
+        setProducts(prev => prev.filter(p => p.id !== id));
+      }
+    } catch (error) {
+      console.error("Error deleting product:", error);
+    }
+  };
 
   const handleNotifyProducer = (product: ProductInfo) => {
     setSelectedProduct(product);
@@ -62,14 +103,13 @@ export const AdminProducts: React.FC = () => {
   const handleExportExcel = () => {
     const params = new URLSearchParams();
     if (searchTerm) params.append("buscar", searchTerm);
-    // category here could be added if you have a category state, but AdminProducts currently only uses searchTerm
-    window.location.href = `/exportar_productos_excel?${params.toString()}`;
+    window.location.href = `${API_URL}/api/products/exportExcel?${params.toString()}`;
   };
 
   const handleExportPdf = () => {
     const params = new URLSearchParams();
     if (searchTerm) params.append("buscar", searchTerm);
-    window.location.href = `/exportar_productos_pdf?${params.toString()}`;
+    window.location.href = `${API_URL}/api/products/exportPdf?${params.toString()}`;
   };
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -185,13 +225,25 @@ export const AdminProducts: React.FC = () => {
                         >
                           <FontAwesomeIcon icon={faEye} />
                         </button>
-                        <button className="w-11 h-11 rounded-xl bg-gray-50 text-gray-400 hover:bg-green-500 hover:text-white transition-all cursor-pointer shadow-sm flex items-center justify-center" title="Aprobar">
+                        <button 
+                          className="w-11 h-11 rounded-xl bg-gray-50 text-gray-400 hover:bg-green-500 hover:text-white transition-all cursor-pointer shadow-sm flex items-center justify-center" 
+                          title="Aprobar"
+                          onClick={() => handleApprove(product.id)}
+                        >
                           <FontAwesomeIcon icon={faCheck} />
                         </button>
-                        <button className="w-11 h-11 rounded-xl bg-gray-50 text-gray-400 hover:bg-yellow-500 hover:text-white transition-all cursor-pointer shadow-sm flex items-center justify-center" title="Rechazar">
+                        <button 
+                          className="w-11 h-11 rounded-xl bg-gray-50 text-gray-400 hover:bg-yellow-500 hover:text-white transition-all cursor-pointer shadow-sm flex items-center justify-center" 
+                          title="Rechazar"
+                          onClick={() => handleReject(product.id)}
+                        >
                           <FontAwesomeIcon icon={faBan} />
                         </button>
-                        <button className="w-11 h-11 rounded-xl bg-gray-50 text-gray-400 hover:bg-red-500 hover:text-white transition-all cursor-pointer shadow-sm flex items-center justify-center" title="Eliminar">
+                        <button 
+                          className="w-11 h-11 rounded-xl bg-gray-50 text-gray-400 hover:bg-red-500 hover:text-white transition-all cursor-pointer shadow-sm flex items-center justify-center" 
+                          title="Eliminar"
+                          onClick={() => handleDelete(product.id)}
+                        >
                           <FontAwesomeIcon icon={faTrash} />
                         </button>
                       </div>
@@ -256,13 +308,25 @@ export const AdminProducts: React.FC = () => {
                   >
                     <FontAwesomeIcon icon={faEye} />
                   </button>
-                  <button className="h-11 rounded-xl bg-gray-50 text-gray-400 hover:bg-green-500 hover:text-white transition-all cursor-pointer flex items-center justify-center col-span-1 shadow-sm" title="Aprobar">
+                  <button 
+                    className="h-11 rounded-xl bg-gray-50 text-gray-400 hover:bg-green-500 hover:text-white transition-all cursor-pointer flex items-center justify-center col-span-1 shadow-sm" 
+                    title="Aprobar"
+                    onClick={() => handleApprove(product.id)}
+                  >
                     <FontAwesomeIcon icon={faCheck} />
                   </button>
-                  <button className="h-11 rounded-xl bg-gray-50 text-gray-400 hover:bg-yellow-500 hover:text-white transition-all cursor-pointer flex items-center justify-center col-span-1 shadow-sm" title="Rechazar">
+                  <button 
+                    className="h-11 rounded-xl bg-gray-50 text-gray-400 hover:bg-yellow-500 hover:text-white transition-all cursor-pointer flex items-center justify-center col-span-1 shadow-sm" 
+                    title="Rechazar"
+                    onClick={() => handleReject(product.id)}
+                  >
                     <FontAwesomeIcon icon={faBan} />
                   </button>
-                  <button className="h-11 rounded-xl bg-gray-50 text-gray-400 hover:bg-red-500 hover:text-white transition-all cursor-pointer flex items-center justify-center col-span-1 shadow-sm" title="Eliminar">
+                  <button 
+                    className="h-11 rounded-xl bg-gray-50 text-gray-400 hover:bg-red-500 hover:text-white transition-all cursor-pointer flex items-center justify-center col-span-1 shadow-sm" 
+                    title="Eliminar"
+                    onClick={() => handleDelete(product.id)}
+                  >
                     <FontAwesomeIcon icon={faTrash} />
                   </button>
                 </div>

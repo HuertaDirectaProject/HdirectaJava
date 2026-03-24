@@ -137,6 +137,11 @@ public class ProductController {
         return new ResponseEntity<>(productService.listarProducts(), HttpStatus.OK);
     }
 
+    @GetMapping("/available")
+    public ResponseEntity<List<ProductDTO>> listarProductsAprobados() {
+        return new ResponseEntity<>(productService.listarProductsAprobados(), HttpStatus.OK);
+    }
+
     @GetMapping("/category/{category}")
     public ResponseEntity<List<ProductDTO>> listarProductsPorCategoria(@PathVariable String category) {
         return new ResponseEntity<>(productService.listarProductsPorCategoria(category), HttpStatus.OK);
@@ -174,6 +179,17 @@ public class ProductController {
     public ResponseEntity<Void> eliminarProductPorId(@PathVariable("productId") Long productId) {
         productService.eliminarProductPorId(productId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    // Endpoints para aprobar/rechazar productos
+    @PutMapping("/{productId}/approve")
+    public ResponseEntity<ProductDTO> aprobarProducto(@PathVariable Long productId) {
+        return ResponseEntity.ok(productService.actualizarStatus(productId, com.exe.Huerta_directa.Entity.ProductStatus.APPROVED));
+    }
+
+    @PutMapping("/{productId}/reject")
+    public ResponseEntity<ProductDTO> rechazarProducto(@PathVariable Long productId) {
+        return ResponseEntity.ok(productService.actualizarStatus(productId, com.exe.Huerta_directa.Entity.ProductStatus.REJECTED));
     }
 
     @GetMapping("/mis-Productos")

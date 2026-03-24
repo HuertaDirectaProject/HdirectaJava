@@ -13,10 +13,12 @@ import {
   faBoxesStacked,
   faListUl,
   faBorderAll,
+  faBell,
 } from "@fortawesome/free-solid-svg-icons";
 import { Button } from "../GlobalComponents/Button";
 import { EditUserModal } from "../Modals/EditUserModal";
 import { useDashboardAdmin } from "../../hooks/useDashboardAdmin";
+import { API_URL } from "../../config/api";
 
 const DashboardAdminDesktop: React.FC = () => {
   const {
@@ -36,10 +38,60 @@ const DashboardAdminDesktop: React.FC = () => {
     handleExportPdf,
   } = useDashboardAdmin();
 
+  const [notifications, setNotifications] = React.useState<any[]>([]);
+
+  React.useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/notifications`, { credentials: "include" });
+        if (response.ok) {
+          const data = await response.json();
+          setNotifications(data);
+        }
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+      }
+    };
+
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 30000); // Check every 30 seconds
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="w-full hidden md:block">
       <div className="flex justify-between items-center mb-8 sticky top-0 md:top-4 z-50">
-        <h1 className="text-3xl font-extrabold text-[#004d00]">Panel de Administración</h1>
+        <div className="flex items-center gap-4">
+          <h1 className="text-3xl font-extrabold text-[#004d00]">Panel de Administración</h1>
+          <div className="relative cursor-pointer group">
+            <div className="w-12 h-12 bg-white rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center text-gray-400 group-hover:text-[#8dc84b] transition-all">
+              <FontAwesomeIcon icon={faBell} size="lg" />
+              {notifications.length > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                  {notifications.length}
+                </span>
+              )}
+            </div>
+            {/* Simple notification list on hover */}
+            <div className="absolute top-14 left-0 w-80 bg-white rounded-3xl shadow-2xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 p-6">
+              <h3 className="font-bold text-gray-800 mb-4 border-b pb-2">Notificaciones</h3>
+              {notifications.length === 0 ? (
+                <p className="text-sm text-gray-400">No hay nuevas notificaciones</p>
+              ) : (
+                <div className="flex flex-col gap-3 max-h-60 overflow-y-auto pr-2">
+                  {notifications.map((n) => (
+                    <div key={n.id} className="text-sm bg-gray-50 p-3 rounded-xl border-l-4 border-[#8dc84b]">
+                      <p className="text-gray-700 font-medium">{n.message}</p>
+                      <small className="text-gray-400 block mt-1">
+                        {new Date(n.createdAt).toLocaleString()}
+                      </small>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Insights Grid */}

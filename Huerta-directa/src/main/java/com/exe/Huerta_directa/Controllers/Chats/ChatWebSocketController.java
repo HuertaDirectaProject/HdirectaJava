@@ -1,7 +1,8 @@
-package com.exe.Huerta_directa.Controllers;
+package com.exe.Huerta_directa.Controllers.Chats;
 
-import com.exe.Huerta_directa.Entity.ChatSocialMessage;
-import com.exe.Huerta_directa.Service.ChatSocialService;
+import com.exe.Huerta_directa.Entity.Chats.ChatSocialMessage;
+import com.exe.Huerta_directa.Service.Chats.ChatSocialService;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;

@@ -5,7 +5,7 @@ import {
   faUsers,
   faLeaf,
 } from "@fortawesome/free-solid-svg-icons";
-import type { ChatMessage } from "../../../hooks/useChatSocial";
+import type { ChatMessage } from "../../../hooks/Chats/useChatSocial";
 import type { User } from "../../../services/authService";
 
 // ─── Props ────────────────────────────────────────────────────────────────────

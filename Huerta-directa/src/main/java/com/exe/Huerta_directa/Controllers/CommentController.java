@@ -10,7 +10,6 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.data.general.DefaultPieDataset;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.ui.Model;
 import com.exe.Huerta_directa.DTO.CommentDTO;
 import com.exe.Huerta_directa.Entity.Comment;

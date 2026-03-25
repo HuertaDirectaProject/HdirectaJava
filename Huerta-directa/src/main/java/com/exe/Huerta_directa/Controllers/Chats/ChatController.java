@@ -1,4 +1,4 @@
-package com.exe.Huerta_directa.Controllers;
+package com.exe.Huerta_directa.Controllers.Chats;
 
 import com.exe.Huerta_directa.Entity.User;
 import jakarta.servlet.http.HttpSession;

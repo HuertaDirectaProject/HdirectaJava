@@ -14,12 +14,19 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/chat-socket")
                 .setAllowedOriginPatterns("*")
-                .withSockJS(); // Soporte para navegadores
+                .withSockJS();
     }
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.enableSimpleBroker("/topic"); // donde enviamos mensajes
-        registry.setApplicationDestinationPrefixes("/app"); // donde llegan los mensajes del cliente
+        // /topic  → chat social (broadcast, sin cambios)
+        // /user   → chat privado (enrutamiento por ID de usuario)
+        registry.enableSimpleBroker("/topic", "/user");
+
+        // Prefijo de destinos de aplicación (no cambia)
+        registry.setApplicationDestinationPrefixes("/app");
+
+        // Necesario para que convertAndSendToUser use /user/{id}/queue/private
+        registry.setUserDestinationPrefix("/user");
     }
 }

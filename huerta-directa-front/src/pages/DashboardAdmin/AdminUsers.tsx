@@ -22,6 +22,7 @@ interface UserInfo {
   role: string;
   status: "Active" | "Inactive";
   registrationDate: string;
+  raw?: any;
 }
 
 export const AdminUsers: React.FC = () => {
@@ -44,9 +45,10 @@ export const AdminUsers: React.FC = () => {
             id: u.id,
             fullName: u.name,
             email: u.email,
-            role: u.idRole === 1 ? "Administrador" : "Usuario",
+            role: u.idRole === 1 ? "Administrador" : u.idRole === 3 ? "Productor" : "Cliente",
             status: "Active",
             registrationDate: u.creacionDate || "N/A",
+            raw: u
           }));
           setUsers(mappedUsers);
         }
@@ -84,9 +86,33 @@ export const AdminUsers: React.FC = () => {
     setIsEditModalOpen(true);
   };
 
-  const handleSaveUser = (updatedUser: UserInfo) => {
-    setUsers(users.map((u) => (u.id === updatedUser.id ? updatedUser : u)));
-    setIsEditModalOpen(false);
+  const handleSaveUser = async (updatedUser: UserInfo) => {
+    try {
+      const payload = {
+        ...updatedUser.raw,
+        name: updatedUser.fullName,
+        email: updatedUser.email,
+        idRole: updatedUser.role === 'Administrador' ? 1 : updatedUser.role === 'Productor' ? 3 : 2
+      };
+
+      const response = await fetch(`${API_URL}/api/users/${updatedUser.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(payload)
+      });
+
+      if (response.ok) {
+        const updatedData = await response.json();
+        setUsers(users.map((u) => (u.id === updatedUser.id ? { ...updatedUser, raw: updatedData } : u)));
+        setIsEditModalOpen(false);
+      } else {
+        alert("Error al editar el usuario: " + response.statusText);
+      }
+    } catch (error) {
+      console.error("Error updating user:", error);
+      alert("Error de red al actualizar usuario.");
+    }
   };
 
   const handleExportExcel = () => {

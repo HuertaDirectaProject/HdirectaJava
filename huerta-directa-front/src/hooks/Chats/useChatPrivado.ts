@@ -7,6 +7,11 @@ import authService from "../../services/authService";
 
 export type MediaType = "TEXT" | "IMAGE" | "VIDEO";
 
+export interface MediaPreview {
+  file: File;
+  url: string;
+  type: MediaType;
+}
 export interface PrivateMessage {
   id?: number;
   senderId: number;
@@ -45,11 +50,7 @@ export const useChatPrivado = () => {
   const [connected, setConnected] = useState(false);
   const [uploading, setUploading] = useState(false);
   // Preview del archivo seleccionado antes de enviar
-  const [mediaPreview, setMediaPreview] = useState<{
-    file: File;
-    url: string;
-    type: MediaType;
-  } | null>(null);
+  const [mediaPreview, setMediaPreview] = useState<MediaPreview | null>(null);
 
   const stompClientRef = useRef<Client | null>(null);
   const chatAreaRef = useRef<HTMLDivElement>(null);
@@ -111,52 +112,52 @@ export const useChatPrivado = () => {
   }, [loadConversations]);
 
   // ─── Abrir conversación con un usuario ────────────────────────────────
-const openConversation = useCallback(
-  async (otherId: number, otherNameFallback?: string) => {
-    setActiveUserId(otherId);
-    setMessages([]);
-    try {
-      const res = await fetch(
-        `${BASE_URL}/api/chat/private/history/${otherId}`,
-        { credentials: "include" }
-      );
-      if (res.ok) {
-        const data: PrivateMessage[] = await res.json();
-        setMessages(data);
-      }
-
-      // Si no existe en la lista, agregar entrada placeholder
-      setConversations((prev) => {
-        const exists = prev.some((c) => c.otherId === otherId);
-        if (!exists && otherNameFallback) {
-          const placeholder: Conversation = {
-            otherId,
-            otherName: otherNameFallback,
-            otherProfileImageUrl: undefined,
-            lastMessage: {
-              id: undefined,
-              senderId: otherId,
-              senderName: otherNameFallback,
-              receiverId: currentUser?.id ?? 0,
-              content: "",
-              mediaType: "TEXT",
-              timestamp: new Date().toISOString(),
-              read: true,
-            },
-            unread: 0,
-          };
-          return [placeholder, ...prev];
-        }
-        return prev.map((c) =>
-          c.otherId === otherId ? { ...c, unread: 0 } : c
+  const openConversation = useCallback(
+    async (otherId: number, otherNameFallback?: string) => {
+      setActiveUserId(otherId);
+      setMessages([]);
+      try {
+        const res = await fetch(
+          `${BASE_URL}/api/chat/private/history/${otherId}`,
+          { credentials: "include" },
         );
-      });
-    } catch (err) {
-      console.error("Error cargando historial:", err);
-    }
-  },
-  [BASE_URL, currentUser?.id]
-);
+        if (res.ok) {
+          const data: PrivateMessage[] = await res.json();
+          setMessages(data);
+        }
+
+        // Si no existe en la lista, agregar entrada placeholder
+        setConversations((prev) => {
+          const exists = prev.some((c) => c.otherId === otherId);
+          if (!exists && otherNameFallback) {
+            const placeholder: Conversation = {
+              otherId,
+              otherName: otherNameFallback,
+              otherProfileImageUrl: undefined,
+              lastMessage: {
+                id: undefined,
+                senderId: otherId,
+                senderName: otherNameFallback,
+                receiverId: currentUser?.id ?? 0,
+                content: "",
+                mediaType: "TEXT",
+                timestamp: new Date().toISOString(),
+                read: true,
+              },
+              unread: 0,
+            };
+            return [placeholder, ...prev];
+          }
+          return prev.map((c) =>
+            c.otherId === otherId ? { ...c, unread: 0 } : c,
+          );
+        });
+      } catch (err) {
+        console.error("Error cargando historial:", err);
+      }
+    },
+    [BASE_URL, currentUser?.id],
+  );
 
   // ─── Conectar WebSocket ────────────────────────────────────────────────
   useEffect(() => {
@@ -169,41 +170,36 @@ const openConversation = useCallback(
       onConnect: () => {
         setConnected(true);
         // Suscribirse al canal privado del usuario actual
-        client.subscribe(
-          `/user/${currentUser.id}/queue/private`,
-          (frame) => {
-            const msg: PrivateMessage = JSON.parse(frame.body);
+        client.subscribe(`/user/${currentUser.id}/queue/private`, (frame) => {
+          const msg: PrivateMessage = JSON.parse(frame.body);
 
-            // Si el mensaje es de la conversación abierta → agregarlo
-            setActiveUserId((currentActive) => {
-              const isCurrentConv =
-                msg.senderId === currentActive ||
-                msg.receiverId === currentActive;
+          // Si el mensaje es de la conversación abierta → agregarlo
+          setActiveUserId((currentActive) => {
+            const isCurrentConv =
+              msg.senderId === currentActive ||
+              msg.receiverId === currentActive;
 
-              if (isCurrentConv) {
-                setMessages((prev) => {
-                  // Evitar duplicados (el remitente ya lo ve por confirmación)
-                  const exists = prev.some((m) => m.id === msg.id);
-                  return exists ? prev : [...prev, msg];
-                });
-              } else {
-                // Incrementar badge de la conversación correspondiente
-                const otherId =
-                  msg.senderId === currentUser.id
-                    ? msg.receiverId
-                    : msg.senderId;
-                setConversations((prev) =>
-                  prev.map((c) =>
-                    c.otherId === otherId
-                      ? { ...c, unread: c.unread + 1, lastMessage: msg }
-                      : c
-                  )
-                );
-              }
-              return currentActive;
-            });
-          }
-        );
+            if (isCurrentConv) {
+              setMessages((prev) => {
+                // Evitar duplicados (el remitente ya lo ve por confirmación)
+                const exists = prev.some((m) => m.id === msg.id);
+                return exists ? prev : [...prev, msg];
+              });
+            } else {
+              // Incrementar badge de la conversación correspondiente
+              const otherId =
+                msg.senderId === currentUser.id ? msg.receiverId : msg.senderId;
+              setConversations((prev) =>
+                prev.map((c) =>
+                  c.otherId === otherId
+                    ? { ...c, unread: c.unread + 1, lastMessage: msg }
+                    : c,
+                ),
+              );
+            }
+            return currentActive;
+          });
+        });
       },
       onDisconnect: () => setConnected(false),
       onStompError: (frame) => {
@@ -237,7 +233,7 @@ const openConversation = useCallback(
         type: isImage ? "IMAGE" : "VIDEO",
       });
     },
-    []
+    [],
   );
 
   const clearMediaPreview = useCallback(() => {
@@ -248,7 +244,8 @@ const openConversation = useCallback(
 
   // ─── Enviar mensaje ────────────────────────────────────────────────────
   const sendMessage = useCallback(async () => {
-    if (!currentUser || !activeUserId || !stompClientRef.current?.active) return;
+    if (!currentUser || !activeUserId || !stompClientRef.current?.active)
+      return;
     const content = inputValue.trim();
     if (!content && !mediaPreview) return;
 
@@ -291,7 +288,14 @@ const openConversation = useCallback(
     });
 
     setInputValue("");
-  }, [inputValue, currentUser, activeUserId, mediaPreview, BASE_URL, clearMediaPreview]);
+  }, [
+    inputValue,
+    currentUser,
+    activeUserId,
+    mediaPreview,
+    BASE_URL,
+    clearMediaPreview,
+  ]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -300,7 +304,7 @@ const openConversation = useCallback(
         sendMessage();
       }
     },
-    [sendMessage]
+    [sendMessage],
   );
 
   // ─── Utilidades ───────────────────────────────────────────────────────

@@ -97,6 +97,7 @@ function App() {
                             <Route path="/misFavoritos" element={<DashboardFavorites />} />
                             <Route path="/DashBoardGraficos" element={<DashboardGraficos />} />
                             <Route path="/MensajesAreaSocial" element={<MensajesAreaSocial />} />
+                            <Route path="/dashboard/mensajes" element={<MensajesAreaSocial />} />
                             <Route path="/DashBoardAgregarProducto" element={<DashboardAgregarProducto />} />
                             <Route path="/actualizacionUsuario" element={<ActualizacionUsuario />} />
                         </Route>

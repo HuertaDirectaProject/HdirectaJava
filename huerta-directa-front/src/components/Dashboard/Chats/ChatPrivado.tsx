@@ -208,8 +208,8 @@ const ChatPrivado: React.FC<ChatPrivadoProps> = ({
 
   // Abrir conversación inicial si se pasa un userId desde fuera
   React.useEffect(() => {
-    if (initialUserId) openConversation(initialUserId);
-  }, [initialUserId, openConversation]);
+    if (initialUserId) openConversation(initialUserId, initialUserName);
+  }, [initialUserId]);
 
   // Info del usuario activo
   const activeConv = conversations.find((c) => c.otherId === activeUserId);

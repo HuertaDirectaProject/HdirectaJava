@@ -111,29 +111,52 @@ export const useChatPrivado = () => {
   }, [loadConversations]);
 
   // ─── Abrir conversación con un usuario ────────────────────────────────
-  const openConversation = useCallback(
-    async (otherId: number) => {
-      setActiveUserId(otherId);
-      setMessages([]);
-      try {
-        const res = await fetch(
-          `${BASE_URL}/api/chat/private/history/${otherId}`,
-          { credentials: "include" }
-        );
-        if (res.ok) {
-          const data: PrivateMessage[] = await res.json();
-          setMessages(data);
-        }
-        // Limpiar badge de no leídos en la conversación abierta
-        setConversations((prev) =>
-          prev.map((c) => (c.otherId === otherId ? { ...c, unread: 0 } : c))
-        );
-      } catch (err) {
-        console.error("Error cargando historial:", err);
+const openConversation = useCallback(
+  async (otherId: number, otherNameFallback?: string) => {
+    setActiveUserId(otherId);
+    setMessages([]);
+    try {
+      const res = await fetch(
+        `${BASE_URL}/api/chat/private/history/${otherId}`,
+        { credentials: "include" }
+      );
+      if (res.ok) {
+        const data: PrivateMessage[] = await res.json();
+        setMessages(data);
       }
-    },
-    [BASE_URL]
-  );
+
+      // Si no existe en la lista, agregar entrada placeholder
+      setConversations((prev) => {
+        const exists = prev.some((c) => c.otherId === otherId);
+        if (!exists && otherNameFallback) {
+          const placeholder: Conversation = {
+            otherId,
+            otherName: otherNameFallback,
+            otherProfileImageUrl: undefined,
+            lastMessage: {
+              id: undefined,
+              senderId: otherId,
+              senderName: otherNameFallback,
+              receiverId: currentUser?.id ?? 0,
+              content: "",
+              mediaType: "TEXT",
+              timestamp: new Date().toISOString(),
+              read: true,
+            },
+            unread: 0,
+          };
+          return [placeholder, ...prev];
+        }
+        return prev.map((c) =>
+          c.otherId === otherId ? { ...c, unread: 0 } : c
+        );
+      });
+    } catch (err) {
+      console.error("Error cargando historial:", err);
+    }
+  },
+  [BASE_URL, currentUser?.id]
+);
 
   // ─── Conectar WebSocket ────────────────────────────────────────────────
   useEffect(() => {
@@ -142,7 +165,7 @@ export const useChatPrivado = () => {
     const client = new Client({
       webSocketFactory: () => new SockJS(`${BASE_URL}/chat-socket`),
       debug: () => {},
-      reconnectDelay: 5000,
+      reconnectDelay: 0,
       onConnect: () => {
         setConnected(true);
         // Suscribirse al canal privado del usuario actual
@@ -195,7 +218,7 @@ export const useChatPrivado = () => {
     return () => {
       client.deactivate();
     };
-  }, [BASE_URL, currentUser]);
+  }, [BASE_URL, currentUser?.id]);
 
   // ─── Seleccionar archivo ───────────────────────────────────────────────
   const handleFileSelect = useCallback(

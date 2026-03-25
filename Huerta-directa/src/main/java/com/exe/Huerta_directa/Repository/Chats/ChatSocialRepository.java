@@ -1,8 +1,9 @@
-package com.exe.Huerta_directa.Repository;
+package com.exe.Huerta_directa.Repository.Chats;
 
-import com.exe.Huerta_directa.Entity.ChatSocialMessage;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
+import com.exe.Huerta_directa.Entity.Chats.ChatSocialMessage;
 
 import java.util.List;
 

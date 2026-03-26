@@ -12,6 +12,7 @@ import { useCart } from "../../hooks/useCart";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { favoriteService } from "../../services/favoriteService";
 import Swal from "sweetalert2";
+import authService from "../../services/authService";
 
 interface Product {
   id: number;
@@ -19,6 +20,8 @@ interface Product {
   price: number;
   stock: number;
   image: string;
+  ownerId?: number;
+  producerName?: string;
   category?: string;
   reviewCount?: number;
   averageRating?: number;
@@ -31,13 +34,30 @@ interface Props {
   product: Product;
 }
 
+const normalizeName = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+
 const ProductCard = ({ product }: Props) => {
   const { addItem } = useCart();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFavorite, setIsFavorite] = useState(product.isFavorite || false);
   const [isFavoriteLoading, setIsFavoriteLoading] = useState(false);
+  const currentUser = authService.getCurrentUser();
+  const normalizedCurrentUserName = currentUser?.name
+    ? normalizeName(currentUser.name)
+    : null;
   const hasStock = product.stock && product.stock > 0;
-  const isOwner = false;
+  const isOwner =
+    (currentUser?.id != null &&
+      product.ownerId != null &&
+      currentUser.id === product.ownerId) ||
+    (normalizedCurrentUserName != null &&
+      product.producerName != null &&
+      normalizeName(product.producerName) === normalizedCurrentUserName);
 
   const hasDiscount = !!(product.discountOffer && product.discountOffer > 0);
   const discountedPrice = hasDiscount
@@ -189,6 +209,19 @@ const ProductCard = ({ product }: Props) => {
             </div>
           </div>
         )}
+
+        {/* Etiqueta de propiedad */}
+        <div className="absolute top-2 left-15 -translate-x-1/2 z-10">
+          <div
+            className={`backdrop-blur-md px-3 py-1 rounded-full shadow text-[11px] font-bold whitespace-nowrap ${
+              isOwner
+                ? "bg-emerald-100/95 text-emerald-700"
+                : "bg-sky-100/95 text-sky-700"
+            }`}
+          >
+            {isOwner ? "Mi producto" : "Otro productor"}
+          </div>
+        </div>
       </div>
 
       {/* Contenido */}

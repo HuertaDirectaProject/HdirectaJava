@@ -10,6 +10,8 @@ interface Product {
   price: number;
   stock: number;
   image: string;
+  ownerId?: number;
+  producerName?: string;
   category?: string;
   reviewCount?: number;
   averageRating?: number;
@@ -32,6 +34,8 @@ export const ProductosPage = () => {
           id: p.idProduct,
           name: p.nameProduct,
           image: `${API_URL}/uploads/productos/${p.imageProduct}`, // 🔥 dinámico
+          ownerId: p.userId ?? p.idUser ?? p.idProducer,
+          producerName: p.userName,
           category: p.category,
           price: p.price,
           stock: p.stock,

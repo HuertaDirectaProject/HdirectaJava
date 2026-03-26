@@ -22,7 +22,10 @@ public class PrivateMessageDTO {
     private String receiverProfileImageUrl;   
     private String content;
     private String mediaUrl;
+    private Integer senderRole; 
     private MediaType mediaType;
     private LocalDateTime timestamp;
+    private Integer receiverRole;
     private boolean read;
+    
 }

@@ -26,6 +26,8 @@ export interface PrivateMessage {
   mediaType: MediaType;
   timestamp: string;
   read: boolean;
+  senderRole?: number; // ← NUEVO
+  receiverRole?: number;
 }
 
 export interface Conversation {
@@ -34,6 +36,7 @@ export interface Conversation {
   otherName: string;
   otherProfileImageUrl?: string;
   lastMessage: PrivateMessage;
+  otherRole?: number;
   unread: number;
 }
 
@@ -90,12 +93,14 @@ export const useChatPrivado = () => {
         const otherProfileImageUrl = isMine
           ? msg.receiverProfileImageUrl
           : msg.senderProfileImageUrl;
+          const otherRole = isMine ? msg.receiverRole : msg.senderRole;
 
         if (!convMap.has(otherId)) {
           convMap.set(otherId, {
             otherId,
             otherName,
             otherProfileImageUrl,
+            otherRole,
             lastMessage: msg,
             unread: !msg.read && msg.receiverId === currentUser?.id ? 1 : 0,
           });
@@ -167,62 +172,62 @@ export const useChatPrivado = () => {
   useEffect(() => {
     if (!currentUser) return;
 
- const client = new Client({
-  webSocketFactory: () => new SockJS(`${BASE_URL}/chat-socket`),
-  debug: () => {},
-  reconnectDelay: 0,
-  onConnect: () => {
-    setConnected(true);
-    client.subscribe(`/user/${currentUser.id}/queue/private`, (frame) => {
-      const msg: PrivateMessage = JSON.parse(frame.body);
+    const client = new Client({
+      webSocketFactory: () => new SockJS(`${BASE_URL}/chat-socket`),
+      debug: () => {},
+      reconnectDelay: 0,
+      onConnect: () => {
+        setConnected(true);
+        client.subscribe(`/user/${currentUser.id}/queue/private`, (frame) => {
+          const msg: PrivateMessage = JSON.parse(frame.body);
 
-      setActiveUserId((currentActive) => {
-        const isCurrentConv =
-          msg.senderId === currentActive ||
-          msg.receiverId === currentActive;
+          setActiveUserId((currentActive) => {
+            const isCurrentConv =
+              msg.senderId === currentActive ||
+              msg.receiverId === currentActive;
 
-        if (isCurrentConv) {
-          setMessages((prev) => {
-            const exists = prev.some((m) => m.id === msg.id);
-            return exists ? prev : [...prev, msg];
-          });
-        } else {
-          // ✅ Maneja conversación nueva Y existente
-          const otherId =
-            msg.senderId === currentUser.id ? msg.receiverId : msg.senderId;
-
-          setConversations((prev) => {
-            const exists = prev.some((c) => c.otherId === otherId);
-
-            if (exists) {
-              return prev.map((c) =>
-                c.otherId === otherId
-                  ? { ...c, unread: c.unread + 1, lastMessage: msg }
-                  : c,
-              );
+            if (isCurrentConv) {
+              setMessages((prev) => {
+                const exists = prev.some((m) => m.id === msg.id);
+                return exists ? prev : [...prev, msg];
+              });
             } else {
-              // Conversación nueva → agregar al inicio
-              const newConv: Conversation = {
-                otherId,
-                otherName: msg.senderName ?? `Usuario ${otherId}`,
-                otherProfileImageUrl: msg.senderProfileImageUrl,
-                lastMessage: msg,
-                unread: 1,
-              };
-              return [newConv, ...prev];
+              // ✅ Maneja conversación nueva Y existente
+              const otherId =
+                msg.senderId === currentUser.id ? msg.receiverId : msg.senderId;
+
+              setConversations((prev) => {
+                const exists = prev.some((c) => c.otherId === otherId);
+
+                if (exists) {
+                  return prev.map((c) =>
+                    c.otherId === otherId
+                      ? { ...c, unread: c.unread + 1, lastMessage: msg }
+                      : c,
+                  );
+                } else {
+                  // Conversación nueva → agregar al inicio
+                  const newConv: Conversation = {
+                    otherId,
+                    otherName: msg.senderName ?? `Usuario ${otherId}`,
+                    otherProfileImageUrl: msg.senderProfileImageUrl,
+                    lastMessage: msg,
+                    unread: 1,
+                  };
+                  return [newConv, ...prev];
+                }
+              });
             }
+            return currentActive;
           });
-        }
-        return currentActive;
-      });
+        });
+      },
+      onDisconnect: () => setConnected(false),
+      onStompError: (frame) => {
+        console.error("STOMP error:", frame);
+        setConnected(false);
+      },
     });
-  },
-  onDisconnect: () => setConnected(false),
-  onStompError: (frame) => {
-    console.error("STOMP error:", frame);
-    setConnected(false);
-  },
-});
 
     client.activate();
     stompClientRef.current = client;
@@ -400,6 +405,7 @@ export const useChatPrivado = () => {
     currentUser != null && msg.senderId === currentUser.id;
 
   const totalUnread = conversations.reduce((acc, c) => acc + c.unread, 0);
+  
 
   // ─── Retorno ──────────────────────────────────────────────────────────
   return {
@@ -424,5 +430,6 @@ export const useChatPrivado = () => {
     totalUnread,
     loadConversations,
     deleteConversation,
+    setActiveUserId,
   };
 };

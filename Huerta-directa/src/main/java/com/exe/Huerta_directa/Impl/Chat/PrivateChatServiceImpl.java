@@ -135,10 +135,13 @@ public class PrivateChatServiceImpl implements PrivateChatService {
         userRepository.findById(m.getSenderId()).ifPresent(user -> {
             dto.setSenderName(user.getName());
             dto.setSenderProfileImageUrl(user.getProfileImageUrl());
+            dto.setSenderRole(user.getRole() != null ? user.getRole().getIdRole().intValue() : null);
         });
+
         userRepository.findById(m.getReceiverId()).ifPresent(user -> {
             dto.setReceiverName(user.getName());
             dto.setReceiverProfileImageUrl(user.getProfileImageUrl());
+            dto.setReceiverRole(user.getRole() != null ? user.getRole().getIdRole().intValue() : null);
         });
 
         return dto;
@@ -149,4 +152,5 @@ public class PrivateChatServiceImpl implements PrivateChatService {
     public void deleteConversation(Long userId, Long otherId) {
         privateMessageRepository.softDeleteForUser(userId, otherId);
     }
+
 }

@@ -42,6 +42,7 @@ const ChatPrivado: React.FC<ChatPrivadoProps> = ({
     formatTime,
     isMine,
     deleteConversation,
+    setActiveUserId,
   } = useChatPrivado();
 
   // Abrir conversación inicial si se pasa un userId desde fuera
@@ -51,8 +52,8 @@ const ChatPrivado: React.FC<ChatPrivadoProps> = ({
 
   // Info del usuario activo
   const activeConv = conversations.find((c) => c.otherId === activeUserId);
-  const activeName =
-    activeConv?.otherName ?? initialUserName ?? `Usuario ${activeUserId}`;
+  console.log("activeConv:", activeConv);
+  console.log("otherRole:", activeConv?.otherRole);
 
   return (
     <div className="flex-1 flex rounded-3xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 min-h-0">
@@ -72,9 +73,10 @@ const ChatPrivado: React.FC<ChatPrivadoProps> = ({
         <div className="flex-1 flex flex-col min-w-0">
           {/* Header */}
           <ChatPrivadoHeader
-            activeName={activeName}
+            activeName={activeConv?.otherName ?? ""}
             activeImage={activeConv?.otherProfileImageUrl}
-            onBack={() => openConversation(null as unknown as number)}
+            activeRole={activeConv?.otherRole} // ← AGREGAR
+            onBack={() => setActiveUserId(null)}
           />
 
           {/* Área de mensajes */}

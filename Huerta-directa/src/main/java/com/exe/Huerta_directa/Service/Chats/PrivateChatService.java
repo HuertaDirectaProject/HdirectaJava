@@ -12,7 +12,7 @@ public interface PrivateChatService {
 
     // Guardar mensaje de texto o con media (viene del WebSocket)
     PrivateMessageDTO saveMessage(Long senderId, Long receiverId,
-                                  String content, String mediaUrl, String mediaType);
+            String content, String mediaUrl, String mediaType);
 
     // Historial entre dos usuarios
     List<PrivateMessageDTO> getConversation(Long userId, Long otherId);
@@ -28,4 +28,6 @@ public interface PrivateChatService {
 
     // Contar no leídos
     long countUnread(Long userId);
+
+    void deleteConversation(Long userId, Long otherId);
 }

@@ -30,7 +30,7 @@ export const MensajesAreaSocial: React.FC = () => {
 
   return (
     <div
-      className="w-full h-[calc(100vh-100px)] flex flex-col"
+      className="w-full h-[calc(105vh-100px)] flex flex-col"
       style={{ fontFamily: "'DM Sans', sans-serif" }}
     >
       <ChatHeader connected={connected} />

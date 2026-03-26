@@ -159,7 +159,7 @@ export const DashboardGraficos: React.FC = () => {
   };
 
   return (
-    <div className="w-full flex flex-col gap-8 animate-fadeIn">
+    <div className="w-full h-[calc(105vh-100px)] flex flex-col gap-8 animate-fadeIn">
       <div className="flex items-center gap-4">
         <div className="w-12 h-12 rounded-2xl bg-[#8dc84b] text-white flex items-center justify-center shadow-lg shadow-[#8dc84b]/20">
           <FontAwesomeIcon icon={faChartLine} size="lg" />
@@ -187,7 +187,7 @@ export const DashboardGraficos: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white dark:bg-[#1e1e1e] p-8 rounded-[40px] shadow-sm border border-gray-100 dark:border-white/10 h-[450px] flex flex-col">
+        <div className="bg-white dark:bg-[#1e1e1e] p-8 rounded-[40px] shadow-sm border border-gray-100 dark:border-white/10 h-112.5 flex flex-col">
           <h3 className="text-gray-800 dark:text-white font-bold text-xl mb-6 flex items-center gap-3">
             <span className="w-2 h-8 bg-[#8dc84b] rounded-full"></span>
             Productos por Categoría
@@ -200,7 +200,7 @@ export const DashboardGraficos: React.FC = () => {
             )}
           </div>
         </div>
-        <div className="bg-white dark:bg-[#1e1e1e] p-8 rounded-[40px] shadow-sm border border-gray-100 dark:border-white/10 h-[450px] flex flex-col">
+        <div className="bg-white dark:bg-[#1e1e1e] p-8 rounded-[40px] shadow-sm border border-gray-100 dark:border-white/10 h-112.5 flex flex-col">
           <h3 className="text-gray-800 dark:text-white font-bold text-xl mb-6 flex items-center gap-3">
             <span className="w-2 h-8 bg-blue-500 rounded-full"></span>
             Distribución por Unidades

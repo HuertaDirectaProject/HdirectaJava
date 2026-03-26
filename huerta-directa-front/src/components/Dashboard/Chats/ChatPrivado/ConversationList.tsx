@@ -2,7 +2,7 @@ import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCommentDots } from "@fortawesome/free-solid-svg-icons";
 import type { Conversation } from "../../../../hooks/Chats/useChatPrivado";
-import { ConversationItem } from "./ConversationItem";
+import ConversationItem from "./ConversationItem";
 
 interface ConversationListProps {
   conversations: Conversation[];
@@ -10,6 +10,9 @@ interface ConversationListProps {
   currentUserId?: number;
   formatTime: (t: string) => string;
   onOpen: (id: number) => void;
+  onDelete: (id: number) => void;
+  onBlock?: (id: number) => void;
+  onReport?: (id: number) => void;
 }
 
 export const ConversationList: React.FC<ConversationListProps> = ({
@@ -18,6 +21,9 @@ export const ConversationList: React.FC<ConversationListProps> = ({
   currentUserId,
   formatTime,
   onOpen,
+  onDelete,
+  onBlock,
+  onReport,
 }) => {
   return (
     <div
@@ -51,6 +57,9 @@ export const ConversationList: React.FC<ConversationListProps> = ({
               onClick={() => onOpen(conv.otherId)}
               formatTime={formatTime}
               currentUserId={currentUserId}
+              onDelete={onDelete}
+              onBlock={onBlock}
+              onReport={onReport}
             />
           ))
         )}

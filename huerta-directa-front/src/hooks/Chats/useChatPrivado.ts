@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 import authService from "../../services/authService";
+import Swal from "sweetalert2";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -18,6 +19,8 @@ export interface PrivateMessage {
   senderName: string;
   senderProfileImageUrl?: string;
   receiverId: number;
+  receiverName?: string;
+  receiverProfileImageUrl?: string;
   content: string;
   mediaUrl?: string;
   mediaType: MediaType;
@@ -79,16 +82,14 @@ export const useChatPrivado = () => {
       // Construir objeto Conversation a partir del último mensaje de cada hilo
       const convMap = new Map<number, Conversation>();
       data.forEach((msg) => {
-        const otherId =
-          msg.senderId === currentUser?.id ? msg.receiverId : msg.senderId;
-        const otherName =
-          msg.senderId === currentUser?.id
-            ? `Usuario ${msg.receiverId}`
-            : msg.senderName;
-        const otherProfileImageUrl =
-          msg.senderId === currentUser?.id
-            ? undefined
-            : msg.senderProfileImageUrl;
+        const isMine = msg.senderId === currentUser?.id;
+        const otherId = isMine ? msg.receiverId : msg.senderId;
+        const otherName = isMine
+          ? (msg.receiverName ?? `Usuario ${msg.receiverId}`)
+          : msg.senderName;
+        const otherProfileImageUrl = isMine
+          ? msg.receiverProfileImageUrl
+          : msg.senderProfileImageUrl;
 
         if (!convMap.has(otherId)) {
           convMap.set(otherId, {
@@ -126,7 +127,10 @@ export const useChatPrivado = () => {
           setMessages(data);
         }
 
-        // Si no existe en la lista, agregar entrada placeholder
+        // ← Recarga conversaciones desde el backend con datos completos
+        await loadConversations();
+
+        // Si aún no existe en la lista (primer contacto sin historial), agrega placeholder
         setConversations((prev) => {
           const exists = prev.some((c) => c.otherId === otherId);
           if (!exists && otherNameFallback) {
@@ -156,57 +160,69 @@ export const useChatPrivado = () => {
         console.error("Error cargando historial:", err);
       }
     },
-    [BASE_URL, currentUser?.id],
+    [BASE_URL, currentUser?.id, loadConversations], // ← agrega loadConversations
   );
 
   // ─── Conectar WebSocket ────────────────────────────────────────────────
   useEffect(() => {
     if (!currentUser) return;
 
-    const client = new Client({
-      webSocketFactory: () => new SockJS(`${BASE_URL}/chat-socket`),
-      debug: () => {},
-      reconnectDelay: 0,
-      onConnect: () => {
-        setConnected(true);
-        // Suscribirse al canal privado del usuario actual
-        client.subscribe(`/user/${currentUser.id}/queue/private`, (frame) => {
-          const msg: PrivateMessage = JSON.parse(frame.body);
+ const client = new Client({
+  webSocketFactory: () => new SockJS(`${BASE_URL}/chat-socket`),
+  debug: () => {},
+  reconnectDelay: 0,
+  onConnect: () => {
+    setConnected(true);
+    client.subscribe(`/user/${currentUser.id}/queue/private`, (frame) => {
+      const msg: PrivateMessage = JSON.parse(frame.body);
 
-          // Si el mensaje es de la conversación abierta → agregarlo
-          setActiveUserId((currentActive) => {
-            const isCurrentConv =
-              msg.senderId === currentActive ||
-              msg.receiverId === currentActive;
+      setActiveUserId((currentActive) => {
+        const isCurrentConv =
+          msg.senderId === currentActive ||
+          msg.receiverId === currentActive;
 
-            if (isCurrentConv) {
-              setMessages((prev) => {
-                // Evitar duplicados (el remitente ya lo ve por confirmación)
-                const exists = prev.some((m) => m.id === msg.id);
-                return exists ? prev : [...prev, msg];
-              });
-            } else {
-              // Incrementar badge de la conversación correspondiente
-              const otherId =
-                msg.senderId === currentUser.id ? msg.receiverId : msg.senderId;
-              setConversations((prev) =>
-                prev.map((c) =>
-                  c.otherId === otherId
-                    ? { ...c, unread: c.unread + 1, lastMessage: msg }
-                    : c,
-                ),
-              );
-            }
-            return currentActive;
+        if (isCurrentConv) {
+          setMessages((prev) => {
+            const exists = prev.some((m) => m.id === msg.id);
+            return exists ? prev : [...prev, msg];
           });
-        });
-      },
-      onDisconnect: () => setConnected(false),
-      onStompError: (frame) => {
-        console.error("STOMP error:", frame);
-        setConnected(false);
-      },
+        } else {
+          // ✅ Maneja conversación nueva Y existente
+          const otherId =
+            msg.senderId === currentUser.id ? msg.receiverId : msg.senderId;
+
+          setConversations((prev) => {
+            const exists = prev.some((c) => c.otherId === otherId);
+
+            if (exists) {
+              return prev.map((c) =>
+                c.otherId === otherId
+                  ? { ...c, unread: c.unread + 1, lastMessage: msg }
+                  : c,
+              );
+            } else {
+              // Conversación nueva → agregar al inicio
+              const newConv: Conversation = {
+                otherId,
+                otherName: msg.senderName ?? `Usuario ${otherId}`,
+                otherProfileImageUrl: msg.senderProfileImageUrl,
+                lastMessage: msg,
+                unread: 1,
+              };
+              return [newConv, ...prev];
+            }
+          });
+        }
+        return currentActive;
+      });
     });
+  },
+  onDisconnect: () => setConnected(false),
+  onStompError: (frame) => {
+    console.error("STOMP error:", frame);
+    setConnected(false);
+  },
+});
 
     client.activate();
     stompClientRef.current = client;
@@ -318,6 +334,67 @@ export const useChatPrivado = () => {
       return timestamp;
     }
   };
+  const deleteConversation = useCallback(
+    async (otherId: number) => {
+      const isDark = document.documentElement.classList.contains("dark");
+
+      const result = await Swal.fire({
+        title: "¿Eliminar conversación?",
+        text: "Solo tú dejarás de verla. El otro usuario no se verá afectado.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#e53e3e",
+        cancelButtonColor: "#4caf50",
+        confirmButtonText: "Sí, eliminar",
+        cancelButtonText: "Cancelar",
+        background: isDark ? "#1a2e1a" : "#ffffff",
+        color: isDark ? "#ffffff" : "#1f2937",
+        customClass: { popup: "rounded-3xl" },
+      });
+
+      if (!result.isConfirmed) return;
+
+      try {
+        const res = await fetch(
+          `${BASE_URL}/api/chat/private/conversation/${otherId}`,
+          {
+            method: "DELETE",
+            credentials: "include",
+          },
+        );
+
+        if (!res.ok) throw new Error();
+
+        // Limpiar estado
+        setConversations((prev) => prev.filter((c) => c.otherId !== otherId));
+        if (activeUserId === otherId) {
+          setActiveUserId(null);
+          setMessages([]);
+        }
+
+        Swal.fire({
+          icon: "success",
+          title: "Conversación eliminada",
+          timer: 1500,
+          showConfirmButton: false,
+          background: isDark ? "#1a2e1a" : "#ffffff",
+          color: isDark ? "#ffffff" : "#1f2937",
+          customClass: { popup: "rounded-3xl" },
+        });
+      } catch {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "No se pudo eliminar la conversación",
+          confirmButtonColor: "#4caf50",
+          background: isDark ? "#1a2e1a" : "#ffffff",
+          color: isDark ? "#ffffff" : "#1f2937",
+          customClass: { popup: "rounded-3xl" },
+        });
+      }
+    },
+    [BASE_URL, activeUserId],
+  );
 
   const isMine = (msg: PrivateMessage) =>
     currentUser != null && msg.senderId === currentUser.id;
@@ -346,5 +423,6 @@ export const useChatPrivado = () => {
     isMine,
     totalUnread,
     loadConversations,
+    deleteConversation,
   };
 };

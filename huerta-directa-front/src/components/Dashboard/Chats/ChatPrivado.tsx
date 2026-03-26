@@ -8,8 +8,6 @@ import MessageBubble from "./ChatPrivado/MessageBubble";
 import ChatPrivadoInput from "./ChatPrivado/ChatPrivadoInput";
 import ConversationList from "./ChatPrivado/ConversationList";
 
-
-
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 interface ChatPrivadoProps {
@@ -43,6 +41,7 @@ const ChatPrivado: React.FC<ChatPrivadoProps> = ({
     clearMediaPreview,
     formatTime,
     isMine,
+    deleteConversation,
   } = useChatPrivado();
 
   // Abrir conversación inicial si se pasa un userId desde fuera
@@ -54,7 +53,6 @@ const ChatPrivado: React.FC<ChatPrivadoProps> = ({
   const activeConv = conversations.find((c) => c.otherId === activeUserId);
   const activeName =
     activeConv?.otherName ?? initialUserName ?? `Usuario ${activeUserId}`;
-  const activeImage = activeConv?.otherProfileImageUrl;
 
   return (
     <div className="flex-1 flex rounded-3xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 min-h-0">
@@ -64,16 +62,18 @@ const ChatPrivado: React.FC<ChatPrivadoProps> = ({
         activeUserId={activeUserId}
         currentUserId={currentUser?.id}
         formatTime={formatTime}
-        onOpen={(id: number) => openConversation(id)}
+        onOpen={(id) => openConversation(id)}
+        onDelete={deleteConversation} // ← del hook (lo implementamos antes)
+        onBlock={(id) => console.log("bloquear", id)} // ← placeholder por ahora
+        onReport={(id) => console.log("reportar", id)} // ← placeholder por ahora
       />
-
       {/* ── Panel derecho: chat activo ────────────────────────────────────── */}
       {activeUserId ? (
         <div className="flex-1 flex flex-col min-w-0">
           {/* Header */}
           <ChatPrivadoHeader
             activeName={activeName}
-            activeImage={activeImage}
+            activeImage={activeConv?.otherProfileImageUrl}
             onBack={() => openConversation(null as unknown as number)}
           />
 

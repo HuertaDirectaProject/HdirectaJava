@@ -1,6 +1,5 @@
 package com.exe.Huerta_directa.Impl.Chat;
 
-
 import com.exe.Huerta_directa.DTO.Chats.PrivateMessageDTO;
 import com.exe.Huerta_directa.Entity.Chats.PrivateMessage;
 import com.exe.Huerta_directa.Entity.Chats.PrivateMessage.MediaType;
@@ -8,6 +7,7 @@ import com.exe.Huerta_directa.Repository.UserRepository;
 import com.exe.Huerta_directa.Repository.Chats.PrivateMessageRepository;
 import com.exe.Huerta_directa.Service.Chats.PrivateChatService;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -32,7 +32,7 @@ public class PrivateChatServiceImpl implements PrivateChatService {
 
     @Override
     public PrivateMessageDTO saveMessage(Long senderId, Long receiverId,
-                                          String content, String mediaUrl, String mediaTypeStr) {
+            String content, String mediaUrl, String mediaTypeStr) {
 
         MediaType mediaType = (mediaTypeStr != null)
                 ? MediaType.valueOf(mediaTypeStr.toUpperCase())
@@ -88,7 +88,8 @@ public class PrivateChatServiceImpl implements PrivateChatService {
 
         // Crear carpeta igual que ProductController
         File folder = new File(uploadPath, "chat-privado");
-        if (!folder.exists()) folder.mkdirs();
+        if (!folder.exists())
+            folder.mkdirs();
 
         // Nombre único
         String filename = UUID.randomUUID() + "_" + file.getOriginalFilename();
@@ -135,7 +136,17 @@ public class PrivateChatServiceImpl implements PrivateChatService {
             dto.setSenderName(user.getName());
             dto.setSenderProfileImageUrl(user.getProfileImageUrl());
         });
+        userRepository.findById(m.getReceiverId()).ifPresent(user -> {
+            dto.setReceiverName(user.getName());
+            dto.setReceiverProfileImageUrl(user.getProfileImageUrl());
+        });
 
         return dto;
+    }
+
+    @Override
+    @Transactional
+    public void deleteConversation(Long userId, Long otherId) {
+        privateMessageRepository.softDeleteForUser(userId, otherId);
     }
 }

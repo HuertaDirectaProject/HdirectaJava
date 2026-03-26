@@ -1,9 +1,26 @@
 import { faCreditCard } from "@fortawesome/free-solid-svg-icons";
 import { useCart } from "../../hooks/useCart";
 import { Button } from "../GlobalComponents/Button.tsx";
+import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 export const OrderSummaryCard = () => {
-	const { totals } = useCart();
+	const { totals, items } = useCart();
+	const navigate = useNavigate();
+
+	const handleProceedToPayment = async () => {
+		if (items.length === 0) {
+			await Swal.fire({
+				icon: "warning",
+				title: "Carrito vacío",
+				text: "Debes tener productos en el carrito antes de proceder al pago",
+				confirmButtonColor: "#8dc84b",
+			});
+			return;
+		}
+
+		navigate("/payment/MercadoPayment");
+	};
 
 	const formatPrice = (price: number) => {
 		return new Intl.NumberFormat("es-CO", {
@@ -50,7 +67,7 @@ export const OrderSummaryCard = () => {
 
 			{/* Botón Pagar */}
 			<Button
-				to="/payment/MercadoPayment"
+				onClick={handleProceedToPayment}
 				text="Proceder al Pago"
 				iconLetf={faCreditCard}
 				className="w-full py-3"

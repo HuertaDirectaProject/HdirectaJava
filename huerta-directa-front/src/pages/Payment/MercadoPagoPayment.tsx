@@ -5,6 +5,7 @@ import { usePageTitle } from "../../hooks/usePageTitle";
 import { useEffect, useRef } from "react";
 import { useCart } from "../../contexts/CartContext";
 import paymentService from "../../services/paymentService";
+import Swal from "sweetalert2";
 
 export const MercadoPagoPayment = () => {
   usePageTitle("MercadoPayment");
@@ -19,6 +20,18 @@ export const MercadoPagoPayment = () => {
   };
 
   useEffect(() => {
+    if (items.length === 0) {
+      Swal.fire({
+        icon: "warning",
+        title: "Carrito vacío",
+        text: "Debes tener productos en el carrito antes de proceder al pago",
+        confirmButtonColor: "#8dc84b",
+      }).finally(() => {
+        navigate("/payment/checkout");
+      });
+      return;
+    }
+
     const initBrick = () => {
       if (!(window as any).MercadoPago) return;
 
@@ -115,13 +128,7 @@ export const MercadoPagoPayment = () => {
       script.onload = initBrick;
       document.head.appendChild(script);
     }
-
-    return () => {
-      if (containerRef.current) {
-        containerRef.current.innerHTML = "";
-      }
-    };
-  }, []);
+  }, [items.length, navigate, totals.total]);
 
   return (
       <div className="min-h-screen bg-[#F5F0E8] py-8 px-4">

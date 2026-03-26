@@ -5,11 +5,13 @@ import { Button } from "../../components/GlobalComponents/Button";
 import { usePageTitle } from "../../hooks/usePageTitle";
 import { NotifyProducerModal } from "../../components/Modals/NotifyProducerModal";
 import { API_URL } from "../../config/api";
+import authService from "../../services/authService";
 
 interface ProductInfo {
   id: number;
   name: string;
   producer: string;
+  ownerId?: number;
   category: string;
   price: number;
   stock: number;
@@ -17,8 +19,20 @@ interface ProductInfo {
   image: string;
 }
 
+const normalizeName = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+
 export const AdminProducts: React.FC = () => {
   usePageTitle("Gestión de Productos");
+
+  const currentUser = authService.getCurrentUser();
+  const normalizedCurrentUserName = currentUser?.name
+    ? normalizeName(currentUser.name)
+    : null;
 
   const [products, setProducts] = useState<ProductInfo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,6 +51,7 @@ export const AdminProducts: React.FC = () => {
             id: p.idProduct,
             name: p.nameProduct,
             producer: p.userName || "Productor Desconocido",
+            ownerId: p.userId ?? p.idUser ?? p.idProducer,
             category: p.category,
             price: p.price,
             stock: p.stock,
@@ -130,6 +145,18 @@ export const AdminProducts: React.FC = () => {
     setCurrentPage(1);
   }, [searchTerm]);
 
+  const isOwnProduct = (product: ProductInfo) => {
+    if (currentUser?.id && product.ownerId) {
+      return currentUser.id === product.ownerId;
+    }
+
+    if (!normalizedCurrentUserName) {
+      return false;
+    }
+
+    return normalizeName(product.producer) === normalizedCurrentUserName;
+  };
+
   return (
     <div className="w-full">
       <div className="flex justify-between items-center mb-8">
@@ -204,7 +231,20 @@ export const AdminProducts: React.FC = () => {
                 {paginatedProducts.map((product) => (
                   <tr key={product.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="py-5 px-4 font-bold text-gray-800">{product.name}</td>
-                    <td className="py-5 px-4 text-gray-600 font-medium">{product.producer}</td>
+                    <td className="py-5 px-4 text-gray-600 font-medium">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span>{product.producer}</span>
+                        <span
+                          className={`px-2.5 py-1 rounded-full text-[11px] font-bold ${
+                            isOwnProduct(product)
+                              ? "bg-emerald-100 text-emerald-700"
+                              : "bg-sky-100 text-sky-700"
+                          }`}
+                        >
+                          {isOwnProduct(product) ? "Mi producto" : "Otro productor"}
+                        </span>
+                      </div>
+                    </td>
                     <td className="py-5 px-4 font-bold text-[#8dc84b]">${product.price.toLocaleString()}</td>
                     <td className="py-5 px-4 text-gray-600">{product.stock} un.</td>
                     <td className="py-5 px-4">
@@ -287,6 +327,15 @@ export const AdminProducts: React.FC = () => {
                 <div>
                   <h3 className="text-xl font-bold text-gray-800 line-clamp-1" title={product.name}>{product.name}</h3>
                   <p className="text-gray-500 text-sm mt-1">{product.producer}</p>
+                  <span
+                    className={`inline-flex mt-2 px-2.5 py-1 rounded-full text-[11px] font-bold ${
+                      isOwnProduct(product)
+                        ? "bg-emerald-100 text-emerald-700"
+                        : "bg-sky-100 text-sky-700"
+                    }`}
+                  >
+                    {isOwnProduct(product) ? "Mi producto" : "Otro productor"}
+                  </span>
                 </div>
                 
                 <div className="flex justify-between items-end mt-auto pt-4 border-t border-gray-50">

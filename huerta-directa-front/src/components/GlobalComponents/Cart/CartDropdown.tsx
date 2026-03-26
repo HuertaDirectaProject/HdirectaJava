@@ -8,6 +8,8 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useCart } from "../../../contexts/CartContext";
+import Swal from "sweetalert2";
+import { useNavigate } from "react-router-dom";
 
 interface Props {
   open: boolean;
@@ -16,6 +18,22 @@ interface Props {
 
 export const CartDropdown = ({ open, onClose }: Props) => {
   const { items, totals, updateQuantity, removeItem, clearCart } = useCart();
+  const navigate = useNavigate();
+
+  const handleProceedToCheckout = async () => {
+    if (items.length === 0) {
+      await Swal.fire({
+        icon: "warning",
+        title: "Carrito vacío",
+        text: "Debes tener productos en el carrito antes de proceder al pago",
+        confirmButtonColor: "#8dc84b",
+      });
+      return;
+    }
+
+    navigate("/payment/checkout");
+    onClose();
+  };
 
   useEffect(() => {
     if (open) {
@@ -173,10 +191,10 @@ export const CartDropdown = ({ open, onClose }: Props) => {
             />
 
             <Button
-                text="Proceder al Pago"
-                to="/payment/checkout"
-                iconLetf={faCreditCard}
-                className="bg-[#8cc63f] hover:bg-[#6da82f] px-7 py-3 rounded-md text-white"
+              text="Proceder al Pago"
+              onClick={handleProceedToCheckout}
+              iconLetf={faCreditCard}
+              className="bg-[#8cc63f] hover:bg-[#6da82f] px-7 py-3 rounded-md text-white"
             />
           </div>
 

@@ -8,6 +8,7 @@ import { usePageTitle } from "../../hooks/usePageTitle";
 import { useImageUpload } from "../../hooks/Productos/useImageUpload";
 import { ProductPreview } from "../../components/Dashboard/Productos/ProductPreview";
 import { ProductForm } from "../../components/Dashboard/Productos/ProductForm";
+import Swal from "sweetalert2";
 
 export const DashboardAgregarProducto: React.FC = () => {
   usePageTitle("Agregar Producto");
@@ -25,6 +26,15 @@ export const DashboardAgregarProducto: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (Number(formData.stock || 0) > 100) {
+      Swal.fire({
+        icon: "warning",
+        title: "Stock inválido",
+        text: "No se puede asignar stock más de 100",
+      });
+      return;
+    }
 
     const form = new FormData();
 
@@ -64,6 +74,19 @@ export const DashboardAgregarProducto: React.FC = () => {
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
     >,
   ) => {
+    if (e.target.name === "stock") {
+      const value = Number(e.target.value || 0);
+      if (value > 100) {
+        Swal.fire({
+          icon: "warning",
+          title: "Stock inválido",
+          text: "No se puede asignar stock más de 100",
+        });
+        setFormData({ ...formData, stock: "100" });
+        return;
+      }
+    }
+
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 

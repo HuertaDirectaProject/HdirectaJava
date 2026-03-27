@@ -32,10 +32,12 @@ export const useDashboardAdmin = () => {
   const [productCount, setProductCount] = useState(0);
   const [productsList, setProductsList] = useState<any[]>([]);
 
+  const [totalSales, setTotalSales] = useState<number>(0);
+
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await fetch(`${API_URL}/api/users`);
+        const response = await fetch(`${API_URL}/api/users`, { credentials: "include" });
         if (response.ok) {
           const data = await response.json();
           const mappedUsers: UserInfo[] = data.map((u: any) => ({
@@ -56,7 +58,7 @@ export const useDashboardAdmin = () => {
 
     const fetchAllProducts = async () => {
       try {
-        const response = await fetch(`${API_URL}/api/products`);
+        const response = await fetch(`${API_URL}/api/products`, { credentials: "include" });
         if (response.ok) {
           const data = await response.json();
           setProductCount(data.length);
@@ -69,8 +71,24 @@ export const useDashboardAdmin = () => {
       }
     };
 
+    const fetchStats = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/stats/dashboard/admin`, { credentials: "include" });
+        if (response.ok) {
+          const data = await response.json();
+          const adminStats = data.adminStats || {};
+          const monthlySales = adminStats.monthlySales || {};
+          const total = Object.values(monthlySales).reduce((acc: number, val: any) => acc + Number(val), 0) as number;
+          setTotalSales(total);
+        }
+      } catch (error) {
+        console.error("Error fetching stats:", error);
+      }
+    };
+
     fetchUsers();
     fetchAllProducts();
+    fetchStats();
   }, []);
 
   const adminInsights: AdminInsightItem[] = [
@@ -92,7 +110,7 @@ export const useDashboardAdmin = () => {
     },
     {
       title: "Ventas Totales",
-      value: "$125,400",
+      value: `$${totalSales.toLocaleString()}`,
       percentage: 18,
       footer: "Crecimiento mensual",
       color: "accent",
@@ -100,8 +118,7 @@ export const useDashboardAdmin = () => {
     },
   ];
 
-  const filteredUsers = users.filter(
-    (u) =>
+  const filteredUsers = users.filter((u) =>
       u.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       u.email.toLowerCase().includes(searchTerm.toLowerCase())
   );

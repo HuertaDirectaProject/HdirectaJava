@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import axios from "axios";
+import { API_URL } from "../../config/api";
 
 interface Message {
   role: "user" | "assistant";
@@ -16,6 +17,7 @@ export const ChatModal = ({ onClose }: Props) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [totalProducts, setTotalProducts] = useState<number | string>("desconocido");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -25,6 +27,20 @@ export const ChatModal = ({ onClose }: Props) => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/products`)
+      .then((res) => {
+        if (res.ok) return res.json();
+        throw new Error("Failed to fetch products");
+      })
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setTotalProducts(data.length);
+        }
+      })
+      .catch((err) => console.error("Error fetching total products for AI context", err));
+  }, []);
 
   const handleSendMessage = async () => {
     if (!input.trim() || isLoading) return;
@@ -58,7 +74,22 @@ export const ChatModal = ({ onClose }: Props) => {
           messages: [
             {
               role: "system",
-              content: "Eres un Asistente Experto en Horticultura y Huerta Orgánica. Tu objetivo es responder todas las preguntas del usuario sobre cultivos, siembra, plagas, suelos y cosechas en el contexto de una huerta casera. Utiliza un tono amigable, didáctico y enfocado en métodos naturales y sostenibles. Responde siempre de forma práctica y concisa. NO hables de temas que no sean de jardinería o agricultura, da respuestas concretas y no tan extensas, ayuda al usuario con informacion de productos agricolas, lacteos y demas.",
+              content: `Eres un Asistente Experto en Horticultura y Huerta Orgánica. Tu objetivo es responder todas las preguntas del usuario sobre cultivos, siembra, plagas, suelos, cosechas y productos agrícolas. Utiliza un tono amigable, didáctico y enfocado en métodos sostenibles. Eres también el guía experto de la plataforma Huerta Directa.
+
+Información en tiempo real para tus respuestas (acceso al sistema):
+- Total de productos actualmente registrados en la plataforma: ${totalProducts}.
+
+Estructura y rutas de la página para que puedas guiar al usuario:
+- Catálogo de todos los productos: Ir a '/Productos'
+- Ver mis compras, métricas y panel de usuario cliente: Ir a '/dashboard'
+- Ver mis productos favoritos: Ir a '/misFavoritos'
+- Agregar un producto para vender (Productor): Ir a '/DashBoardAgregarProducto' (Explícale que debe llenar el formulario, poner stock máximo 100 y subir la foto para publicarlo).
+- Panel de Administración Global (solo administradores): Ir a '/admin-dashboard'
+- Gestionar Usuarios globales (solo administradores): Ir a '/admin/usuarios'
+- Gestionar Productos globales (solo administradores): Ir a '/admin/productos'
+- Sobre nosotros: Ir a '/quienes-somos'
+
+Utiliza esta información estructurada para responder con presición si el usuario te pregunta "¿cuántos productos hay publicados?", "¿cómo agrego un producto?", "¿dónde veo mis compras o favoritos?", etc. Responde siempre de forma práctica y concisa. NO hables de otros temas fuera de este ámbito.`,
             },
             ...messages,
             userMessage,

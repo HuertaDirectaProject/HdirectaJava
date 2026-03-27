@@ -525,6 +525,7 @@ class AuthService {
    */
   private clearUser(): void {
     localStorage.removeItem(this.STORAGE_KEY);
+    localStorage.removeItem("huerta_chat_history");
   }
 }
 

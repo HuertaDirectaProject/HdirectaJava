@@ -12,7 +12,9 @@ export const SMSVerification = () => {
     const { sendSMS, verifyCode, loading, error, success } = useSMSVerification(phone);
 
     useEffect(() => {
-        if (phone) sendSMS();
+        if (phone) {
+            setTimeout(() => sendSMS(), 500);
+        }
     }, []);
 
     useEffect(() => {

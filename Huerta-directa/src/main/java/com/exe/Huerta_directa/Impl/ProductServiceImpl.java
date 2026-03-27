@@ -186,17 +186,8 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public boolean existeProductoPorUsuario(String nombre, String categoria, Long userId) {
-        try {
-            List<Product> productos = productRepository.findAll();
-            return productos.stream()
-                    .anyMatch(p -> p.getNameProduct().trim().equalsIgnoreCase(nombre.trim()) &&
-                            p.getCategory().trim().equalsIgnoreCase(categoria.trim()) &&
-                            p.getUser() != null &&
-                            p.getUser().getId().equals(userId));
-        } catch (Exception e) {
-            return false;
-        }
-
+        return productRepository
+                .existsByNameProductIgnoreCaseAndCategoryIgnoreCaseAndUserId(nombre, categoria, userId);
     }
 
     @Override
@@ -243,8 +234,6 @@ public class ProductServiceImpl implements ProductService {
                 String nombreUsuario = product.getUser().getName();
 
                 // DEBUG LOGGING
-                System.out.println("DEBUG PROD ID: " + product.getIdProduct() + " - User ID: "
-                        + product.getUser().getId() + " - Name found: '" + nombreUsuario + "'");
 
                 if (nombreUsuario == null || nombreUsuario.trim().isEmpty()) {
                     // Si no tiene nombre, intentamos usar el EMAIL
@@ -339,8 +328,12 @@ public class ProductServiceImpl implements ProductService {
     // La implementacion para los graficos por categoria
     @Override
     public Map<String, Long> contarProductosPorCategoria() {
-        return listarProducts().stream()
-                .collect(Collectors.groupingBy(ProductDTO::getCategory, Collectors.counting()));
+        return productRepository.countByCategory()
+                .stream()
+                .collect(Collectors.toMap(
+                        row -> (String) row[0],
+                        row -> (Long) row[1]
+                ));
     }
 
     @Override
@@ -364,12 +357,6 @@ public class ProductServiceImpl implements ProductService {
         producto.setStock(producto.getStock() - cantidad);
         productRepository.save(producto);
 
-        // Eliminar esto despues de probar
-        // Logging mejorado (más fácil de leer en consola)
-        System.out.println("✅ Stock actualizado:");
-        System.out.println("   - Producto: " + producto.getNameProduct());
-        System.out.println("   - Cantidad descontada: " + cantidad);
-        System.out.println("   - Stock restante: " + producto.getStock());
     }
 
     @Override

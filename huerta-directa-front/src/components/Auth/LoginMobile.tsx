@@ -7,6 +7,7 @@ import {
   faArrowRight,
   faEnvelope,
   faEnvelopeCircleCheck,
+  faMobile,  //
 } from "@fortawesome/free-solid-svg-icons";
 import { Button } from "../GlobalComponents/Button";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -19,6 +20,7 @@ export const LoginMobile = () => {
     requiresChannelSelection,
     requiresEmailVerification,
     emailCode,
+    hasPhoneChannel,
     setEmailCode,
     maskedEmail,
     resendCooldown,
@@ -94,27 +96,36 @@ export const LoginMobile = () => {
         <div className="dark:bg-white/10 bg-white backdrop-blur-xl border max-w-xs mx-auto border-white/10 rounded-3xl px-4 py-6 -mt-15 ">
           {/* ================= SELECT CHANNEL ================= */}
           {requiresChannelSelection && (
-            <div className="space-y-5 w-full">
-              <h2 className="text-xl font-bold text-center">
-                Selecciona verificación
-              </h2>
+              <div className="space-y-5 w-full">
+                <h2 className="text-xl font-bold text-center">
+                  Selecciona verificación
+                </h2>
 
-              <button
-                onClick={() => handleSelectVerificationChannel("email")}
-                disabled={isSelectingChannel}
-                className="w-full flex justify-center items-center gap-3 cursor-pointer py-3 rounded-xl hover:bg-[#8dc84b]/50 transition-all duration-500 bg-[#8dc84b] text-white font-semibold"
-              >
-                <p>{isSelectingChannel ? "Enviando..." : "Recibir por correo"}</p>{" "}
-                <FontAwesomeIcon icon={faEnvelopeCircleCheck} />
-              </button>
+                <button
+                    onClick={() => handleSelectVerificationChannel("email")}
+                    disabled={isSelectingChannel}
+                    className="w-full flex justify-center items-center gap-3 cursor-pointer py-3 rounded-xl hover:bg-[#8dc84b]/50 transition-all duration-500 bg-[#8dc84b] text-white font-semibold"
+                >
+                  <p>{isSelectingChannel ? "Enviando..." : "Recibir por correo"}</p>
+                  <FontAwesomeIcon icon={faEnvelopeCircleCheck} />
+                </button>
 
-              <button
-                onClick={cancelEmailVerification}
-                className="w-full py-3 rounded-xl border cursor-pointer border-black dark:border-white/60 hover:bg-gray-300/50 transition-all duration-500"
-              >
-                Cancelar
-              </button>
-            </div>
+                <button
+                    onClick={() => handleSelectVerificationChannel("sms")}
+                    disabled={isSelectingChannel}
+                    className="w-full flex justify-center items-center gap-3 cursor-pointer py-3 rounded-xl border-2 border-[#8dc84b] text-[#2e7d32] font-semibold hover:bg-[#eef8e1] transition-all duration-500"
+                >
+                  <p>Recibir por SMS {!hasPhoneChannel && "(No registrado)"}</p>
+                  <FontAwesomeIcon icon={faMobile} />
+                </button>
+
+                <button
+                    onClick={cancelEmailVerification}
+                    className="w-full py-3 rounded-xl border cursor-pointer border-black dark:border-white/60 hover:bg-gray-300/50 transition-all duration-500"
+                >
+                  Cancelar
+                </button>
+              </div>
           )}
 
           {/* ================= VERIFY EMAIL ================= */}

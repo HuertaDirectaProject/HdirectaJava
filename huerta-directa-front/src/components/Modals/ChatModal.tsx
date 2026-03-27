@@ -38,7 +38,7 @@ export const ChatModal = ({ onClose }: Props) => {
     if (SpeechRecognition) {
       const recognition = new SpeechRecognition();
       recognition.continuous = true;
-      recognition.interimResults = true;
+      recognition.interimResults = false;
       recognition.lang = "es-ES";
 
       recognition.onresult = (event: any) => {
@@ -49,7 +49,10 @@ export const ChatModal = ({ onClose }: Props) => {
           }
         }
         if (finalTranscript) {
-          setInput((prev) => prev ? `${prev} ${finalTranscript}` : finalTranscript);
+          setInput((prev) => {
+            const separator = prev && !prev.endsWith(" ") ? " " : "";
+            return `${prev}${separator}${finalTranscript}`;
+          });
         }
       };
 
@@ -92,7 +95,10 @@ export const ChatModal = ({ onClose }: Props) => {
       recognitionRef.current.stop();
     } else {
       try {
-        await navigator.mediaDevices.getUserMedia({ audio: true });
+        // Pedimos permiso y enseguida apagamos esa pista para liberar el micrófono en Windows
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach(track => track.stop());
+        
         isListeningRef.current = true;
         setIsListening(true);
         recognitionRef.current.start();

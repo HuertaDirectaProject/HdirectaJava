@@ -88,12 +88,16 @@ const ChatPrivado: React.FC<ChatPrivadoProps> = ({
       {activeUserId ? (
         <div className="flex-1 flex flex-col min-w-0">
           {/* Header */}
-          <ChatPrivadoHeader
-            activeName={activeConv?.otherName ?? ""}
-            activeImage={activeConv?.otherProfileImageUrl}
-            activeRole={activeConv?.otherRole} // ← AGREGAR
-            onBack={() => setActiveUserId(null)}
-          />
+          {activeConv ? (
+            <ChatPrivadoHeader
+              activeName={activeConv.otherName ?? "Usuario"}
+              activeImage={activeConv.otherProfileImageUrl}
+              activeRole={activeConv.otherRole}
+              onBack={() => setActiveUserId(null)}
+            />
+          ) : (
+            <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 h-14.25" />
+          )}
 
           {/* Área de mensajes */}
           <div

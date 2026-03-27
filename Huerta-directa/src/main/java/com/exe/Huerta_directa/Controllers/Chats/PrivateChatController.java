@@ -27,7 +27,8 @@ public class PrivateChatController {
             HttpSession session) {
 
         Long userId = (Long) session.getAttribute("userId");
-        if (userId == null) return ResponseEntity.status(401).build();
+        if (userId == null)
+            return ResponseEntity.status(401).build();
 
         return ResponseEntity.ok(privateChatService.getConversation(userId, otherId));
     }
@@ -37,7 +38,8 @@ public class PrivateChatController {
     public ResponseEntity<List<PrivateMessageDTO>> getConversations(HttpSession session) {
 
         Long userId = (Long) session.getAttribute("userId");
-        if (userId == null) return ResponseEntity.status(401).build();
+        if (userId == null)
+            return ResponseEntity.status(401).build();
 
         return ResponseEntity.ok(privateChatService.getConversations(userId));
     }
@@ -49,7 +51,8 @@ public class PrivateChatController {
             HttpSession session) throws IOException {
 
         Long userId = (Long) session.getAttribute("userId");
-        if (userId == null) return ResponseEntity.status(401).build();
+        if (userId == null)
+            return ResponseEntity.status(401).build();
 
         Map<String, String> result = privateChatService.uploadMedia(file);
         return ResponseEntity.ok(result);
@@ -60,9 +63,23 @@ public class PrivateChatController {
     public ResponseEntity<Map<String, Long>> countUnread(HttpSession session) {
 
         Long userId = (Long) session.getAttribute("userId");
-        if (userId == null) return ResponseEntity.status(401).build();
+        if (userId == null)
+            return ResponseEntity.status(401).build();
 
         long count = privateChatService.countUnread(userId);
         return ResponseEntity.ok(Map.of("unread", count));
+    }
+
+    @DeleteMapping("/conversation/{otherId}")
+    public ResponseEntity<Void> deleteConversation(
+            @PathVariable Long otherId,
+            HttpSession session) {
+
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null)
+            return ResponseEntity.status(401).build();
+
+        privateChatService.deleteConversation(userId, otherId);
+        return ResponseEntity.noContent().build();
     }
 }

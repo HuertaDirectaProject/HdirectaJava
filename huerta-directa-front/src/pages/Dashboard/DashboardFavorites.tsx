@@ -44,7 +44,7 @@ export const DashboardFavorites: React.FC = () => {
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full h-[calc(105vh-100px)]">
       <h1 className="text-3xl font-extrabold mb-6 text-gray-900 dark:text-white">
         Mis Productos Favoritos
       </h1>

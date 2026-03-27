@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
-import authService from "../services/authService";
+import authService from "../../services/authService";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 

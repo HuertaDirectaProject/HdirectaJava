@@ -1,11 +1,11 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPaperPlane,
   faUsers,
   faLeaf,
 } from "@fortawesome/free-solid-svg-icons";
-import type { ChatMessage } from "../../../hooks/useChatSocial";
+import type { ChatMessage } from "../../../hooks/Chats/useChatSocial";
 import type { User } from "../../../services/authService";
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -37,7 +37,22 @@ export const ChatSocial: React.FC<ChatSocialProps> = ({
   formatTime,
   isMine,
 }) => {
-  const isDark = document.documentElement.classList.contains("dark");
+  // ✅ Aquí adentro
+  const [isDark, setIsDark] = useState(
+    document.documentElement.classList.contains("dark"),
+  );
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div className="flex-1 flex flex-col rounded-3xl overflow-hidden shadow-lg border border-gray-100 dark:border-gray-700 min-h-0">
       {/* ── Header del chat ───────────────────────────────────────────────── */}

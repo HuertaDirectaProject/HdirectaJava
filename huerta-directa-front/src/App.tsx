@@ -97,6 +97,7 @@ function App() {
                             <Route path="/misFavoritos" element={<DashboardFavorites />} />
                             <Route path="/DashBoardGraficos" element={<DashboardGraficos />} />
                             <Route path="/MensajesAreaSocial" element={<MensajesAreaSocial />} />
+                            <Route path="/dashboard/mensajes" element={<MensajesAreaSocial />} />
                             <Route path="/DashBoardAgregarProducto" element={<DashboardAgregarProducto />} />
                             <Route path="/actualizacionUsuario" element={<ActualizacionUsuario />} />
                         </Route>
@@ -116,6 +117,7 @@ function App() {
                     <Route element={<ProtectedRoute requireAdmin />}>
                         <Route element={<AdminDashboardLayout />}>
                             <Route path="/admin-dashboard" element={<DashboardAdmin />} />
+                            <Route path="/admin/mensajes" element={<MensajesAreaSocial />} />
                             <Route path="/admin/stats" element={<AdminStats />} />
                             <Route path="/admin/usuarios" element={<AdminUsers />} />
                             <Route path="/admin/productos" element={<AdminProducts />} />

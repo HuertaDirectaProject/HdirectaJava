@@ -7,6 +7,7 @@ import { faUsers, faLock } from "@fortawesome/free-solid-svg-icons";
 interface ChatTabsProps {
   activeTab: "social" | "privado";
   onTabChange: (tab: "social" | "privado") => void;
+  unreadPrivado?: number;
 }
 
 // ─── Componente ───────────────────────────────────────────────────────────────
@@ -14,6 +15,7 @@ interface ChatTabsProps {
 export const ChatTabs: React.FC<ChatTabsProps> = ({
   activeTab,
   onTabChange,
+  unreadPrivado = 0,
 }) => {
   return (
     <div className="flex gap-1 mb-4 bg-gray-100 dark:bg-gray-800 rounded-2xl p-1 w-fit">
@@ -27,9 +29,11 @@ export const ChatTabs: React.FC<ChatTabsProps> = ({
       >
         <FontAwesomeIcon icon={faLock} className="text-xs" />
         Mensajes Privados
-        <span className="ml-1 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide">
-          Pronto
-        </span>
+        {unreadPrivado > 0 ? (
+          <span className="ml-1 bg-green-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full min-w-4.5 text-center">
+            {unreadPrivado > 99 ? "99+" : unreadPrivado}
+          </span>
+        ) : null}
       </button>
       <button
         onClick={() => onTabChange("social")}

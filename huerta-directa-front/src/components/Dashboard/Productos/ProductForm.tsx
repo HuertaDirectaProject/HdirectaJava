@@ -110,6 +110,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
           name="stock"
           value={formData.stock}
           onChange={handleChange}
+          min={0}
+          max={100}
           className="p-4 bg-gray-50 dark:bg-[#222b24] border-2 border-gray-100 dark:border-slate-700 rounded-2xl outline-none focus:border-[#8dc84b] dark:text-white"
           placeholder="0"
         />

@@ -23,6 +23,9 @@ public class PaymentItem {
 
     private String title;
 
+    @Column(name = "product_id")
+    private Long productId;
+
     @Column(nullable = false)
     private BigDecimal unitPrice;
 

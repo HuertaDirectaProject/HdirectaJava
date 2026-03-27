@@ -138,7 +138,7 @@ export const AdminStats: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {stats.map((stat, idx) => (
-          <div key={idx} className="bg-white dark:bg-[#1e1e1e] p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-white/10 flex items-center gap-4 hover:-translate-y-1 transition-all duration-300 group">
+          <div key={idx} className="bg-white dark:bg-[#1e1e1e] p-6 rounded-3xl shadow-sm border border-gray-100  flex items-center gap-4 hover:-translate-y-1 transition-all duration-300 group">
             <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl ${stat.bg} ${stat.color} group-hover:scale-110 transition-transform`}>
               <FontAwesomeIcon icon={stat.icon} />
             </div>
@@ -154,14 +154,14 @@ export const AdminStats: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white dark:bg-[#1e1e1e] p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-white/10 min-h-[400px] flex flex-col">
+        <div className="bg-white dark:bg-[#1e1e1e] p-8 rounded-3xl shadow-sm border border-gray-100  min-h-100 flex flex-col">
           <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-6">Registros de Usuarios</h2>
           <div className="flex-1">
             <Bar data={userData} options={commonOptions} />
           </div>
         </div>
 
-        <div className="bg-white dark:bg-[#1e1e1e] p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-white/10 min-h-[400px] flex flex-col">
+        <div className="bg-white dark:bg-[#1e1e1e] p-8 rounded-3xl shadow-sm border border-gray-100  min-h-100 flex flex-col">
           <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-6">Productos por Categoría</h2>
           <div className="flex-1">
             <Doughnut data={categoryData} options={commonOptions} />

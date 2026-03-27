@@ -7,7 +7,7 @@ export const Dashboard: React.FC = () => {
   usePageTitle("Dashboard");
 
   return (
-    <>
+    <main className="">
       {/* Mobile View */}
       <div className="block md:hidden">
         <DashboardMobile />
@@ -17,7 +17,7 @@ export const Dashboard: React.FC = () => {
       <div className="hidden md:block">
         <DashboardDesktop />
       </div>
-    </>
+    </main>
   );
 };
 

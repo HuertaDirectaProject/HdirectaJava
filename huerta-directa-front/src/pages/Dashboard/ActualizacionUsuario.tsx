@@ -258,21 +258,21 @@ export const ActualizacionUsuario: React.FC = () => {
         );
     }
 
-    return (
+return (
         <div className="w-full flex flex-col gap-8 animate-fadeIn max-w-4xl mx-auto">
             <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-gray-800 text-white flex items-center justify-center shadow-lg">
+                <div className="w-12 h-12 rounded-2xl bg-gray-800 dark:bg-[#26322a] text-white flex items-center justify-center shadow-lg">
                     <FontAwesomeIcon icon={faGear} size="lg" />
                 </div>
-                <h1 className="text-3xl font-black text-gray-800 dark:text-white  tracking-tight">Mi Perfil</h1>
+                <h1 className="text-3xl font-black text-gray-800 dark:text-white tracking-tight">Mi Perfil</h1>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8">
                 {/* Profile Card */}
-                <div className="flex flex-col gap-6">
-                    <div className="bg-white p-8 rounded-4xl shadow-sm border border-gray-100 flex flex-col items-center text-center gap-4">
+                <div className="flex flex-col gap-6 ">
+                    <div className="bg-white dark:bg-[#1f2a22]  p-8 rounded-4xl shadow-sm border border-gray-100 dark:border-[#ffffff] flex flex-col items-center text-center gap-4">
                         <div className="relative group">
-                            <div className="w-32 h-32 rounded-3xl bg-gray-100 flex items-center justify-center text-gray-300 relative overflow-hidden">
+                            <div className="w-32 h-32 rounded-3xl bg-gray-100 dark:bg-[#26322a] flex items-center justify-center text-gray-300 dark:text-gray-500 relative overflow-hidden">
                                 {profileImageUrl ? (
                                     <img
                                         src={getProfileImageSrc(profileImageUrl)}
@@ -294,21 +294,21 @@ export const ActualizacionUsuario: React.FC = () => {
                                 type="button"
                                 onClick={() => fileInputRef.current?.click()}
                                 disabled={uploadingPhoto}
-                                className="absolute -bottom-2 -right-2 w-10 h-10 bg-[#8dc84b] text-white rounded-xl flex items-center justify-center shadow-lg hover:scale-110 transition-all disabled:opacity-60"
+                                className="absolute -bottom-2 -right-2 w-10 h-10 bg-[#8dc84b] dark:bg-[#6fa33b] text-white rounded-xl flex items-center justify-center shadow-lg hover:scale-110 transition-all disabled:opacity-60"
                             >
                                 <FontAwesomeIcon icon={faCamera} size="sm" />
                             </button>
                         </div>
                         <div>
-                            <h3 className="text-xl font-bold text-gray-800">{formData.fullName || "Usuario"}</h3>
-                            <p className="text-sm text-[#8dc84b] font-bold  tracking-tight">Activo</p>
+                            <h3 className="text-xl font-bold text-gray-800 dark:text-white">{formData.fullName || "Usuario"}</h3>
+                            <p className="text-sm text-[#8dc84b] dark:text-[#6fa33b] font-bold tracking-tight">Activo</p>
                         </div>
-                        <div className="w-full pt-4 border-t border-gray-50 text-left flex flex-col gap-3">
-                            <div className="flex items-center gap-3 text-gray-500">
+                        <div className="w-full pt-4 border-t border-gray-50 dark:border-[#2a332c] text-left flex flex-col gap-3">
+                            <div className="flex items-center gap-3 text-gray-500 dark:text-gray-400">
                                 <FontAwesomeIcon icon={faEnvelope} className="w-4" />
                                 <span className="text-sm">{formData.email}</span>
                             </div>
-                            <div className="flex items-center gap-3 text-gray-500">
+                            <div className="flex items-center gap-3 text-gray-500 dark:text-gray-400">
                                 <FontAwesomeIcon icon={faPhone} className="w-4" />
                                 <span className="text-sm">{formData.phone || "Sin número"}</span>
                             </div>
@@ -317,28 +317,28 @@ export const ActualizacionUsuario: React.FC = () => {
                 </div>
 
                 {/* Update Form */}
-                <div className="bg-white p-10 rounded-4xl  shadow-sm border border-gray-100 flex flex-col gap-8">
-                    <h2 className="text-xl font-black text-gray-800 border-b border-gray-50 pb-4">Actualizar Información</h2>
+                <div className="bg-white dark:bg-[#1f2a22] p-10 rounded-4xl shadow-sm border border-gray-100 dark:border-[#ffffff]  flex flex-col gap-8">
+                    <h2 className="text-xl font-black text-gray-800 dark:text-white border-b border-gray-50 dark:border-[#2a332c] pb-4">Actualizar Información</h2>
                     
                     <form className="flex flex-col gap-6" onSubmit={handleProfileSubmit}>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="flex flex-col gap-2">
-                                <label className="font-bold text-gray-700 uppercase tracking-widest text-[10px]">Nombre Completo</label>
+                                <label className="font-bold text-gray-700 dark:text-gray-300 uppercase tracking-widest text-[10px]">Nombre Completo</label>
                                 <div className="relative">
-                                    <FontAwesomeIcon icon={faUser} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" />
+                                    <FontAwesomeIcon icon={faUser} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 dark:text-gray-500" />
                                     <input 
                                         type="text" 
                                         name="fullName"
                                         value={formData.fullName}
                                         onChange={handleChange}
-                                        className="w-full pl-12 pr-4 py-4 bg-gray-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#8dc84b]/30 transition-all" 
+                                        className="w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-[#26322a] dark:text-gray-100 dark:placeholder-gray-500 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#8dc84b]/30 dark:focus:ring-[#6fa33b]/30 transition-all" 
                                     />
                                 </div>
                             </div>
                             <div className="flex flex-col gap-2">
-                                <label className="font-bold text-gray-700 uppercase tracking-widest text-[10px]">Correo Electrónico</label>
+                                <label className="font-bold text-gray-700 dark:text-gray-300 uppercase tracking-widest text-[10px]">Correo Electrónico</label>
                                 <div className="relative">
-                                    <FontAwesomeIcon icon={faEnvelope} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" />
+                                    <FontAwesomeIcon icon={faEnvelope} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 dark:text-gray-500" />
                                     <input 
                                         type="email" 
                                         name="email"
@@ -346,7 +346,7 @@ export const ActualizacionUsuario: React.FC = () => {
                                         onChange={handleChange}
                                         readOnly
                                         title="El correo electrónico no se puede editar"
-                                        className="w-full pl-12 pr-4 py-4 bg-gray-100 border-none rounded-2xl outline-none cursor-not-allowed" 
+                                        className="w-full pl-12 pr-4 py-4 bg-gray-100 dark:bg-[#1A221C] dark:text-gray-500 border-none rounded-2xl outline-none cursor-not-allowed" 
                                     />
                                 </div>
                             </div>
@@ -354,9 +354,9 @@ export const ActualizacionUsuario: React.FC = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="flex flex-col gap-2">
-                                <label className="font-bold text-gray-700 uppercase tracking-widest text-[10px]">Teléfono</label>
+                                <label className="font-bold text-gray-700 dark:text-gray-300 uppercase tracking-widest text-[10px]">Teléfono</label>
                                 <div className="relative">
-                                    <FontAwesomeIcon icon={faPhone} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" />
+                                    <FontAwesomeIcon icon={faPhone} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 dark:text-gray-500" />
                                     <input
                                         type="text"
                                         name="phone"
@@ -365,21 +365,21 @@ export const ActualizacionUsuario: React.FC = () => {
                                         inputMode="numeric"
                                         maxLength={10}
                                         placeholder="3001234567"
-                                        className="w-full pl-12 pr-4 py-4 bg-gray-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#8dc84b]/30 transition-all"
+                                        className="w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-[#26322a] dark:text-gray-100 dark:placeholder-gray-500 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#8dc84b]/30 dark:focus:ring-[#6fa33b]/30 transition-all"
                                     />
                                 </div>
                             </div>
                             <div className="flex flex-col gap-2">
-                                <label className="font-bold text-gray-700 uppercase tracking-widest text-[10px]">Dirección</label>
+                                <label className="font-bold text-gray-700 dark:text-gray-300 uppercase tracking-widest text-[10px]">Dirección</label>
                                 <div className="relative">
-                                    <FontAwesomeIcon icon={faLocationDot} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" />
+                                    <FontAwesomeIcon icon={faLocationDot} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 dark:text-gray-500" />
                                     <input 
                                         type="text" 
                                         name="address"
                                         value={formData.address}
                                         onChange={handleChange}
                                         placeholder="Calle 10 # 20-35, Apto 4B"
-                                        className="w-full pl-12 pr-4 py-4 bg-gray-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#8dc84b]/30 transition-all" 
+                                        className="w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-[#26322a] dark:text-gray-100 dark:placeholder-gray-500 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#8dc84b]/30 dark:focus:ring-[#6fa33b]/30 transition-all" 
                                     />
                                 </div>
                             </div>
@@ -390,12 +390,12 @@ export const ActualizacionUsuario: React.FC = () => {
                                 text={savingProfile ? "Guardando..." : "Guardar Cambios"}
                                 disabled={savingProfile}
                                 iconLetf={faCloudArrowUp}
-                                className="mt-4 bg-[#8dc84b] text-white py-5 rounded-2xl font-black shadow-xl shadow-[#8dc84b]/20"
+                                className="mt-4 bg-[#8dc84b] dark:bg-[#6fa33b] text-white py-5 rounded-2xl font-black shadow-xl shadow-[#8dc84b]/20 dark:shadow-[#6fa33b]/20"
                         />
                     </form>
 
-                    <form className="flex flex-col gap-2 pt-4 border-t border-gray-50 profile-password-inputs" onSubmit={handlePasswordSubmit}>
-                            <h3 className="font-bold text-gray-800 uppercase tracking-widest text-[10px] mb-2">Cambiar Contraseña</h3>
+                    <form className="flex flex-col gap-2 pt-4 border-t border-gray-50 dark:border-[#2a332c] profile-password-inputs" onSubmit={handlePasswordSubmit}>
+                            <h3 className="font-bold text-gray-800 dark:text-gray-300 uppercase tracking-widest text-[10px] mb-2">Cambiar Contraseña</h3>
                             <PasswordInput 
                                 name="currentPassword"
                                 value={formData.currentPassword}
@@ -413,13 +413,13 @@ export const ActualizacionUsuario: React.FC = () => {
                                 text={savingPassword ? "Cambiando..." : "Actualizar Contraseña"}
                                 disabled={savingPassword}
                                 iconLetf={faArrowsRotate}
-                                className="mt-4 bg-[#8dc84b] text-white py-4 rounded-2xl font-black"
+                                className="mt-4 bg-[#8dc84b] dark:bg-[#6fa33b] text-white py-4 rounded-2xl font-black"
                             />
-                            </form>
+                    </form>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 };
 
 export default ActualizacionUsuario;

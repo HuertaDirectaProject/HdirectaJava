@@ -54,7 +54,7 @@ const DashboardAdminDesktop: React.FC = () => {
     name: p.nameProduct,
     producer: p.producerId?.name || p.user?.name || "Desconocido",
     price: p.price,
-    stock: p.stockQuantity || 0,
+    stock: p.stock !== undefined ? p.stock : (p.stockQuantity || 0),
     status: p.status === "APPROVED" ? "Aprobado" : p.status === "PENDING" ? "Pendiente" : "Rechazado",
     image: p.imageProduct ? `${API_URL}/uploads/productos/${p.imageProduct}` : "https://via.placeholder.com/400x300?text=Sin+Imagen",
   }));

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { API_URL } from "../config/api";
 import { faUsers, faBoxesStacked, faChartPie } from "@fortawesome/free-solid-svg-icons";
+import Swal from "sweetalert2";
 
 export interface UserInfo {
   id: number;
@@ -141,8 +142,18 @@ export const useDashboardAdmin = () => {
   };
 
   const handleDeleteUser = async (id: number) => {
-    const confirmDelete = confirm("¿Seguro que quieres eliminar este usuario?");
-    if (!confirmDelete) return;
+    const result = await Swal.fire({
+      title: "¿Estás seguro?",
+      text: "No podrás revertir esta acción.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar"
+    });
+
+    if (!result.isConfirmed) return;
 
     try {
       const response = await fetch(`${API_URL}/api/users/${id}`, {
@@ -152,11 +163,37 @@ export const useDashboardAdmin = () => {
 
       if (response.ok) {
         setUsers(users.filter((u) => u.id !== id));
+        Swal.fire({
+          title: "¡Eliminado!",
+          text: "El usuario ha sido eliminado correctamente",
+          icon: "success",
+          timer: 1500,
+          showConfirmButton: false,
+          toast: true,
+          position: "top-end"
+        });
       } else {
-        alert("Error eliminando usuario. Es posible que tenga productos asociados.");
+        Swal.fire({
+          title: "Error",
+          text: "Error eliminando usuario. Es posible que tenga productos asociados.",
+          icon: "error",
+          timer: 3000,
+          showConfirmButton: false,
+          toast: true,
+          position: "top-end"
+        });
       }
     } catch (error) {
       console.error("Error al eliminar usuario:", error);
+      Swal.fire({
+        title: "Error",
+        text: "Error de red al eliminar usuario.",
+        icon: "error",
+        timer: 3000,
+        showConfirmButton: false,
+        toast: true,
+        position: "top-end"
+      });
     }
   };
 

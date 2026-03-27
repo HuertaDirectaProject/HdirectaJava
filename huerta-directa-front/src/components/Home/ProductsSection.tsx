@@ -24,7 +24,7 @@ export const ProductsSection = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 8;
   const sectionRef = useRef<HTMLElement>(null);
 
   const scrollToSection = () => {

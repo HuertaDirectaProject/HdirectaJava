@@ -21,7 +21,7 @@ export const Avatar: React.FC<AvatarProps> = ({
     );
   }
 
-  const initials = name
+  const initials = (name || "?")
     .split(" ")
     .map((n) => n[0])
     .slice(0, 2)

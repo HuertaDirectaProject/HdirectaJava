@@ -28,23 +28,23 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
   setNewComment, handleSubmitReview, submittingReview,
 }) => (
   <div className="space-y-8">
-    <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100">
-      <h3 className="font-bold text-gray-800 mb-4">Deja tu opinión</h3>
+    <div className="bg-gray-50 dark:bg-[#1f2a22] p-6 rounded-2xl border border-gray-100 dark:border-[#2a332c]">
+      <h3 className="font-bold text-gray-800 dark:text-white mb-4">Deja tu opinión</h3>
       <form onSubmit={handleSubmitReview} className="space-y-4">
         <div className="flex items-center gap-2">
           {[1, 2, 3, 4, 5].map((star) => (
             <button key={star} type="button" onClick={() => setNewRating(star)}
-              className={`text-xl transition-colors ${star <= newRating ? "text-yellow-400" : "text-gray-300"}`}>
+              className={`text-xl transition-colors ${star <= newRating ? "text-yellow-400" : "text-gray-300 dark:text-gray-600"}`}>
               <FontAwesomeIcon icon={faStar} />
             </button>
           ))}
-          <span className="text-sm font-medium text-gray-500 ml-2">{newRating}/5</span>
+          <span className="text-sm font-medium text-gray-500 dark:text-gray-400 ml-2">{newRating}/5</span>
         </div>
         <textarea value={newComment} onChange={(e) => setNewComment(e.target.value)}
           placeholder="Cuéntanos qué te pareció el producto..."
-          className="w-full p-4 rounded-xl border-2 border-gray-100 focus:border-[#8dc84b] focus:outline-none transition-all resize-none h-24 text-sm" />
+          className="w-full p-4 rounded-xl border-2 border-gray-100 dark:border-[#2a332c] dark:bg-[#26322a] dark:text-gray-100 dark:placeholder-gray-500 focus:border-[#8dc84b] dark:focus:border-[#6fa33b] focus:outline-none transition-all resize-none h-24 text-sm" />
         <button disabled={submittingReview}
-          className="px-6 py-2 bg-[#8dc84b] text-white rounded-lg font-bold hover:bg-[#7ab33d] transition-all disabled:opacity-50">
+          className="px-6 py-2 bg-[#8dc84b] dark:bg-[#6fa33b] text-white rounded-lg font-bold hover:bg-[#7ab33d] dark:hover:bg-green-600 transition-all disabled:opacity-50">
           {submittingReview ? "Enviando..." : "Publicar reseña"}
         </button>
       </form>
@@ -53,34 +53,34 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
     {comments.length > 0 ? (
       <div className="space-y-6">
         {comments.map((comment) => (
-          <div key={comment.idComment} className="border-b border-gray-50 pb-6">
+          <div key={comment.idComment} className="border-b border-gray-50 dark:border-[#2a332c] pb-6">
             <div className="flex justify-between items-start mb-2">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 text-xs font-bold capitalize">
+                <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-[#26322a] flex items-center justify-center text-gray-400 dark:text-gray-500 text-xs font-bold capitalize">
                   {(comment.nameCommenter || "U")[0]}
                 </div>
-                <span className="font-bold text-gray-800 text-sm">
+                <span className="font-bold text-gray-800 dark:text-gray-100 text-sm">
                   {comment.nameCommenter || "Usuario Anónimo"}
                 </span>
               </div>
-              <span className="text-xs text-gray-400">
+              <span className="text-xs text-gray-400 dark:text-gray-500">
                 {new Date(comment.creationComment).toLocaleDateString()}
               </span>
             </div>
             <div className="flex text-yellow-400 text-[10px] mb-2">
               {[...Array(5)].map((_, i) => (
                 <FontAwesomeIcon key={i} icon={faStar}
-                  className={i < comment.rating ? "" : "text-gray-200"} />
+                  className={i < comment.rating ? "" : "text-gray-200 dark:text-gray-600"} />
               ))}
             </div>
-            <p className="text-sm text-gray-600 leading-relaxed italic">
+            <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed italic">
               "{comment.commentCommenter}"
             </p>
           </div>
         ))}
       </div>
     ) : (
-      <div className="py-10 text-center text-gray-400 italic">
+      <div className="py-10 text-center text-gray-400 dark:text-gray-500 italic">
         No hay reseñas para este producto aún. ¡Sé el primero en opinar!
       </div>
     )}
@@ -112,40 +112,40 @@ export const ProductDetailPage = () => {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-linear-to-b from-[#FEF5DC] via-white to-[#FEF5DC] py-20 gap-4">
-        <div className="w-12 h-12 border-4 border-[#8dc84b] border-t-transparent rounded-full animate-spin" />
-        <p className="text-gray-500 font-medium font-outfit">Cargando producto...</p>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-linear-to-b from-[#FEF5DC] via-white to-[#FEF5DC] dark:from-[#1A221C] dark:via-[#111712] dark:to-[#1A221C] py-20 gap-4">
+        <div className="w-12 h-12 border-4 border-[#8dc84b] dark:border-[#6fa33b] border-t-transparent rounded-full animate-spin" />
+        <p className="text-gray-500 dark:text-gray-400 font-medium font-outfit">Cargando producto...</p>
       </div>
     );
   }
 
   if (!product) {
     return (
-      <div className="flex flex-col items-center justify-center bg-linear-to-b from-[#FEF5DC] via-white to-[#FEF5DC] min-h-screen py-20 gap-6">
-        <h2 className="text-2xl font-bold text-gray-800">Producto no encontrado</h2>
+      <div className="flex flex-col items-center justify-center bg-linear-to-b from-[#FEF5DC] via-white to-[#FEF5DC] dark:from-[#1A221C] dark:via-[#111712] dark:to-[#1A221C] min-h-screen py-20 gap-6">
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Producto no encontrado</h2>
         <Button text="Volver al inicio" onClick={() => navigate("/HomePage")} />
       </div>
     );
   }
 
   return (
-    <div className="bg-linear-to-b from-[#FEF5DC] via-white to-[#FEF5DC] min-h-screen pb-20 pt-10">
+    <div className="bg-linear-to-b from-[#FEF5DC] via-white to-[#FEF5DC] dark:from-[#1A221C] dark:via-[#111712] dark:to-[#1A221C] min-h-screen pb-20 pt-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Breadcrumbs */}
-        <nav className="flex mb-8 text-sm text-gray-500 items-center gap-2">
-          <span className="cursor-pointer hover:text-[#8dc84b]" onClick={() => navigate("/HomePage")}>Inicio</span>
-          <FontAwesomeIcon icon={faChevronRight} className="text-xs text-gray-400" />
-          <span className="cursor-pointer hover:text-[#8dc84b] capitalize">{product.category}</span>
-          <FontAwesomeIcon icon={faChevronRight} className="text-xs text-gray-400" />
-          <span className="text-gray-800 font-medium truncate">{product.nameProduct}</span>
+        <nav className="flex mb-8 text-sm text-gray-500 dark:text-gray-400 items-center gap-2">
+          <span className="cursor-pointer hover:text-[#8dc84b] dark:hover:text-[#6fa33b]" onClick={() => navigate("/HomePage")}>Inicio</span>
+          <FontAwesomeIcon icon={faChevronRight} className="text-xs text-gray-400 dark:text-gray-600" />
+          <span className="cursor-pointer hover:text-[#8dc84b] dark:hover:text-[#6fa33b] capitalize">{product.category}</span>
+          <FontAwesomeIcon icon={faChevronRight} className="text-xs text-gray-400 dark:text-gray-600" />
+          <span className="text-gray-800 dark:text-gray-200 font-medium truncate">{product.nameProduct}</span>
         </nav>
 
-        <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+        <div className="bg-white dark:bg-[#1f2a22] rounded-3xl shadow-xl overflow-hidden border border-gray-100 dark:border-[#2a332c]">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-0">
 
             {/* ── Columna izquierda: imágenes ─────────────────────────────── */}
-            <div className="lg:col-span-8 p-6 lg:p-10 border-r border-gray-100">
+            <div className="lg:col-span-8 p-6 lg:p-10 border-r border-gray-100 dark:border-[#2a332c]">
               <div className="flex flex-col md:flex-row gap-6">
 
                 {allImages.length > 1 && (
@@ -153,14 +153,16 @@ export const ProductDetailPage = () => {
                     {allImages.map((img, i) => (
                       <div key={i} onClick={() => setSelectedImage(img)}
                         className={`w-14 h-14 rounded-lg border-2 overflow-hidden cursor-pointer transition-all
-                          ${selectedImage === img ? "border-[#8dc84b]" : "border-gray-100 hover:border-gray-300"}`}>
+                          ${selectedImage === img
+                            ? "border-[#8dc84b] dark:border-[#6fa33b]"
+                            : "border-gray-100 dark:border-[#2a332c] hover:border-gray-300 dark:hover:border-[#6fa33b]"}`}>
                         <img src={`${API_URL}/uploads/productos/${img}`} alt="" className="w-full h-full object-cover" />
                       </div>
                     ))}
                   </div>
                 )}
 
-                <div className="flex-1 bg-gray-50 rounded-2xl overflow-hidden flex items-center justify-center relative min-h-100">
+                <div className="flex-1 bg-gray-50 dark:bg-[#26322a] rounded-2xl overflow-hidden flex items-center justify-center relative min-h-100">
                   <img src={mainImageUrl} alt={product.nameProduct}
                     className="max-h-125 w-auto object-contain transition-transform duration-500 hover:scale-105" />
 
@@ -175,12 +177,12 @@ export const ProductDetailPage = () => {
 
                   <div className="absolute top-4 right-4 flex flex-col gap-2">
                     <button onClick={handleFavoriteToggle} disabled={isFavoriteLoading}
-                      className={`w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center transition-colors
-                        ${isFavorite ? "text-red-500" : "text-gray-400 hover:text-[#8dc84b]"}
+                      className={`w-10 h-10 bg-white dark:bg-[#1f2a22] rounded-full shadow-md flex items-center justify-center transition-colors
+                        ${isFavorite ? "text-red-500" : "text-gray-400 hover:text-[#8dc84b] dark:hover:text-[#6fa33b]"}
                         ${isFavoriteLoading ? "opacity-50 cursor-not-allowed" : ""}`}>
                       <FontAwesomeIcon icon={faHeart} />
                     </button>
-                    <button className="w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center text-gray-400 hover:text-[#8dc84b] transition-colors">
+                    <button className="w-10 h-10 bg-white dark:bg-[#1f2a22] rounded-full shadow-md flex items-center justify-center text-gray-400 hover:text-[#8dc84b] dark:hover:text-[#6fa33b] transition-colors">
                       <FontAwesomeIcon icon={faShareNodes} />
                     </button>
                   </div>
@@ -189,7 +191,7 @@ export const ProductDetailPage = () => {
                     <div className="absolute bottom-4 left-0 right-0 md:hidden flex justify-center gap-2">
                       {allImages.map((img, i) => (
                         <div key={i} onClick={() => setSelectedImage(img)}
-                          className={`w-2 h-2 rounded-full transition-all ${selectedImage === img ? "bg-[#8dc84b] w-4" : "bg-gray-300"}`} />
+                          className={`w-2 h-2 rounded-full transition-all ${selectedImage === img ? "bg-[#8dc84b] dark:bg-[#6fa33b] w-4" : "bg-gray-300 dark:bg-gray-600"}`} />
                       ))}
                     </div>
                   )}
@@ -198,21 +200,23 @@ export const ProductDetailPage = () => {
 
               {/* Tabs desktop */}
               <div className="mt-12 hidden lg:block">
-                <div className="flex border-b border-gray-100 mb-6">
+                <div className="flex border-b border-gray-100 dark:border-[#2a332c] mb-6">
                   {(["description", "reviews"] as const).map((tab) => (
                     <button key={tab} onClick={() => setActiveTab(tab)}
                       className={`pb-4 px-6 text-sm font-bold tracking-wider uppercase transition-all relative
-                        ${activeTab === tab ? "text-gray-900" : "text-gray-400 hover:text-gray-600"}`}>
+                        ${activeTab === tab
+                          ? "text-gray-900 dark:text-white"
+                          : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"}`}>
                       {tab === "description" ? "Descripción" : `Reseñas (${reviewCount})`}
                       {activeTab === tab && (
-                        <div className="absolute bottom-0 left-0 w-full h-1 bg-[#8dc84b] rounded-t-full" />
+                        <div className="absolute bottom-0 left-0 w-full h-1 bg-[#8dc84b] dark:bg-[#6fa33b] rounded-t-full" />
                       )}
                     </button>
                   ))}
                 </div>
                 <div className="min-h-50">
                   {activeTab === "description" ? (
-                    <p className="text-gray-600 leading-relaxed whitespace-pre-line">{product.descriptionProduct}</p>
+                    <p className="text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-line">{product.descriptionProduct}</p>
                   ) : (
                     <ReviewSection comments={comments} newRating={newRating} setNewRating={setNewRating}
                       newComment={newComment} setNewComment={setNewComment}
@@ -223,63 +227,63 @@ export const ProductDetailPage = () => {
             </div>
 
             {/* ── Columna derecha: compra ──────────────────────────────────── */}
-            <div className="lg:col-span-4 p-6 lg:p-8 bg-gray-50/30">
+            <div className="lg:col-span-4 p-6 lg:p-8 bg-gray-50/30 dark:bg-[#1A221C]">
               <div className="flex flex-col h-full">
-                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">{product.category}</span>
-                <h1 className="text-2xl lg:text-3xl font-black text-gray-900 mb-4">{product.nameProduct}</h1>
+                <span className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">{product.category}</span>
+                <h1 className="text-2xl lg:text-3xl font-black text-gray-900 dark:text-white mb-4">{product.nameProduct}</h1>
 
                 <div className="flex items-center gap-4 mb-6">
                   <div className="flex text-yellow-400 text-sm">
                     {[1, 2, 3, 4, 5].map((s) => (
-                      <FontAwesomeIcon key={s} icon={faStar} className={s <= rating ? "" : "text-gray-200"} />
+                      <FontAwesomeIcon key={s} icon={faStar} className={s <= rating ? "" : "text-gray-200 dark:text-gray-600"} />
                     ))}
                   </div>
-                  <span className="text-sm text-gray-500">({reviewCount} reseñas)</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">({reviewCount} reseñas)</span>
                 </div>
 
                 <div className="mb-8 flex flex-col">
                   {hasDiscount && (
-                    <span className="text-xl font-bold text-gray-400 line-through mb-1">
+                    <span className="text-xl font-bold text-gray-400 dark:text-gray-500 line-through mb-1">
                       ${product.price.toLocaleString()}
                     </span>
                   )}
                   <div className="flex items-baseline">
-                    <span className="text-4xl lg:text-5xl font-black text-[#8dc84b]">
+                    <span className="text-4xl lg:text-5xl font-black text-[#8dc84b] dark:text-[#6fa33b]">
                       ${discountedPrice.toLocaleString()}
                     </span>
-                    <span className="text-gray-400 text-lg ml-2">/ {product.unit || "unidad"} COP</span>
+                    <span className="text-gray-400 dark:text-gray-500 text-lg ml-2">/ {product.unit || "unidad"} COP</span>
                   </div>
                 </div>
 
                 <div className="space-y-4 mb-8">
                   <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center text-green-600 shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-300 shrink-0">
                       <FontAwesomeIcon icon={faTruckFast} />
                     </div>
                     <div>
-                      <p className="font-bold text-green-600 text-sm">Llega gratis mañana</p>
-                      <p className="text-xs text-gray-500">Solo en la ciudad de origen</p>
+                      <p className="font-bold text-green-600 dark:text-green-300 text-sm">Llega gratis mañana</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Solo en la ciudad de origen</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-300 shrink-0">
                       <FontAwesomeIcon icon={faArrowRotateLeft} />
                     </div>
                     <div>
-                      <p className="font-bold text-blue-600 text-sm">Devolución gratis</p>
-                      <p className="text-xs text-gray-500">Tienes 30 días desde que lo recibes</p>
+                      <p className="font-bold text-blue-600 dark:text-blue-300 text-sm">Devolución gratis</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Tienes 30 días desde que lo recibes</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Vendedor + botón contactar */}
-                <div className="bg-white p-4 rounded-2xl border border-gray-100 mb-8 shadow-sm">
-                  <p className="text-xs text-gray-400 font-bold uppercase mb-2">Vendido por</p>
+                <div className="bg-white dark:bg-[#1f2a22] p-4 rounded-2xl border border-gray-100 dark:border-[#2a332c] mb-8 shadow-sm">
+                  <p className="text-xs text-gray-400 dark:text-gray-500 font-bold uppercase mb-2">Vendido por</p>
                   <div className="flex items-center justify-between gap-2">
-                    <p className="font-black text-gray-800 text-lg">{product.userName || "Vendedor Local"}</p>
+                    <p className="font-black text-gray-800 dark:text-white text-lg">{product.userName || "Vendedor Local"}</p>
                     {currentUser && product.userId && currentUser.id !== product.userId && (
                       <button onClick={handleContactSeller}
-                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-green-50 hover:bg-green-100 text-green-700 text-xs font-black transition-colors shrink-0">
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-green-50 dark:bg-green-900/30 hover:bg-green-100 dark:hover:bg-green-900/50 text-green-700 dark:text-green-300 text-xs font-black transition-colors shrink-0">
                         <FontAwesomeIcon icon={faCommentDots} />
                         Contactar
                       </button>
@@ -289,31 +293,31 @@ export const ProductDetailPage = () => {
 
                 <div className="mt-auto space-y-4">
                   <div>
-                    <p className="text-sm font-bold text-gray-700 mb-3">Cantidad:</p>
+                    <p className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">Cantidad:</p>
                     <div className="flex items-center gap-4">
-                      <div className="flex items-center border-2 border-gray-200 rounded-xl overflow-hidden bg-white">
+                      <div className="flex items-center border-2 border-gray-200 dark:border-[#2a332c] rounded-xl overflow-hidden bg-white dark:bg-[#26322a]">
                         <button onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                          className="px-4 py-2 hover:bg-gray-50 transition-colors text-gray-600">-</button>
-                        <span className="px-4 py-2 font-bold w-12 text-center text-gray-800">{quantity}</span>
+                          className="px-4 py-2 hover:bg-gray-50 dark:hover:bg-[#1f2a22] transition-colors text-gray-600 dark:text-gray-300">-</button>
+                        <span className="px-4 py-2 font-bold w-12 text-center text-gray-800 dark:text-white">{quantity}</span>
                         <button onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                          className="px-4 py-2 hover:bg-gray-50 transition-colors text-gray-600">+</button>
+                          className="px-4 py-2 hover:bg-gray-50 dark:hover:bg-[#1f2a22] transition-colors text-gray-600 dark:text-gray-300">+</button>
                       </div>
-                      <span className="text-xs text-gray-400">({product.stock} disponibles)</span>
+                      <span className="text-xs text-gray-400 dark:text-gray-500">({product.stock} disponibles)</span>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 gap-3 pt-4">
                     <Button text="Comprar ahora"
-                      className="w-full py-4 rounded-xl bg-[#004d00] text-white font-black shadow-lg shadow-[#004d00]/20 border-none" />
+                      className="w-full py-4 rounded-xl bg-[#004d00] dark:bg-[#6fa33b] text-white font-black shadow-lg shadow-[#004d00]/20 dark:shadow-[#6fa33b]/20 border-none" />
                     <Button text="Agregar al carrito" onClick={handleAddToCart}
-                      className="w-full py-4 rounded-xl bg-[#004d00] text-white font-black shadow-lg shadow-[#004d00]/20 border-none"
+                      className="w-full py-4 rounded-xl bg-[#004d00] dark:bg-[#6fa33b] text-white font-black shadow-lg shadow-[#004d00]/20 dark:shadow-[#6fa33b]/20 border-none"
                       iconLetf={faCartShopping} />
                   </div>
 
-                  <div className="flex items-center gap-2 justify-center text-xs text-gray-400 py-4">
+                  <div className="flex items-center gap-2 justify-center text-xs text-gray-400 dark:text-gray-500 py-4">
                     <FontAwesomeIcon icon={faShieldHalved} />
                     <p>
-                      <span className="text-blue-500 font-bold">Compra Protegida</span>
+                      <span className="text-blue-500 dark:text-blue-400 font-bold">Compra Protegida</span>
                       . Recibe el producto que esperabas o te devolvemos tu dinero.
                     </p>
                   </div>
@@ -322,13 +326,13 @@ export const ProductDetailPage = () => {
             </div>
 
             {/* ── Móvil: descripción y reseñas ────────────────────────────── */}
-            <div className="lg:hidden p-6 border-t border-gray-100 space-y-10">
+            <div className="lg:hidden p-6 border-t border-gray-100 dark:border-[#2a332c] space-y-10">
               <div>
-                <h2 className="text-xl font-black text-gray-900 mb-4">Descripción</h2>
-                <p className="text-gray-600 leading-relaxed whitespace-pre-line">{product.descriptionProduct}</p>
+                <h2 className="text-xl font-black text-gray-900 dark:text-white mb-4">Descripción</h2>
+                <p className="text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-line">{product.descriptionProduct}</p>
               </div>
-              <div className="border-t border-gray-100 pt-10">
-                <h2 className="text-xl font-black text-gray-900 mb-6">Reseñas ({reviewCount})</h2>
+              <div className="border-t border-gray-100 dark:border-[#2a332c] pt-10">
+                <h2 className="text-xl font-black text-gray-900 dark:text-white mb-6">Reseñas ({reviewCount})</h2>
                 <ReviewSection comments={comments} newRating={newRating} setNewRating={setNewRating}
                   newComment={newComment} setNewComment={setNewComment}
                   handleSubmitReview={handleSubmitReview} submittingReview={submittingReview} />
@@ -341,7 +345,7 @@ export const ProductDetailPage = () => {
         {/* Productos similares */}
         {relatedProducts.length > 0 && (
           <div className="mt-16">
-            <h2 className="text-2xl font-black text-gray-800 mb-8">
+            <h2 className="text-2xl font-black text-gray-800 dark:text-white mb-8">
               Productos similares que podrían gustarte
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">

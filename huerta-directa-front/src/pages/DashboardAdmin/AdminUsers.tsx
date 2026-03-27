@@ -38,17 +38,24 @@ export const AdminUsers: React.FC = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await fetch(`${API_URL}/api/users`, { credentials: "include" });
+        const response = await fetch(`${API_URL}/api/users`, {
+          credentials: "include",
+        });
         if (response.ok) {
           const data = await response.json();
           const mappedUsers: UserInfo[] = data.map((u: any) => ({
             id: u.id,
             fullName: u.name,
             email: u.email,
-            role: u.idRole === 1 ? "Administrador" : u.idRole === 3 ? "Productor" : "Cliente",
+            role:
+              u.idRole === 1
+                ? "Administrador"
+                : u.idRole === 3
+                  ? "Productor"
+                  : "Cliente",
             status: "Active",
             registrationDate: u.creacionDate || "N/A",
-            raw: u
+            raw: u,
           }));
           setUsers(mappedUsers);
         }
@@ -74,7 +81,7 @@ export const AdminUsers: React.FC = () => {
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
   const paginatedUsers = filteredUsers.slice(
     (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+    currentPage * itemsPerPage,
   );
 
   useEffect(() => {
@@ -92,19 +99,28 @@ export const AdminUsers: React.FC = () => {
         ...updatedUser.raw,
         name: updatedUser.fullName,
         email: updatedUser.email,
-        idRole: updatedUser.role === 'Administrador' ? 1 : updatedUser.role === 'Productor' ? 3 : 2
+        idRole:
+          updatedUser.role === "Administrador"
+            ? 1
+            : updatedUser.role === "Productor"
+              ? 3
+              : 2,
       };
 
       const response = await fetch(`${API_URL}/api/users/${updatedUser.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
 
       if (response.ok) {
         const updatedData = await response.json();
-        setUsers(users.map((u) => (u.id === updatedUser.id ? { ...updatedUser, raw: updatedData } : u)));
+        setUsers(
+          users.map((u) =>
+            u.id === updatedUser.id ? { ...updatedUser, raw: updatedData } : u,
+          ),
+        );
         setIsEditModalOpen(false);
       } else {
         alert("Error al editar el usuario: " + response.statusText);
@@ -132,6 +148,7 @@ export const AdminUsers: React.FC = () => {
     }
     window.location.href = `${API_URL}/api/users/exportPdf?${params.toString()}`;
   };
+
   const handleDeleteUser = async (id: number) => {
     const confirmDelete = confirm("¿Seguro que quieres eliminar este usuario?");
     if (!confirmDelete) return;
@@ -139,11 +156,10 @@ export const AdminUsers: React.FC = () => {
     try {
       const response = await fetch(`${API_URL}/api/users/${id}`, {
         method: "DELETE",
-        credentials: "include", // importante si usas sesión
+        credentials: "include",
       });
 
       if (response.ok) {
-        // 🔥 actualizar estado (quitar usuario del front)
         setUsers(users.filter((u) => u.id !== id));
       } else {
         console.error("Error eliminando usuario");
@@ -156,34 +172,34 @@ export const AdminUsers: React.FC = () => {
   return (
     <div className="w-full">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-extrabold text-[#004d00]">
+        <h1 className="text-3xl font-extrabold text-[#004d00] dark:text-white">
           Gestión de Usuarios
         </h1>
       </div>
 
-      <section className="bg-white p-8 rounded-3xl shadow-sm mb-8 border border-gray-100">
+      <section className="bg-white dark:bg-[#1f2a22] p-8 rounded-3xl shadow-sm mb-8 border border-gray-100 dark:border-[#2a332c]">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div className="relative flex-1 max-w-md w-full">
             <FontAwesomeIcon
               icon={faMagnifyingGlass}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
             />
             <input
               type="text"
               placeholder="Buscar usuarios por nombre o correo..."
-              className="w-full pl-12 pr-4 py-3 border-2 border-gray-100 rounded-xl outline-none focus:border-[#8dc84b] transition-all"
+              className="w-full pl-12 pr-4 py-3 border-2 border-gray-100 dark:border-[#2a332c] rounded-xl outline-none focus:border-[#8dc84b] dark:focus:border-[#6fa33b] transition-all bg-gray-50 dark:bg-[#26322a] dark:text-gray-100 dark:placeholder-gray-500"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
           <div className="flex gap-4 w-full md:w-auto items-center">
-            <div className="flex bg-gray-100 p-1 rounded-xl mr-2">
+            <div className="flex bg-gray-100 dark:bg-[#26322a] p-1 rounded-xl mr-2">
               <button
                 onClick={() => setViewMode("list")}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all ${
                   viewMode === "list"
-                    ? "bg-white text-[#004d00] shadow-sm"
-                    : "text-gray-500 hover:text-gray-700"
+                    ? "bg-white dark:bg-[#1f2a22] text-[#004d00] dark:text-[#6fa33b] shadow-sm"
+                    : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                 }`}
               >
                 <FontAwesomeIcon icon={faListUl} /> Lista
@@ -192,8 +208,8 @@ export const AdminUsers: React.FC = () => {
                 onClick={() => setViewMode("grid")}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all ${
                   viewMode === "grid"
-                    ? "bg-white text-[#004d00] shadow-sm"
-                    : "text-gray-500 hover:text-gray-700"
+                    ? "bg-white dark:bg-[#1f2a22] text-[#004d00] dark:text-[#6fa33b] shadow-sm"
+                    : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                 }`}
               >
                 <FontAwesomeIcon icon={faBorderAll} /> Tarjetas
@@ -202,7 +218,7 @@ export const AdminUsers: React.FC = () => {
             <Button
               text="Exportar Excel"
               iconLetf={faFileExcel}
-              className="bg-[#8dc84b] text-white rounded-xl py-3 px-6 h-11.5"
+              className="bg-[#8dc84b] dark:bg-[#6fa33b] text-white rounded-xl py-3 px-6 h-11.5"
               onClick={handleExportExcel}
             />
             <Button
@@ -218,15 +234,15 @@ export const AdminUsers: React.FC = () => {
           <div className="overflow-x-auto">
             {loading ? (
               <div className="flex flex-col items-center py-20 gap-4">
-                <div className="w-12 h-12 border-4 border-[#8dc84b] border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-gray-500 font-medium">
+                <div className="w-12 h-12 border-4 border-[#8dc84b] dark:border-[#6fa33b] border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-gray-500 dark:text-gray-400 font-medium">
                   Cargando usuarios...
                 </p>
               </div>
             ) : (
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-gray-100 text-gray-400 font-bold text-xs uppercase tracking-wider">
+                  <tr className="border-b border-gray-100 dark:border-[#2a332c] text-gray-400 dark:text-gray-500 font-bold text-xs uppercase tracking-wider">
                     <th className="py-4 px-4 text-left pb-6">Usuario</th>
                     <th className="py-4 px-4 text-left pb-6">Rol</th>
                     <th className="py-4 px-4 text-left pb-6">
@@ -236,34 +252,34 @@ export const AdminUsers: React.FC = () => {
                     <th className="py-4 px-4 text-center pb-6">Acciones</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
+                <tbody className="divide-y divide-gray-50 dark:divide-[#2a332c]">
                   {paginatedUsers.map((user) => (
                     <tr
                       key={user.id}
-                      className="hover:bg-gray-50/50 transition-colors group"
+                      className="hover:bg-gray-50/50 dark:hover:bg-[#26322a]/50 transition-colors group"
                     >
                       <td className="py-5 px-4">
                         <div className="flex flex-col">
-                          <span className="font-bold text-gray-800">
+                          <span className="font-bold text-gray-800 dark:text-gray-100">
                             {user.fullName}
                           </span>
-                          <span className="text-sm text-gray-400">
+                          <span className="text-sm text-gray-400 dark:text-gray-500">
                             {user.email}
                           </span>
                         </div>
                       </td>
-                      <td className="py-5 px-4 font-medium text-gray-600">
+                      <td className="py-5 px-4 font-medium text-gray-600 dark:text-gray-300">
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-bold ${
                             user.role === "Productor"
-                              ? "bg-orange-50 text-orange-600"
-                              : "bg-blue-50 text-blue-600"
+                              ? "bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-300"
+                              : "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300"
                           }`}
                         >
                           {user.role}
                         </span>
                       </td>
-                      <td className="py-5 px-4 text-sm text-gray-500">
+                      <td className="py-5 px-4 text-sm text-gray-500 dark:text-gray-400">
                         {user.registrationDate}
                       </td>
                       <td className="py-5 px-4">
@@ -284,13 +300,13 @@ export const AdminUsers: React.FC = () => {
                         <div className="flex justify-center gap-2">
                           <button
                             onClick={() => handleEditUser(user)}
-                            className="w-11 h-11 rounded-xl bg-gray-50 text-gray-400 hover:bg-[#004d00] hover:text-white transition-all duration-300 flex items-center justify-center cursor-pointer shadow-sm"
+                            className="w-11 h-11 rounded-xl bg-gray-50 dark:bg-[#26322a] text-gray-400 dark:text-gray-500 hover:bg-[#004d00] hover:text-white transition-all duration-300 flex items-center justify-center cursor-pointer shadow-sm"
                           >
                             <FontAwesomeIcon icon={faPen} />
                           </button>
                           <button
                             onClick={() => handleDeleteUser(user.id)}
-                            className="w-11 h-11 rounded-xl bg-gray-50 text-gray-400 hover:bg-red-500 hover:text-white transition-all duration-300 flex items-center justify-center cursor-pointer shadow-sm"
+                            className="w-11 h-11 rounded-xl bg-gray-50 dark:bg-[#26322a] text-gray-400 dark:text-gray-500 hover:bg-red-500 hover:text-white transition-all duration-300 flex items-center justify-center cursor-pointer shadow-sm"
                           >
                             <FontAwesomeIcon icon={faUserSlash} />
                           </button>
@@ -302,7 +318,7 @@ export const AdminUsers: React.FC = () => {
                     <tr>
                       <td
                         colSpan={5}
-                        className="py-8 text-center text-gray-500"
+                        className="py-8 text-center text-gray-500 dark:text-gray-400"
                       >
                         No se encontraron usuarios.
                       </td>
@@ -316,8 +332,8 @@ export const AdminUsers: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {loading ? (
               <div className="col-span-full flex flex-col items-center py-20 gap-4">
-                <div className="w-12 h-12 border-4 border-[#8dc84b] border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-gray-500 font-medium">
+                <div className="w-12 h-12 border-4 border-[#8dc84b] dark:border-[#6fa33b] border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-gray-500 dark:text-gray-400 font-medium">
                   Cargando usuarios...
                 </p>
               </div>
@@ -325,14 +341,14 @@ export const AdminUsers: React.FC = () => {
               paginatedUsers.map((user) => (
                 <div
                   key={user.id}
-                  className="bg-white border-2 border-gray-100 rounded-3xl p-6 flex flex-col gap-4 hover:border-[#8dc84b] hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+                  className="bg-white dark:bg-[#1A221C] border-2 border-gray-100 dark:border-[#2a332c] rounded-3xl p-6 flex flex-col gap-4 hover:border-[#8dc84b] dark:hover:border-[#6fa33b] hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
                 >
                   <div className="flex justify-between items-start">
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-bold ${
                         user.role === "Productor"
-                          ? "bg-orange-50 text-orange-600"
-                          : "bg-blue-50 text-blue-600"
+                          ? "bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-300"
+                          : "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300"
                       }`}
                     >
                       {user.role}
@@ -353,19 +369,21 @@ export const AdminUsers: React.FC = () => {
 
                   <div>
                     <h3
-                      className="text-xl font-bold text-gray-800 line-clamp-1"
+                      className="text-xl font-bold text-gray-800 dark:text-white line-clamp-1"
                       title={user.fullName}
                     >
                       {user.fullName}
                     </h3>
-                    <p className="text-gray-500 text-sm mt-1">{user.email}</p>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
+                      {user.email}
+                    </p>
                   </div>
 
-                  <div className="mt-auto pt-4 border-t border-gray-50">
-                    <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">
+                  <div className="mt-auto pt-4 border-t border-gray-50 dark:border-[#2a332c]">
+                    <p className="text-xs text-gray-400 dark:text-gray-500 font-bold uppercase tracking-wider mb-1">
                       Registro
                     </p>
-                    <p className="text-sm font-medium text-gray-700">
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       {user.registrationDate}
                     </p>
                   </div>
@@ -373,11 +391,11 @@ export const AdminUsers: React.FC = () => {
                   <div className="grid grid-cols-2 gap-2 mt-4">
                     <button
                       onClick={() => handleEditUser(user)}
-                      className="h-11 rounded-xl bg-gray-50 text-gray-400 hover:bg-[#004d00] hover:text-white transition-all duration-300 flex items-center justify-center cursor-pointer col-span-1 shadow-sm"
+                      className="h-11 rounded-xl bg-gray-50 dark:bg-[#26322a] text-gray-400 dark:text-gray-500 hover:bg-[#004d00] hover:text-white transition-all duration-300 flex items-center justify-center cursor-pointer col-span-1 shadow-sm"
                     >
                       <FontAwesomeIcon icon={faPen} />
                     </button>
-                    <button className="h-11 rounded-xl bg-gray-50 text-gray-400 hover:bg-red-500 hover:text-white transition-all duration-300 flex items-center justify-center cursor-pointer col-span-1 shadow-sm">
+                    <button className="h-11 rounded-xl bg-gray-50 dark:bg-[#26322a] text-gray-400 dark:text-gray-500 hover:bg-red-500 hover:text-white transition-all duration-300 flex items-center justify-center cursor-pointer col-span-1 shadow-sm">
                       <FontAwesomeIcon
                         icon={
                           user.status === "Active" ? faUserSlash : faUserCheck
@@ -388,8 +406,8 @@ export const AdminUsers: React.FC = () => {
                 </div>
               ))
             ) : (
-              <div className="col-span-full py-12 text-center border-2 border-dashed border-gray-200 rounded-3xl">
-                <p className="text-gray-500 font-medium text-lg">
+              <div className="col-span-full py-12 text-center border-2 border-dashed border-gray-200 dark:border-[#2a332c] rounded-3xl">
+                <p className="text-gray-500 dark:text-gray-400 font-medium text-lg">
                   No se encontraron usuarios.
                 </p>
               </div>
@@ -397,33 +415,37 @@ export const AdminUsers: React.FC = () => {
           </div>
         )}
 
-        {/* Pagination Controls */}
+        {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex justify-center items-center gap-2 mt-10">
             <button
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="px-4 py-2 rounded-xl bg-gray-100 text-gray-600 disabled:opacity-50 hover:bg-[#8dc84b] hover:text-white transition-all cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-gray-100 dark:bg-[#26322a] text-gray-600 dark:text-gray-300 disabled:opacity-50 hover:bg-[#8dc84b] dark:hover:bg-[#6fa33b] hover:text-white transition-all cursor-pointer"
             >
               Anterior
             </button>
             <div className="flex gap-1">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                <button
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className={`w-10 h-10 rounded-xl font-bold transition-all cursor-pointer ${
-                    currentPage === page ? "bg-[#8dc84b] text-white shadow-md shadow-[#8dc84b]/30" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-                  }`}
-                >
-                  {page}
-                </button>
-              ))}
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`w-10 h-10 rounded-xl font-bold transition-all cursor-pointer ${
+                      currentPage === page
+                        ? "bg-[#8dc84b] dark:bg-[#6fa33b] text-white shadow-md shadow-[#8dc84b]/30"
+                        : "bg-gray-100 dark:bg-[#26322a] text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-[#1f2a22]"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ),
+              )}
             </div>
             <button
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="px-4 py-2 rounded-xl bg-gray-100 text-gray-600 disabled:opacity-50 hover:bg-[#8dc84b] hover:text-white transition-all cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-gray-100 dark:bg-[#26322a] text-gray-600 dark:text-gray-300 disabled:opacity-50 hover:bg-[#8dc84b] dark:hover:bg-[#6fa33b] hover:text-white transition-all cursor-pointer"
             >
               Siguiente
             </button>

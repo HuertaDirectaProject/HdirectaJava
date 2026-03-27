@@ -18,7 +18,49 @@ export const ChatModal = ({ onClose }: Props) => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [totalProducts, setTotalProducts] = useState<number | string>("desconocido");
+  const [isListening, setIsListening] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<any>(null);
+
+  useEffect(() => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = "es-ES";
+
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setInput((prev) => prev ? `${prev} ${transcript}` : transcript);
+      };
+
+      recognition.onerror = (event: any) => {
+        console.error("Error en reconocimiento de voz", event.error);
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognitionRef.current = recognition;
+    }
+  }, []);
+
+  const toggleListen = () => {
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+    } else {
+      if (recognitionRef.current) {
+        recognitionRef.current.start();
+        setIsListening(true);
+      } else {
+        alert("Tu navegador no soporta reconocimiento de voz.");
+      }
+    }
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -76,20 +118,18 @@ export const ChatModal = ({ onClose }: Props) => {
               role: "system",
               content: `Eres un Asistente Experto en Horticultura y Huerta Orgánica. Tu objetivo es responder todas las preguntas del usuario sobre cultivos, siembra, plagas, suelos, cosechas y productos agrícolas. Utiliza un tono amigable, didáctico y enfocado en métodos sostenibles. Eres también el guía experto de la plataforma Huerta Directa.
 
-Información en tiempo real para tus respuestas (acceso al sistema):
+Información en tiempo real para tus respuestas:
 - Total de productos actualmente registrados en la plataforma: ${totalProducts}.
 
-Estructura y rutas de la página para que puedas guiar al usuario:
-- Catálogo de todos los productos: Ir a '/Productos'
-- Ver mis compras, métricas y panel de usuario cliente: Ir a '/dashboard'
-- Ver mis productos favoritos: Ir a '/misFavoritos'
-- Agregar un producto para vender (Productor): Ir a '/DashBoardAgregarProducto' (Explícale que debe llenar el formulario, poner stock máximo 100 y subir la foto para publicarlo).
-- Panel de Administración Global (solo administradores): Ir a '/admin-dashboard'
-- Gestionar Usuarios globales (solo administradores): Ir a '/admin/usuarios'
-- Gestionar Productos globales (solo administradores): Ir a '/admin/productos'
-- Sobre nosotros: Ir a '/quienes-somos'
+Guía visual de la plataforma (Explícale al usuario DÓNDE HACER CLIC, NO le digas rutas ni URLs bajo ninguna circunstancia):
+- Para ver el catálogo de productos: "Ve al menú principal y haz clic en 'Productos' o 'Catálogo'".
+- Para ver compras, métricas o el panel personal: "Haz clic en el ícono de tu perfil en la parte superior y entra a tu Dashboard".
+- Para ver productos favoritos: "Entra a tu Dashboard y busca la sección 'Mis Favoritos' o el ícono de corazón".
+- Para agregar un producto para vender: "Ve a tu Dashboard y haz clic en el botón 'Agregar Producto' (tiene un ícono de caja abierta). Llena todo el formulario con el nombre, precio, categoría, descripción, pon tu cantidad en stock (máximo 100 en el sistema) y sube una fotografía de tu cultivo. Al finalizar dale al botón de Publicar y tendras que esperar la verificacion de un administrador para que tu producto sea visible para los clientes".
+- Para administrar la plataforma (solo admins): "Desde tu cuenta de administrador, ve al dashboard de administración principal donde verás gráficas, usuarios y la gestión global".
+- Para saber sobre el proyecto: "Ve al menú y haz clic en el enlace 'Quiénes Somos'".
 
-Utiliza esta información estructurada para responder con presición si el usuario te pregunta "¿cuántos productos hay publicados?", "¿cómo agrego un producto?", "¿dónde veo mis compras o favoritos?", etc. Responde siempre de forma práctica y concisa. NO hables de otros temas fuera de este ámbito.`,
+Utiliza esta información para explicarle paso a paso con botones o menús si el usuario te pregunta "¿cómo agrego un producto?", "¿dónde veo mis favoritos?", etc. Responde siempre de forma amigable, práctica y concisa. NO hables de otros temas fuera de lo agrícola o de la plataforma.`,
             },
             ...messages,
             userMessage,
@@ -212,6 +252,18 @@ Utiliza esta información estructurada para responder con presición si el usuar
               className="flex-1 border border-gray-200 dark:border-[#2a332c] rounded-xl px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-[#8dc84b] focus:border-transparent bg-gray-50 dark:bg-[#222b24] text-gray-800 dark:text-gray-200 transition-all"
             />
             <button
+              onClick={toggleListen}
+              title={isListening ? "Detener micrófono" : "Hablar"}
+              type="button"
+              className={`px-4 rounded-xl shadow-md transition duration-300 cursor-pointer flex items-center justify-center text-lg ${
+                isListening 
+                  ? "bg-red-500 hover:bg-red-600 text-white animate-pulse" 
+                  : "bg-gray-100 dark:bg-[#2a332c] text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-[#323d35]"
+              }`}
+            >
+              🎤
+            </button>
+            <button
               onClick={handleSendMessage}
               disabled={isLoading || !input.trim()}
               className="bg-[#8dc84b] px-5 rounded-xl text-white hover:bg-[#7ab63f] disabled:opacity-50 disabled:cursor-not-allowed transition duration-300 cursor-pointer shadow-md"
@@ -223,4 +275,4 @@ Utiliza esta información estructurada para responder con presición si el usuar
       </div>
     </div>
   );
-};
+};

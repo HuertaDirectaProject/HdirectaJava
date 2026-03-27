@@ -29,6 +29,7 @@ export const ChatModal = ({ onClose }: Props) => {
   const [isLoading, setIsLoading] = useState(false);
   const [totalProducts, setTotalProducts] = useState<number | string>("desconocido");
   const [isListening, setIsListening] = useState(false);
+  const isListeningRef = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
 
@@ -54,27 +55,52 @@ export const ChatModal = ({ onClose }: Props) => {
 
       recognition.onerror = (event: any) => {
         console.error("Error en reconocimiento de voz", event.error);
-        setIsListening(false);
+        if (event.error === 'not-allowed' || event.error === 'audio-capture') {
+          setIsListening(false);
+          isListeningRef.current = false;
+        }
       };
 
       recognition.onend = () => {
-        setIsListening(false);
+        if (isListeningRef.current) {
+          try {
+            recognition.start();
+          } catch (e) {
+            console.error("Reinicio falló", e);
+            setIsListening(false);
+            isListeningRef.current = false;
+          }
+        } else {
+          setIsListening(false);
+          isListeningRef.current = false;
+        }
       };
 
       recognitionRef.current = recognition;
     }
   }, []);
 
-  const toggleListen = () => {
-    if (isListening) {
-      recognitionRef.current?.stop();
+  const toggleListen = async () => {
+    if (!recognitionRef.current) {
+      alert("Tu navegador no soporta reconocimiento de voz nativo.");
+      return;
+    }
+
+    if (isListeningRef.current) {
+      isListeningRef.current = false;
       setIsListening(false);
+      recognitionRef.current.stop();
     } else {
-      if (recognitionRef.current) {
-        recognitionRef.current.start();
+      try {
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+        isListeningRef.current = true;
         setIsListening(true);
-      } else {
-        alert("Tu navegador no soporta reconocimiento de voz.");
+        recognitionRef.current.start();
+      } catch (err) {
+        console.error("Mic access denied", err);
+        alert("Por favor habilita los permisos de micrófono para esta página en tu navegador.");
+        isListeningRef.current = false;
+        setIsListening(false);
       }
     }
   };

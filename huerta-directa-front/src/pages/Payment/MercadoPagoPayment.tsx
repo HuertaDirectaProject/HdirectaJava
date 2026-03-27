@@ -5,12 +5,12 @@ import { usePageTitle } from "../../hooks/usePageTitle";
 import { useEffect, useRef } from "react";
 import { useCart } from "../../contexts/CartContext";
 import paymentService from "../../services/paymentService";
-import Swal from "sweetalert2";
 
 export const MercadoPagoPayment = () => {
     usePageTitle("MercadoPayment");
     const navigate = useNavigate();
     const containerRef = useRef<HTMLDivElement>(null);
+    const isCompletingPaymentRef = useRef(false);
     const { totals, clearCart, items } = useCart();
 
     const CONFIG = {
@@ -20,16 +20,13 @@ export const MercadoPagoPayment = () => {
     };
 
     useEffect(() => {
-        // Del doc 4: validación de carrito vacío
+        if (isCompletingPaymentRef.current) {
+            return;
+        }
+
+        // Solo redirigir silenciosamente si entran directo sin carrito.
         if (items.length === 0) {
-            Swal.fire({
-                icon: "warning",
-                title: "Carrito vacío",
-                text: "Debes tener productos en el carrito antes de proceder al pago",
-                confirmButtonColor: "#8dc84b",
-            }).finally(() => {
-                navigate("/payment/checkout");
-            });
+            navigate("/payment/checkout", { replace: true });
             return;
         }
 
@@ -102,6 +99,7 @@ export const MercadoPagoPayment = () => {
                             const result = await paymentService.processPayment(payload);
 
                             if (result.status === "approved") {
+                                isCompletingPaymentRef.current = true;
                                 clearCart();
                                 navigate("/payment/success");
                             } else if (result.status === "pending" || result.status === "in_process") {

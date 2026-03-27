@@ -14,7 +14,17 @@ interface Props {
 const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
 
 export const ChatModal = ({ onClose }: Props) => {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>(() => {
+    const saved = localStorage.getItem("huerta_chat_history");
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return [];
+      }
+    }
+    return [];
+  });
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [totalProducts, setTotalProducts] = useState<number | string>("desconocido");
@@ -26,13 +36,20 @@ export const ChatModal = ({ onClose }: Props) => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (SpeechRecognition) {
       const recognition = new SpeechRecognition();
-      recognition.continuous = false;
-      recognition.interimResults = false;
+      recognition.continuous = true;
+      recognition.interimResults = true;
       recognition.lang = "es-ES";
 
       recognition.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        setInput((prev) => prev ? `${prev} ${transcript}` : transcript);
+        let finalTranscript = "";
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          }
+        }
+        if (finalTranscript) {
+          setInput((prev) => prev ? `${prev} ${finalTranscript}` : finalTranscript);
+        }
       };
 
       recognition.onerror = (event: any) => {
@@ -68,6 +85,7 @@ export const ChatModal = ({ onClose }: Props) => {
 
   useEffect(() => {
     scrollToBottom();
+    localStorage.setItem("huerta_chat_history", JSON.stringify(messages));
   }, [messages]);
 
   useEffect(() => {

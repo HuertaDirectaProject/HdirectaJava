@@ -31,7 +31,7 @@ export const AdminReports: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
         {/* Excel card */}
-        <div className="bg-white dark:bg-[#1f2a22] p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-[#2a332c] flex flex-col items-center justify-center text-center hover:-translate-y-1 transition-all duration-300">
+        <div className="bg-white dark:bg-[#1f2a22] p-8 rounded-3xl shadow-sm border border-gray-100  flex flex-col items-center justify-center text-center hover:-translate-y-1 transition-all duration-300">
           <div className="w-16 h-16 rounded-2xl bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-300 flex items-center justify-center text-3xl mb-4">
             <FontAwesomeIcon icon={faFileExcel} />
           </div>
@@ -49,7 +49,7 @@ export const AdminReports: React.FC = () => {
         </div>
 
         {/* PDF card */}
-        <div className="bg-white dark:bg-[#1f2a22] p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-[#2a332c] flex flex-col items-center justify-center text-center hover:-translate-y-1 transition-all duration-300">
+        <div className="bg-white dark:bg-[#1f2a22] p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center hover:-translate-y-1 transition-all duration-300">
           <div className="w-16 h-16 rounded-2xl bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-300 flex items-center justify-center text-3xl mb-4">
             <FontAwesomeIcon icon={faFilePdf} />
           </div>
@@ -67,7 +67,7 @@ export const AdminReports: React.FC = () => {
         </div>
       </div>
 
-      <section className="bg-white dark:bg-[#1f2a22] p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-[#2a332c]">
+      <section className="bg-white dark:bg-[#1f2a22] p-8 rounded-3xl shadow-sm border border-gray-100 ">
         <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">
           Últimas Transacciones Registradas
         </h2>

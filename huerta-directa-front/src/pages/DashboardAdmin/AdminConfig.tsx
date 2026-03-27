@@ -81,7 +81,7 @@ export const AdminConfig: React.FC = () => {
                 checked={maintenanceMode}
                 onChange={() => setMaintenanceMode(!maintenanceMode)}
               />
-              <div className="w-11 h-6 bg-gray-200 dark:bg-[#26322a] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#004d00]"></div>
+              <div className="w-11 h-6 bg-gray-200 dark:bg-[#26322a] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#004d00]"></div>
             </label>
           </div>
 
@@ -99,7 +99,7 @@ export const AdminConfig: React.FC = () => {
                 checked={autoApproveProducers}
                 onChange={() => setAutoApproveProducers(!autoApproveProducers)}
               />
-              <div className="w-11 h-6 bg-gray-200 dark:bg-[#26322a] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#8dc84b]"></div>
+              <div className="w-11 h-6 bg-gray-200 dark:bg-[#26322a] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#8dc84b]"></div>
             </label>
           </div>
         </section>

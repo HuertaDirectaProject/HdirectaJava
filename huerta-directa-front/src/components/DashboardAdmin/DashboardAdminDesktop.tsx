@@ -180,7 +180,7 @@ const DashboardAdminDesktop: React.FC = () => {
       </div>
 
       {/* User Management Section */}
-      <section className="bg-white dark:bg-[#1f2a22] p-8 rounded-3xl shadow-sm mb-8 border border-gray-100 dark:border-[#2a332c]">
+      <section className="bg-white dark:bg-[#1f2a22] p-8 rounded-3xl shadow-sm mb-8 border border-gray-100 ">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Gestión de Usuarios</h2>
           
@@ -397,7 +397,7 @@ const DashboardAdminDesktop: React.FC = () => {
       </section>
 
       {/* Recent Products Section */}
-      <section className="bg-white dark:bg-[#1f2a22] p-8 rounded-3xl shadow-sm mb-8 border border-gray-100 dark:border-[#2a332c]">
+      <section className="bg-white dark:bg-[#1f2a22] p-8 rounded-3xl shadow-sm mb-8 border border-gray-100 ">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Últimos Productos</h2>
           <div className="flex gap-4 w-full md:w-auto items-center">

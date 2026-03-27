@@ -137,7 +137,7 @@ export const AdminProducts: React.FC = () => {
         <h1 className="text-3xl font-extrabold text-[#004d00] dark:text-white">Gestión de Productos</h1>
       </div>
 
-      <section className="bg-white dark:bg-[#1f2a22] p-8 rounded-3xl shadow-sm mb-8 border border-gray-100 dark:border-[#2a332c]">
+      <section className="bg-white dark:bg-[#1f2a22] p-8 rounded-3xl shadow-sm mb-8 border border-gray-100 ">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div className="relative flex-1 max-w-md w-full">
             <FontAwesomeIcon icon={faMagnifyingGlass} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" />

@@ -4,7 +4,6 @@ import { faShoppingCart } from '@fortawesome/free-solid-svg-icons';
 import { CheckoutHeader } from '../../components/Checkout/CheckoutHeader';
 import { OrderList } from '../../components/Checkout/OrderList';
 import { ShippingCard } from '../../components/Checkout/ShippingCard';
-import { PaymentMethodCard } from '../../components/Checkout/PaymentMethodCard';
 import { OrderSummaryCard } from '../../components/Checkout/OrderSummaryCard';
 import { SecureFooter } from '../../components/Checkout/SecureFooter';
 import { useCart } from '../../hooks/useCart';
@@ -45,8 +44,6 @@ export const CheckoutSummaryPage = () => {
             {/* Envío */}
             <ShippingCard />
 
-            {/* Pago */}
-            <PaymentMethodCard />
           </div>
 
           {/* COLUMNA DERECHA (30%) - STICKY */}

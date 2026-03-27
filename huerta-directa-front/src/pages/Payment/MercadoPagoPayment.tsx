@@ -19,9 +19,18 @@ export const MercadoPagoPayment = () => {
   };
 
   useEffect(() => {
-    const initBrick = () => {
+    const initBrick = async () => {
       if (!(window as any).MercadoPago) return;
 
+      // Limpiar brick anterior si existe
+      if ((window as any).paymentBrickController) {
+        try {
+          (window as any).paymentBrickController.unmount();
+        } catch (e) {}
+        (window as any).paymentBrickController = null;
+      }
+
+      // Limpiar contenedor
       if (containerRef.current) {
         containerRef.current.innerHTML = "";
       }
@@ -98,7 +107,12 @@ export const MercadoPagoPayment = () => {
       };
 
       if (containerRef.current) {
-        bricksBuilder.create("payment", "paymentBrick_container", settings);
+        const controller = await bricksBuilder.create(
+            "payment",
+            "paymentBrick_container",
+            settings
+        );
+        (window as any).paymentBrickController = controller;
       }
     };
 
@@ -107,16 +121,23 @@ export const MercadoPagoPayment = () => {
     );
 
     if (existingScript) {
-      setTimeout(initBrick, 300);
+      setTimeout(initBrick, 1000);
     } else {
       const script = document.createElement("script");
       script.src = "https://sdk.mercadopago.com/js/v2";
       script.async = true;
-      script.onload = initBrick;
+      script.onload = () => setTimeout(initBrick, 1000);
       document.head.appendChild(script);
     }
 
     return () => {
+      // Limpiar al desmontar
+      if ((window as any).paymentBrickController) {
+        try {
+          (window as any).paymentBrickController.unmount();
+        } catch (e) {}
+        (window as any).paymentBrickController = null;
+      }
       if (containerRef.current) {
         containerRef.current.innerHTML = "";
       }

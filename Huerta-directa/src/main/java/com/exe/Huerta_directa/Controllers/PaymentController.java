@@ -19,8 +19,7 @@ import java.util.Map;
 
 import jakarta.mail.MessagingException;
 
-import com.resend.Resend;
-import com.resend.services.emails.model.CreateEmailOptions;
+
 
 @RestController
 @RequestMapping("/api/payments")
@@ -180,16 +179,36 @@ public class PaymentController {
      */
     private void enviarCorreoIndividual(String destinatario, String asunto, String cuerpo) throws MessagingException {
         try {
-            String apiKey = System.getenv("RESEND_API_KEY");
-            Resend resend = new Resend(apiKey);
-            CreateEmailOptions emailOptions = CreateEmailOptions.builder()
-                    .from("Huerta Directa <onboarding@resend.dev>")
-                    .to(destinatario)
-                    .subject(asunto)
-                    .html(cuerpo)
+            String json = new com.fasterxml.jackson.databind.ObjectMapper()
+                    .writeValueAsString(java.util.Map.of(
+                            "sender", java.util.Map.of(
+                                    "name", "Huerta Directa",
+                                    "email", "jjpp142007@gmail.com"
+                            ),
+                            "to", java.util.List.of(
+                                    java.util.Map.of("email", destinatario)
+                            ),
+                            "subject", asunto,
+                            "htmlContent", cuerpo
+                    ));
+
+            var request = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create("https://api.brevo.com/v3/smtp/email"))
+                    .header("api-key", System.getenv("BREVO_API_KEY"))
+                    .header("Content-Type", "application/json")
+                    .POST(java.net.http.HttpRequest.BodyPublishers.ofString(json))
                     .build();
-            resend.emails().send(emailOptions);
+
+            var response = java.net.http.HttpClient.newHttpClient()
+                    .send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() >= 400) {
+                throw new MessagingException("Brevo error " + response.statusCode() + ": " + response.body());
+            }
+
             System.out.println("✉️ Correo enviado a: " + destinatario);
+        } catch (MessagingException e) {
+            throw e;
         } catch (Exception e) {
             System.err.println("❌ Error enviando correo: " + e.getMessage());
             throw new MessagingException("Error enviando correo: " + e.getMessage());

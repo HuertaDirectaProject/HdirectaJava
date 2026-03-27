@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCommentDots } from "@fortawesome/free-solid-svg-icons";
 import { useChatPrivado } from "../../../hooks/Chats/useChatPrivado";
@@ -50,6 +50,22 @@ const ChatPrivado: React.FC<ChatPrivadoProps> = ({
     if (initialUserId) openConversation(initialUserId, initialUserName);
   }, [initialUserId]);
 
+  // Dentro del componente ChatPrivado, justo después de los hooks del useChatPrivado:
+  const [isDark, setIsDark] = useState(
+    document.documentElement.classList.contains("dark"),
+  );
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
+  }, []);
+
   // Info del usuario activo
   const activeConv = conversations.find((c) => c.otherId === activeUserId);
   console.log("activeConv:", activeConv);
@@ -83,9 +99,11 @@ const ChatPrivado: React.FC<ChatPrivadoProps> = ({
           <div
             ref={chatAreaRef}
             className="flex-1 overflow-y-auto px-4 py-4 space-y-1"
-            style={{ background: "var(--chat-bg, #f9fafb)" }}
-            // Para dark mode en el área de mensajes usamos una clase en el contenedor
-            // ya que no podemos usar CSS variables dinámicas fácilmente con Tailwind JIT
+            style={{
+              background: isDark
+                ? "radial-gradient(ellipse at top left, #111827 0%, #111827 40%, #111827 100%)"
+                : "radial-gradient(ellipse at top left, #f1f8e9 0%, #f9fbe7 40%, #fff 100%)",
+            }}
           >
             <style>{`
               .dark [data-chat-area] {

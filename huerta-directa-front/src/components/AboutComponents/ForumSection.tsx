@@ -1,119 +1,79 @@
-import { Button } from "../GlobalComponents/Button";
-import { faArrowRight, faCommentDots } from "@fortawesome/free-solid-svg-icons";
-
-interface Comment {
-  id: number;
-  commentType: "SITE" | "PRODUCT";
-  commentCommenter: string;
-  creationComment: string;
-  user: {
-    name: string;
-    email: string;
-  };
-}
+import Swal from "sweetalert2";
+import type { Comment } from "../../types/Comment";
+import { CommentCard } from "./CommentCard";
+import commentService from "../../services/commentservice";
 
 interface ForumSectionProps {
   comments: Comment[];
   userRole: string;
+  currentUserId?: number;
+  onCommentDeleted: () => void;
 }
 
-export const ForumSection = ({ comments, userRole }: ForumSectionProps) => {
-  const dashboardRoute =
-    userRole === "Administrador" ? "/DashboardAdmin" : "/MensajesComentarios";
+export const ForumSection = ({
+  comments,
+  currentUserId,
+  onCommentDeleted,
+}: ForumSectionProps) => {
+  const handleDelete = async (id: number) => {
+    const isDark = document.documentElement.classList.contains("dark");
 
+    const confirm = await Swal.fire({
+      title: "¿Eliminar comentario?",
+      text: "Esta acción no se puede deshacer",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Eliminar",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#6b7280",
+      background: isDark ? "#1A221C" : "#ffffff",
+      color: isDark ? "#ffffff" : "#1f2937",
+      customClass: {
+        popup: "rounded-3xl",
+      },
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    try {
+      await commentService.deleteComment(id);
+      onCommentDeleted();
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo eliminar el comentario",
+        confirmButtonColor: "#ef4444",
+        background: isDark ? "#1A221C" : "#ffffff",
+        color: isDark ? "#ffffff" : "#1f2937",
+        customClass: {
+          popup: "rounded-3xl",
+        },
+      });
+    }
+  };
   return (
-    <section className="max-w-full py-10 bg-white dark:bg-[#1A221C] transition-colors duration-500">
+    <section className="max-w-full py-10 bg-linear-to-b from-[#FEF5DC] via-white to-[#FEF5DC]  dark:bg-[#1A221C] dark:from-[#1A221C] dark:via-white/20 dark:to-[#1A221C]  transition-colors duration-500">
       <div className="bg-white dark:bg-[#111814] max-w-350 mx-auto my-20 p-8 rounded-xl shadow-lg transition-colors duration-500">
-        
         <div className="space-y-6">
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white border-b border-gray-300 dark:border-gray-700 pb-4">
             Foro De Huerta Directa
+            {/* Theme */}
           </h2>
 
-          {/* GRID */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {comments.map((comment) => (
-              <div
-                key={comment.id}
-                className="bg-[#eaf5e7] dark:bg-[#111814] rounded-xl shadow-lg p-6 flex flex-col justify-between hover:shadow-2xl transition-all duration-500 hover:scale-[1.03] ease-in-out cursor-pointer group"
-              >
-                <div className="flex items-start space-x-4 mb-4">
-                  
-                  {/* Avatar */}
-                  <div className="shrink-0 bg-[#8bc34a] w-12 h-12 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xl font-bold uppercase">
-                      {comment.user.name.charAt(0)}
-                    </span>
-                  </div>
-
-                  {/* Content */}
-                  <div className="flex-1">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <p className="text-lg font-semibold text-gray-900 dark:text-white leading-tight">
-                          {comment.commentType === "SITE"
-                            ? "Comentario del sitio"
-                            : "Comentario del producto"}
-                        </p>
-
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                          {comment.user.name}
-                          <span className="hidden sm:inline">
-                            {" "}
-                            • {comment.user.email}
-                          </span>
-                        </p>
-                      </div>
-                    </div>
-
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                      {new Date(comment.creationComment).toLocaleDateString(
-                        "es-CO",
-                        {
-                          day: "2-digit",
-                          month: "long",
-                          year: "numeric",
-                        },
-                      )}
-                    </p>
-
-                    <p className="mt-3 text-gray-700 dark:text-gray-300 line-clamp-3 break-all whitespace-normal max-w-75">
-                      {comment.commentCommenter}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Responder */}
-                <div className="flex justify-end mt-4">
-                  <Button
-                    text="Responder"
-                    iconLetf={faCommentDots}
-                    iconRight={faArrowRight}
-                    className="px-4 py-2 text-sm"
-                  />
-                </div>
-              </div>
+              <CommentCard
+                key={comment.idComment}
+                comment={comment}
+                currentUserId={currentUserId}
+                onDelete={handleDelete}
+                onEdit={onCommentDeleted}
+              />
             ))}
           </div>
         </div>
-
-        {/* NOTA */}
-        <div className="bg-yellow-100 dark:bg-yellow-900/30 border-l-4 border-yellow-500 dark:border-yellow-400 text-yellow-800 dark:text-yellow-200 p-4 rounded-md shadow-md w-full mt-16 flex justify-between items-center hover:bg-yellow-100/80 dark:hover:bg-yellow-900/40 transition-all duration-500">
-          
-          <p className="text-md">
-            <strong>Nota:</strong> Para eliminar o actualizar los comentarios
-            debes ir al <span className="font-semibold">dashboard</span> en la
-            sección de mensajes.
-          </p>
-
-          <Button
-            to={dashboardRoute}
-            text="Ir a dashboard"
-            iconRight={faArrowRight}
-            className="py-3 px-8"
-          />
-        </div>
-
       </div>
     </section>
   );

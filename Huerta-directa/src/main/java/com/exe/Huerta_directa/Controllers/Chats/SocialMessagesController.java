@@ -1,7 +1,8 @@
-package com.exe.Huerta_directa.Controllers;
+package com.exe.Huerta_directa.Controllers.Chats;
 
 import com.exe.Huerta_directa.Entity.User;
-import com.exe.Huerta_directa.Service.ChatSocialService;
+import com.exe.Huerta_directa.Service.Chats.ChatSocialService;
+
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

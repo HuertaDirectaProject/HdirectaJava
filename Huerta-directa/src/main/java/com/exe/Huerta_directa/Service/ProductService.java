@@ -8,6 +8,8 @@ import java.util.Map;
 public interface ProductService {
 
     List<ProductDTO> listarProducts();
+    
+    List<ProductDTO> listarProductsAprobados();
 
     List<ProductDTO> listarProductosPorUsuario(Long userID);
 
@@ -16,6 +18,8 @@ public interface ProductService {
     ProductDTO crearProduct(ProductDTO productDTO, Long userId);
 
     ProductDTO actualizarProduct(Long productId, ProductDTO productDTO);
+
+    ProductDTO actualizarStatus(Long productId, com.exe.Huerta_directa.Entity.ProductStatus status);
 
     List<ProductDTO> listarProductsPorCategoria(String categoria);
 

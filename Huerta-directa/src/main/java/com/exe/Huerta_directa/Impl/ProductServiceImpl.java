@@ -22,30 +22,48 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final CommentService commentService;
+    private final com.exe.Huerta_directa.Service.NotificationService notificationService;
 
     public ProductServiceImpl(ProductRepository productRepository, UserRepository userRepository,
-            CommentService commentService) {
+            CommentService commentService, com.exe.Huerta_directa.Service.NotificationService notificationService) {
         this.productRepository = productRepository;
         this.userRepository = userRepository;
         this.commentService = commentService;
+        this.notificationService = notificationService;
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ProductDTO> listarProducts() {
-        return productRepository.findAllWithUsers()
+        List<ProductDTO> products = productRepository.findAllWithUsers()
                 .stream()
                 .map(this::convertirADTO)
                 .collect(Collectors.toList());
+        enrichProductsWithRatings(products);
+        return products;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProductDTO> listarProductsAprobados() {
+        List<ProductDTO> products = productRepository.findAllWithUsers()
+                .stream()
+                .filter(p -> p.getStatus() == com.exe.Huerta_directa.Entity.ProductStatus.APPROVED)
+                .map(this::convertirADTO)
+                .collect(Collectors.toList());
+        enrichProductsWithRatings(products);
+        return products;
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ProductDTO> listarProductosPorUsuario(Long userID) {
-        return productRepository.findByUserId(userID)
+        List<ProductDTO> products = productRepository.findByUserId(userID)
                 .stream()
                 .map(this::convertirADTO)
                 .collect(Collectors.toList());
+        enrichProductsWithRatings(products);
+        return products;
     }
 
     @Override
@@ -66,9 +84,42 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con id: " + userId));
 
         Product product = convertirAEntity(productDTO);
+        
+        // Asegurar que el estado sea PENDING si no viene especificado
+        if (product.getStatus() == null) {
+            product.setStatus(com.exe.Huerta_directa.Entity.ProductStatus.PENDING);
+        }
+        
         product.setUser(user); // Asignar el usuario al producto
 
         Product nuevoProduct = productRepository.save(product);
+        
+        // Notificar a los administradores (Envolvió en try-catch para evitar que falle la creación del producto)
+        try {
+            // Buscamos administradores por ID (1L) o por Nombre ("Administrador")
+            java.util.Set<User> admins = new java.util.HashSet<>();
+            
+            // Intento 1: Por ID de Rol (ID 1 suele ser Administrador)
+            admins.addAll(userRepository.findByRole_IdRole(1L));
+            
+            // Intento 2: Por nombre de Rol (Respaldo por si el ID es diferente)
+            admins.addAll(userRepository.findByRoleName("Administrador"));
+            
+            if (!admins.isEmpty()) {
+                System.out.println("DEBUG: Notificando a " + admins.size() + " administradores.");
+                for (User admin : admins) {
+                    notificationService.createNotification(admin.getId(), 
+                        "Nuevo producto pendiente de aprobación: " + nuevoProduct.getNameProduct());
+                }
+            } else {
+                System.out.println("DEBUG: No se encontraron administradores para notificar (ID 1 o nombre 'Administrador')");
+            }
+        } catch (Exception e) {
+            // Loguear el error pero permitir que el producto se considere creado
+            System.err.println("Error al enviar notificaciones a los admins: " + e.getMessage());
+            e.printStackTrace();
+        }
+
         return convertirADTO(nuevoProduct);
     }
 
@@ -84,6 +135,16 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
+    public ProductDTO actualizarStatus(Long productId, com.exe.Huerta_directa.Entity.ProductStatus status) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado con id: " + productId));
+        product.setStatus(status);
+        Product actualizado = productRepository.save(product);
+        return convertirADTO(actualizado);
+    }
+
+    @Override
+    @Transactional
     public void eliminarProductPorId(Long productId) {
         if (!productRepository.existsById(productId)) {
             throw new RuntimeException("Producto no encontrado con id: " + productId);
@@ -95,16 +156,22 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<ProductDTO> buscarPorNombre(String nombre) {
-        return productRepository.findByNameProductContainingIgnoreCase(nombre).stream()
+        List<ProductDTO> products = productRepository.findByNameProductContainingIgnoreCase(nombre).stream()
+                .filter(p -> p.getStatus() == com.exe.Huerta_directa.Entity.ProductStatus.APPROVED)
                 .map(this::convertirADTO)
                 .collect(Collectors.toList());
+        enrichProductsWithRatings(products);
+        return products;
     }
 
     @Override
     public List<ProductDTO> buscarPorCategoria(String categoria) {
-        return productRepository.findByCategoryIgnoreCase(categoria).stream()
+        List<ProductDTO> products = productRepository.findByCategoryIgnoreCase(categoria).stream()
+                .filter(p -> p.getStatus() == com.exe.Huerta_directa.Entity.ProductStatus.APPROVED)
                 .map(this::convertirADTO)
                 .collect(Collectors.toList());
+        enrichProductsWithRatings(products);
+        return products;
     }
 
     @Override
@@ -126,10 +193,13 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public List<ProductDTO> listarProductsPorCategoria(String slug) {
-        return productRepository.findByCategorySlug(slug)
+        List<ProductDTO> products = productRepository.findByCategorySlug(slug)
                 .stream()
+                .filter(p -> p.getStatus() == com.exe.Huerta_directa.Entity.ProductStatus.APPROVED)
                 .map(this::convertirADTO)
                 .collect(Collectors.toList());
+        enrichProductsWithRatings(products);
+        return products;
     }
 
     // Convertir Entity a DTO
@@ -145,6 +215,7 @@ public class ProductServiceImpl implements ProductService {
         productDTO.setPublicationDate(product.getPublicationDate());
         productDTO.setStock(product.getStock());
         productDTO.setDiscountOffer(product.getDiscountOffer() != null ? product.getDiscountOffer() : 0);
+        productDTO.setStatus(product.getStatus());
 
         // Map images
         if (product.getImages() != null) {
@@ -219,6 +290,9 @@ public class ProductServiceImpl implements ProductService {
         product.setPublicationDate(productDTO.getPublicationDate());
         product.setStock(productDTO.getStock());
         product.setDiscountOffer(productDTO.getDiscountOffer() != null ? productDTO.getDiscountOffer() : 0);
+        if (productDTO.getStatus() != null) {
+            product.setStatus(productDTO.getStatus());
+        }
 
         if (productDTO.getUserId() != null) {
             User user = userRepository.findById(productDTO.getUserId())
@@ -240,6 +314,9 @@ public class ProductServiceImpl implements ProductService {
         product.setPublicationDate(productDTO.getPublicationDate());
         product.setStock(productDTO.getStock());
         product.setDiscountOffer(productDTO.getDiscountOffer() != null ? productDTO.getDiscountOffer() : 0);
+        if (productDTO.getStatus() != null) {
+            product.setStatus(productDTO.getStatus());
+        }
 
         if (productDTO.getUserId() != null) {
             User user = userRepository.findById(productDTO.getUserId())
@@ -337,10 +414,13 @@ public class ProductServiceImpl implements ProductService {
     @Transactional(readOnly = true)
     public List<ProductDTO> listarOfertas() {
         // Usamos findAllWithUsers para asegurar que tenemos toda la info necesaria
-        return productRepository.findAllWithUsers().stream()
+        List<ProductDTO> products = productRepository.findAllWithUsers().stream()
+                .filter(p -> p.getStatus() == com.exe.Huerta_directa.Entity.ProductStatus.APPROVED)
                 .filter(p -> p.getDiscountOffer() != null && p.getDiscountOffer() >= 1)
                 .map(this::convertirADTO)
                 .collect(Collectors.toList());
+        enrichProductsWithRatings(products);
+        return products;
     }
 
 }

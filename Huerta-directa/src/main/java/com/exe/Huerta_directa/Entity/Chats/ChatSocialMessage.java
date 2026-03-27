@@ -1,4 +1,4 @@
-package com.exe.Huerta_directa.Entity;
+package com.exe.Huerta_directa.Entity.Chats;
 
 import jakarta.persistence.*;
 import lombok.Data;

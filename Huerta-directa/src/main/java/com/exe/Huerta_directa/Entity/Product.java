@@ -61,6 +61,10 @@ public class Product {
     @Column(name = "discount_offer")
     private Integer discountOffer = 0;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, columnDefinition = "VARCHAR(255) DEFAULT 'PENDING'")
+    private ProductStatus status = ProductStatus.PENDING;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnoreProperties({ "products" })

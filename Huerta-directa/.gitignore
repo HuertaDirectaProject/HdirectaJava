@@ -1,0 +1,9 @@
+target/
+*.class
+.settings/
+.classpath
+.project
+.vscode/
+
+# Configuración local de chat (contiene secretos)
+src/main/resources/static/JS/chat-config.js

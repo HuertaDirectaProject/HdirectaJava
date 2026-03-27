@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from "react";
+import Swal from "sweetalert2";
 
 // TIPOS
 export interface CartItem {
@@ -36,6 +37,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const [items, setItems] = useState<CartItem[]>([]);
   const IVA_PERCENT = 19;
   const DESCUENTO_PERCENT = 10;
+  const MAX_STOCK_PER_PRODUCT = 100;
 
   // Calcular totales
   const calculateTotals = useCallback((): CartTotals => {
@@ -50,6 +52,17 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const addItem = useCallback((item: CartItem) => {
     setItems((prev) => {
       const existing = prev.find((p) => p.id === item.id);
+      const nextQuantity = (existing?.cantidad ?? 0) + item.cantidad;
+
+      if (nextQuantity > MAX_STOCK_PER_PRODUCT) {
+        Swal.fire({
+          icon: "warning",
+          title: "Stock inválido",
+          text: "No se puede comprar más de 100 unidades",
+        });
+        return prev;
+      }
+
       if (existing) {
         return prev.map((p) =>
           p.id === item.id
@@ -83,6 +96,16 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         removeItem(id);
         return;
       }
+
+      if (cantidad > MAX_STOCK_PER_PRODUCT) {
+        Swal.fire({
+          icon: "warning",
+          title: "Stock inválido",
+          text: "No se puede comprar más de 100 unidades",
+        });
+        return;
+      }
+
       setItems((prev) =>
         prev.map((p) =>
           p.id === id ? { ...p, cantidad, subtotal: p.precio * cantidad } : p,

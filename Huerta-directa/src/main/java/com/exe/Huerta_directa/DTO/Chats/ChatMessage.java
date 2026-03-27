@@ -1,4 +1,4 @@
-package com.exe.Huerta_directa.DTO;
+package com.exe.Huerta_directa.DTO.Chats;
 
 import lombok.Data;
 

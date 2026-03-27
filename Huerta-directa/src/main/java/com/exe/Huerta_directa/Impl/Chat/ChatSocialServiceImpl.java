@@ -1,7 +1,7 @@
-package com.exe.Huerta_directa.Impl;
-import com.exe.Huerta_directa.Entity.ChatSocialMessage;
-import com.exe.Huerta_directa.Repository.ChatSocialRepository;
-import com.exe.Huerta_directa.Service.ChatSocialService;
+package com.exe.Huerta_directa.Impl.Chat;
+import com.exe.Huerta_directa.Entity.Chats.ChatSocialMessage;
+import com.exe.Huerta_directa.Repository.Chats.ChatSocialRepository;
+import com.exe.Huerta_directa.Service.Chats.ChatSocialService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

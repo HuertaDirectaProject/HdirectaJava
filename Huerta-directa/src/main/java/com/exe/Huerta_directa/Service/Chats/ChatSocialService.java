@@ -1,8 +1,8 @@
-package com.exe.Huerta_directa.Service;
-
-import com.exe.Huerta_directa.Entity.ChatSocialMessage;
+package com.exe.Huerta_directa.Service.Chats;
 
 import java.util.List;
+
+import com.exe.Huerta_directa.Entity.Chats.ChatSocialMessage;
 
 public interface ChatSocialService {
 

@@ -3,15 +3,14 @@ package com.exe.Huerta_directa.Controllers;
 import java.io.FileOutputStream;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
+import org.springframework.http.*;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.data.general.DefaultPieDataset;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.ui.Model;
-
 import com.exe.Huerta_directa.DTO.CommentDTO;
 import com.exe.Huerta_directa.Entity.Comment;
 import com.exe.Huerta_directa.Entity.CommentType;
@@ -24,10 +23,9 @@ import java.io.File;
 import java.io.OutputStream;
 
 import jakarta.servlet.http.HttpSession;
-import org.springframework.web.bind.annotation.PostMapping;
 
-@Controller
-@CrossOrigin(origins = "*")
+@RestController
+@RequestMapping("/api/comments")
 public class CommentController {
 
     private final CommentService commentService;
@@ -37,48 +35,54 @@ public class CommentController {
     }
 
     @PostMapping("/create")
-    public RedirectView crearComentario(@RequestParam("commentCommenter") String commentCommenter,
+    public ResponseEntity<?> crearComentario(@RequestBody CommentDTO commentDTO,
             HttpSession session) {
         try {
-            // ✅ Obtener usuario desde la sesión
+            // 🔐 Validar sesión
             User userSession = (User) session.getAttribute("user");
+
             if (userSession == null) {
-                // 🚫 Si no hay usuario en sesión, agregar mensaje de alerta y redirigir al
-                // login
-                return new RedirectView("/login?error=session&message=Debe+iniciar+sesión+para+dejar+un+comentario");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Debe iniciar sesión");
             }
 
-            // ✅ PERMITIR A CUALQUIER USUARIO REGISTRADO DEJAR COMENTARIOS
-            // (No solo admins, cualquier usuario autenticado puede dejar su opinión o
-            // reseña)
-
-            CommentDTO commentDTO = new CommentDTO();
-            commentDTO.setCommentCommenter(commentCommenter);
+            // 🧠 Completar datos
             commentDTO.setCreationComment(LocalDate.now());
             commentDTO.setUserId(userSession.getId());
 
-            commentService.crearComment(commentDTO, userSession.getId(), null);
+            // 🔥 LÓGICA CLAVE
+            if (commentDTO.getProductId() != null) {
+                // 👉 Comentario de PRODUCTO
+                commentService.crearComment(commentDTO, userSession.getId(), commentDTO.getProductId());
+            } else {
+                // 👉 Comentario de SITIO
+                commentService.crearComment(commentDTO, userSession.getId(), null);
+            }
 
-            return new RedirectView("/Quienes_somos?success=¡Gracias+por+tu+comentario!");
+            return ResponseEntity.ok("Comentario creado correctamente");
 
         } catch (Exception e) {
-            // 🚫 En caso de error, redirigir con mensaje de error
             e.printStackTrace();
-            return new RedirectView("/Quienes_somos?error=No+se+pudo+enviar+tu+comentario,+inténtalo+de+nuevo");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al crear comentario");
         }
-
     }
 
     @PostMapping("/comment/add")
-    public RedirectView crearComentarioProducto(
+    public ResponseEntity<?> crearComentarioProducto(
             @RequestParam("commentCommenter") String commentCommenter,
             @RequestParam("productId") Long productId,
             @RequestParam(value = "rating", required = false) Integer rating,
             HttpSession session) {
         try {
             User userSession = (User) session.getAttribute("user");
+            System.out.println("DEBUG: Intento de comentario para producto " + productId);
+            System.out.println("DEBUG: Session ID: " + session.getId());
+            System.out.println("DEBUG: User in session: " + (userSession != null ? userSession.getEmail() : "NULL"));
+
             if (userSession == null) {
-                return new RedirectView("/login?error=session&message=Debe+iniciar+sesión+para+dejar+una+reseña");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "Debe iniciar sesión para dejar una reseña"));
             }
 
             CommentDTO commentDTO = new CommentDTO();
@@ -88,33 +92,29 @@ public class CommentController {
             commentDTO.setProductId(productId);
             commentDTO.setRating(rating); // Set the rating
 
-            commentService.crearComment(commentDTO, userSession.getId(), productId);
+            CommentDTO created = commentService.crearComment(commentDTO, userSession.getId(), productId);
 
-            return new RedirectView("/producto/" + productId + "?success=¡Gracias+por+tu+reseña!");
+            return ResponseEntity.ok(created);
 
         } catch (Exception e) {
             e.printStackTrace();
-            return new RedirectView("/producto/" + productId + "?error=No+se+pudo+enviar+tu+reseña");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "No se pudo enviar tu reseña"));
         }
     }
 
-    @GetMapping("/api/comments/product/{productId}")
+    @GetMapping("/product/{productId}")
     @ResponseBody
     public List<CommentDTO> listarCommentsPorProducto(@PathVariable Long productId) {
         return commentService.listarCommentsPorProducto(productId);
     }
 
     // ✅ GET — Mostrar comentarios tipo SITE (para la página "quienes somos")
-    @GetMapping("/Quienes_somos")
-    public String mostrarComentariosSitio(Model model) {
-        // Obtener lista de comentarios tipo SITE
+    @GetMapping("/site")
+    @ResponseBody
+    public ResponseEntity<List<Comment>> obtenerComentariosSitio() {
         List<Comment> comments = commentService.obtenerComentariosPorTipo(CommentType.SITE);
-
-        // Agregar lista al modelo para Thymeleaf
-        model.addAttribute("comments", comments);
-
-        // Renderiza la plantilla Quienes_somos.html
-        return "Quienes_somos/quienes_somos";
+        return ResponseEntity.ok(comments);
     }
 
     @GetMapping("/MensajesComentarios")
@@ -156,10 +156,19 @@ public class CommentController {
         return "Dashboard_Admin/MensajesComentariosAdmin";
     }
 
-    @GetMapping("/deleteComment/{id}")
-    public RedirectView eliminarComentario(@PathVariable Long id) {
-        commentService.eliminarComment(id);
-        return new RedirectView("/MensajesComentarios?deleted=true");
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> eliminarComentario(@PathVariable Long id, HttpSession session) {
+        try {
+            User userSession = (User) session.getAttribute("user");
+            if (userSession == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Debe iniciar sesión");
+            }
+            commentService.eliminarComment(id);
+            return ResponseEntity.ok("Comentario eliminado");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al eliminar");
+        }
     }
 
     @GetMapping("/editComment/{id}")
@@ -169,31 +178,25 @@ public class CommentController {
         return "DashBoard/EditarComentario";
     }
 
-    @PostMapping("/actualizarComentario/{id}")
-    public RedirectView actualizarCome(@PathVariable long id, @RequestParam("commentCommenter") String commentCommenter,
+    @PutMapping("/{id}")
+    public ResponseEntity<?> actualizarComentarioRest(
+            @PathVariable Long id,
+            @RequestBody CommentDTO commentDTO,
             HttpSession session) {
         try {
-            // verificar sesion
-            User userSesion = (User) session.getAttribute("user");
-            if (userSesion == null) {
-                return new RedirectView("redirect:/login?error=session&message=Debe+iniciar+sesión");
+            User userSession = (User) session.getAttribute("user");
+            if (userSession == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Debe iniciar sesión");
             }
 
-            // crear dto con los datos actualizados
-
-            CommentDTO commentDTO = new CommentDTO();
-            commentDTO.setCommentCommenter(commentCommenter);
-            commentDTO.setCreationComment(java.time.LocalDate.now());
-
-            // llamar al servicio
-
+            commentDTO.setCreationComment(LocalDate.now());
             commentService.actualizarComment(id, commentDTO);
-            return new RedirectView("/MensajesComentarios?success=Comentario+actualizado+correctamente");
+            return ResponseEntity.ok("Comentario actualizado");
+
         } catch (Exception e) {
             e.printStackTrace();
-            return new RedirectView("/MensajesComentarios?error=No+se+pudo+actualizar+el+comentario");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al actualizar");
         }
-
     }
 
     @GetMapping("/reporteFc")

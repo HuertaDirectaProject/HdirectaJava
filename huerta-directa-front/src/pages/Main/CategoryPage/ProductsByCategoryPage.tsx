@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import ProductCard from "../../../components/Home/ProductCard";
 import { FiltersBar } from "../../../components/Home/FiltersBar";
 import { categories } from "../../../components/Home/CategoriesSection";
-
+import { API_URL } from "../../../config/api"; // ✅ import agregado
 
 interface ProductBackend {
   idProduct: number;
@@ -27,7 +27,8 @@ const ProductsByCategoryPage = () => {
         setLoading(true);
         try {
           const response = await fetch(
-            `http://localhost:8085/api/products/category/${slug}`,
+            `${API_URL}/api/products/category/${slug}`, // ✅ reemplazado
+            { credentials: "include" }
           );
           if (response.ok) {
             const data = await response.json();
@@ -47,12 +48,9 @@ const ProductsByCategoryPage = () => {
   }, [slug]);
 
   return (
-    <section className="bg-linear-to-b min-h-screen from-[#FEF5DC] via-white to-[#FEF5DC]   dark:bg-[#1A221C]
-      dark:from-[#1A221C]
-      dark:via-white/20
-      dark:to-[#1A221C]" >
+    <section className="bg-linear-to-b min-h-screen from-[#FEF5DC] via-white to-[#FEF5DC] dark:bg-[#1A221C] dark:from-[#1A221C] dark:via-white/20 dark:to-[#1A221C]">
       <div className="pb-20 pt-10 max-w-323.75 mx-auto px-6">
-       <FiltersBar title={categoryData?.name ?? ""} icon={categoryData?.icon} />
+        <FiltersBar title={categoryData?.name ?? ""} icon={categoryData?.icon} />
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
@@ -75,7 +73,7 @@ const ProductsByCategoryPage = () => {
                   name: product.nameProduct,
                   price: product.price,
                   stock: product.stock,
-                  image: `http://localhost:8085/uploads/productos/${product.imageProduct}`,
+                  image: `${API_URL}/uploads/productos/${product.imageProduct}`, // ✅ reemplazado
                   category: product.category,
                   images: product.images,
                 }}

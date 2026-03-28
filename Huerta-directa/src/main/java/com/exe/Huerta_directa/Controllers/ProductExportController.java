@@ -6,6 +6,8 @@ import com.lowagie.text.*;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
+
+import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -28,25 +30,34 @@ public class ProductExportController {
     @Autowired
     private ProductService productService;
 
-    @GetMapping({"/exportar_productos_excel", "/api/products/exportExcel"})
-    public void exportarProductosExcel(
-            HttpServletResponse response,
-            @RequestParam(required = false) String buscar,
-            @RequestParam(required = false) String categoria) throws IOException {
-        
+@GetMapping({"/exportar_productos_excel", "/api/products/exportExcel"})
+public void exportarProductosExcel(
+        HttpServletResponse response,
+        @RequestParam(required = false) String buscar,
+        @RequestParam(required = false) String categoria) throws IOException {
+
+    ServletOutputStream out = null;
+    Workbook workbook = null;
+
+    try {
         // Obtener productos según filtros
         List<ProductDTO> productos = obtenerProductosFiltrados(buscar, categoria);
 
         // Configurar respuesta HTTP
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        String filename = "Productos_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".xlsx";
-        response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
+        String filename = "Productos_" + LocalDateTime.now()
+                .format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".xlsx";
 
-        // Crear libro Excel
-        Workbook workbook = new XSSFWorkbook();
+        response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
+        response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        response.setHeader("Pragma", "no-cache");
+        response.setDateHeader("Expires", 0);
+
+        // Crear libro
+        workbook = new XSSFWorkbook(); // si tienes muchos datos: new SXSSFWorkbook();
         Sheet sheet = workbook.createSheet("Productos");
 
-        // Crear encabezados
+        // Encabezados
         Row headerRow = sheet.createRow(0);
         headerRow.createCell(0).setCellValue("ID");
         headerRow.createCell(1).setCellValue("Nombre");
@@ -57,30 +68,89 @@ public class ProductExportController {
         headerRow.createCell(6).setCellValue("Fecha Publicación");
         headerRow.createCell(7).setCellValue("Stock");
 
-        // Llenar datos
+        // Datos
         int rowNum = 1;
+
         for (ProductDTO producto : productos) {
             Row row = sheet.createRow(rowNum++);
+
+            // ID
             row.createCell(0).setCellValue(producto.getIdProduct());
-            row.createCell(1).setCellValue(producto.getNameProduct());
-            row.createCell(2).setCellValue(producto.getPrice().doubleValue());
-            row.createCell(3).setCellValue(producto.getCategory());
-            row.createCell(4).setCellValue(producto.getUnit());
-            row.createCell(5).setCellValue(producto.getDescriptionProduct());
-            row.createCell(6).setCellValue(producto.getPublicationDate().toString());
-            row.createCell(7).setCellValue(producto.getStock());
+
+            // Nombre
+            row.createCell(1).setCellValue(
+                    producto.getNameProduct() != null ? producto.getNameProduct() : "N/A"
+            );
+
+            // Precio seguro
+            double precio = 0.0;
+            try {
+                if (producto.getPrice() != null) {
+                    precio = producto.getPrice().doubleValue();
+                }
+            } catch (Exception e) {
+                precio = 0.0;
+            }
+            row.createCell(2).setCellValue(precio);
+
+            // Categoría
+            row.createCell(3).setCellValue(
+                    producto.getCategory() != null ? producto.getCategory() : "N/A"
+            );
+
+            // Unidad
+            row.createCell(4).setCellValue(
+                    producto.getUnit() != null ? producto.getUnit() : "N/A"
+            );
+
+            // Descripción
+            row.createCell(5).setCellValue(
+                    producto.getDescriptionProduct() != null ? producto.getDescriptionProduct() : "N/A"
+            );
+
+            // Fecha segura
+            String fecha = "N/A";
+            try {
+                if (producto.getPublicationDate() != null) {
+                    fecha = producto.getPublicationDate().toString();
+                }
+            } catch (Exception e) {
+                fecha = "N/A";
+            }
+            row.createCell(6).setCellValue(fecha);
+
+            // Stock seguro
+            int stock = 0;
+            try {
+                stock = producto.getStock();
+            } catch (Exception e) {
+                stock = 0;
+            }
+            row.createCell(7).setCellValue(stock);
         }
 
-        // Ajustar ancho de columnas
+        // Ajustar columnas
         for (int i = 0; i < 8; i++) {
             sheet.autoSizeColumn(i);
         }
 
-        // Escribir y cerrar
-        workbook.write(response.getOutputStream());
-        workbook.close();
-    }
+        // Escribir archivo
+        out = response.getOutputStream();
+        workbook.write(out);
+        out.flush();
 
+    } catch (Exception e) {
+        e.printStackTrace(); // aquí ves el error real en producción
+    } finally {
+        try {
+            if (out != null) out.close();
+        } catch (Exception ignored) {}
+
+        try {
+            if (workbook != null) workbook.close();
+        } catch (Exception ignored) {}
+    }
+}
     @GetMapping({"/exportar_productos_pdf", "/api/products/exportPdf"})
     public void exportarProductosPdf(
             HttpServletResponse response,

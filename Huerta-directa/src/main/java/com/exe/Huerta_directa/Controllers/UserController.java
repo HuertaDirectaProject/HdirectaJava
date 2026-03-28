@@ -14,6 +14,7 @@ import com.lowagie.text.Phrase;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
@@ -91,22 +92,33 @@ public class UserController {
 
     // ========== EXPORTACIÓN CON FILTROS ==========
     // Método para exportar usuarios a Excel CON FILTROS
-    @GetMapping("/exportExcel")
-    public void exportarExcel(
-            HttpServletResponse response,
-            @RequestParam(required = false) String dato,
-            @RequestParam(required = false) String valor) throws IOException {
+@GetMapping("/exportExcel")
+public void exportarExcel(
+        HttpServletResponse response,
+        @RequestParam(required = false) String dato,
+        @RequestParam(required = false) String valor) throws IOException {
+
+    ServletOutputStream out = null;
+    org.apache.poi.ss.usermodel.Workbook workbook = null;
+
+    try {
         // Obtener usuarios filtrados
         List<UserDTO> usuarios = obtenerUsuariosFiltrados(dato, valor);
+
         // Configurar respuesta HTTP
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         String filename = "Usuarios_" + java.time.LocalDateTime.now()
                 .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".xlsx";
         response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
-        // Crear libro Excel
-        org.apache.poi.ss.usermodel.Workbook workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook();
+        response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        response.setHeader("Pragma", "no-cache");
+        response.setDateHeader("Expires", 0);
+
+        // Crear libro Excel (puedes cambiar a SXSSFWorkbook si tienes muchos datos)
+        workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook();
         org.apache.poi.ss.usermodel.Sheet sheet = workbook.createSheet("Usuarios");
-        // Crear encabezados
+
+        // Encabezados
         org.apache.poi.ss.usermodel.Row headerRow = sheet.createRow(0);
         headerRow.createCell(0).setCellValue("ID");
         headerRow.createCell(1).setCellValue("Nombre");
@@ -114,33 +126,83 @@ public class UserController {
         headerRow.createCell(3).setCellValue("Género");
         headerRow.createCell(4).setCellValue("Edad");
         headerRow.createCell(5).setCellValue("Rol ID");
-        // Si hay filtro, agregar fila informativa
+
+        // Filtro aplicado
         if (dato != null && valor != null && !valor.isEmpty()) {
             org.apache.poi.ss.usermodel.Row filterRow = sheet.createRow(1);
             filterRow.createCell(0).setCellValue("Filtro aplicado:");
             filterRow.createCell(1).setCellValue(dato + " = " + valor);
         }
-        // Llenar datos
+
+        // Datos
         int rowNum = (dato != null && valor != null && !valor.isEmpty()) ? 2 : 1;
+
         for (UserDTO usuario : usuarios) {
             org.apache.poi.ss.usermodel.Row row = sheet.createRow(rowNum++);
+
+            // ID
             row.createCell(0).setCellValue(usuario.getId());
-            row.createCell(1).setCellValue(usuario.getName());
-            row.createCell(2).setCellValue(usuario.getEmail());
-            row.createCell(3).setCellValue(obtenerGeneroTexto(usuario.getGender()));
-            row.createCell(4).setCellValue(calcularEdad(usuario.getBirthDate()));
-            row.createCell(5).setCellValue(usuario.getIdRole() != null ? usuario.getIdRole() : 0);
+
+            // Nombre
+            row.createCell(1).setCellValue(
+                    usuario.getName() != null ? usuario.getName() : "N/A"
+            );
+
+            // Email
+            row.createCell(2).setCellValue(
+                    usuario.getEmail() != null ? usuario.getEmail() : "N/A"
+            );
+
+            // Género seguro
+            String genero = "N/A";
+            try {
+                if (usuario.getGender() != null) {
+                    genero = obtenerGeneroTexto(usuario.getGender());
+                }
+            } catch (Exception e) {
+                genero = "N/A";
+            }
+            row.createCell(3).setCellValue(genero);
+
+            // Edad segura
+            int edad = 0;
+            try {
+                if (usuario.getBirthDate() != null) {
+                    edad = calcularEdad(usuario.getBirthDate());
+                }
+            } catch (Exception e) {
+                edad = 0;
+            }
+            row.createCell(4).setCellValue(edad);
+
+            // Rol
+            row.createCell(5).setCellValue(
+                    usuario.getIdRole() != null ? usuario.getIdRole() : 0
+            );
         }
-        // Ajustar ancho de columnas
+
+        // Ajustar columnas
         for (int i = 0; i < 6; i++) {
             sheet.autoSizeColumn(i);
         }
-        // Escribir y cerrar
-        workbook.write(response.getOutputStream());
-        workbook.close();
-        response.getOutputStream().flush();
-    }
 
+        // Escribir archivo
+        out = response.getOutputStream();
+        workbook.write(out);
+        out.flush();
+
+    } catch (Exception e) {
+        e.printStackTrace(); // aquí ves el error real en Railway
+    } finally {
+        try {
+            if (out != null) out.close();
+        } catch (Exception ignored) {}
+
+        try {
+            if (workbook != null) workbook.close();
+        } catch (Exception ignored) {}
+    }
+}
     // Método POST: exportar con gráficas
     @PostMapping("/exportPdf")
     public void exportUsersToPdfWithCharts(

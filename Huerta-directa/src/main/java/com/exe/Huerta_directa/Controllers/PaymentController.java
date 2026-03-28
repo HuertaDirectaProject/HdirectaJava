@@ -114,7 +114,10 @@ public class PaymentController {
 
                 // Enviar correo de confirmación
                 try {
-                    enviarCorreoConfirmacionPago(paymentRequest, paymentId.toString(), carrito);
+                    User sessionUser = (User) session.getAttribute("user");
+                    String realEmail = sessionUser != null ? sessionUser.getEmail() : paymentRequest.getPayer().getEmail();
+                    String realName = sessionUser != null ? sessionUser.getName() : "Cliente";
+                    enviarCorreoConfirmacionPago(paymentRequest, paymentId.toString(), carrito, realEmail, realName);
                 } catch (Exception emailError) {
                     System.err.println("⚠️ Error al enviar correo (no afecta el pago): " + emailError.getMessage());
                 }
@@ -334,39 +337,18 @@ public class PaymentController {
      * Envía correo de confirmación de pago exitoso
      */
     private void enviarCorreoConfirmacionPago(PaymentRequest paymentRequest, String paymentId,
-            List<CarritoItem> carrito) {
+                                              List<CarritoItem> carrito, String realEmail, String realName) {
         try {
-            // Obtener datos del pagador
-            String email = paymentRequest.getPayer().getEmail();
-            String firstName = paymentRequest.getPayer().getFirstName();
-            String lastName = paymentRequest.getPayer().getLastName();
-            String customerName = (firstName != null ? firstName : "") + " " + (lastName != null ? lastName : "");
-            customerName = customerName.trim();
+            String email = realEmail;
+            String customerName = (realName != null && !realName.isBlank()) ? realName : "Cliente";
 
-            if (customerName.isEmpty()) {
-                customerName = "Cliente";
-            }
-
-            // 🔧 OVERRIDE para modo prueba - Si el email es de prueba de Mercado Pago, usar
-            // tu email real
-            if (email != null && (email.contains("test_user") || email.contains("@testuser"))) {
-                email = "TU_EMAIL_REAL@gmail.com"; // ← CAMBIA ESTO A TU EMAIL REAL
-                System.out.println("🔧 Modo prueba detectado - Enviando correo a: " + email);
-            }
-
-            // Formatear monto
             @SuppressWarnings("deprecation")
             NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("es", "CO"));
             String formattedAmount = currencyFormat.format(paymentRequest.getTransactionAmount());
 
-            // Generar resumen de productos
             String productsSummary = generarResumenProductos(carrito);
+            String htmlContent = crearContenidoHTMLPagoExitoso(customerName, paymentId, formattedAmount, productsSummary);
 
-            // Crear contenido HTML
-            String htmlContent = crearContenidoHTMLPagoExitoso(customerName, paymentId, formattedAmount,
-                    productsSummary);
-
-            // Enviar correo
             String subject = "✅ Confirmación de Pago Exitoso - Huerta Directa";
             enviarCorreoIndividual(email, subject, htmlContent);
 
@@ -375,7 +357,6 @@ public class PaymentController {
         } catch (Exception e) {
             System.err.println("❌ Error al enviar correo de confirmación: " + e.getMessage());
             e.printStackTrace();
-            // No lanzamos excepción para que no afecte el proceso de pago
         }
     }
 

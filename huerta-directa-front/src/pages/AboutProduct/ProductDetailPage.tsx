@@ -256,15 +256,7 @@ export const ProductDetailPage = () => {
                 </div>
 
                 <div className="space-y-4 mb-8">
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-300 shrink-0">
-                      <FontAwesomeIcon icon={faTruckFast} />
-                    </div>
-                    <div>
-                      <p className="font-bold text-green-600 dark:text-green-300 text-sm">Llega gratis mañana</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Solo en la ciudad de origen</p>
-                    </div>
-                  </div>
+                 
                   <div className="flex items-start gap-4">
                     <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-300 shrink-0">
                       <FontAwesomeIcon icon={faArrowRotateLeft} />

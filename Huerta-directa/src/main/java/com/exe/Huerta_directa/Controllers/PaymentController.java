@@ -2,8 +2,13 @@
 package com.exe.Huerta_directa.Controllers;
 
 import com.exe.Huerta_directa.DTO.PaymentRequest;
+import com.exe.Huerta_directa.Entity.Product;
+import com.exe.Huerta_directa.Entity.User;
 import com.exe.Huerta_directa.Impl.MercadoPagoServicePaymentRequest;
+import com.exe.Huerta_directa.Repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.exe.Huerta_directa.DTO.CarritoItem;
 import com.exe.Huerta_directa.Service.ProductService;
@@ -12,10 +17,16 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import jakarta.servlet.http.HttpSession;
 
 import java.text.NumberFormat;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import jakarta.mail.MessagingException;
 
@@ -29,6 +40,7 @@ public class PaymentController {
     private final MercadoPagoServicePaymentRequest mercadoPagoService;
     private final ProductService productService;
     private final com.exe.Huerta_directa.Repository.PaymentRepository paymentRepository;
+    private final ProductRepository productRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @PostMapping("/process")
@@ -82,6 +94,7 @@ public class PaymentController {
                         List<com.exe.Huerta_directa.Entity.PaymentItem> paymentItems = carrito.stream().map(item -> {
                             com.exe.Huerta_directa.Entity.PaymentItem pItem = new com.exe.Huerta_directa.Entity.PaymentItem();
                             pItem.setTitle(item.getNombre());
+                            pItem.setProductId(item.getProductId());
                             pItem.setUnitPrice(item.getPrecio());
                             pItem.setQuantity(item.getCantidad());
                             pItem.setPayment(paymentEntity);
@@ -135,6 +148,108 @@ public class PaymentController {
             e.printStackTrace();
             return crearRespuestaError("Error inesperado al procesar el pago");
         }
+    }
+
+    @GetMapping("/my-orders")
+    public ResponseEntity<Map<String, Object>> getMyOrders(HttpSession session) {
+        User userSession = (User) session.getAttribute("user");
+        Long userId = userSession != null ? userSession.getId() : (Long) session.getAttribute("userId");
+
+        if (userId == null) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Sesion expirada");
+            response.put("orders", List.of());
+            response.put("summary", Map.of("totalOrders", 0, "totalSales", 0, "pendingOrders", 0, "avgTicket", 0));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        }
+
+        List<Product> myProducts = productRepository.findByUserId(userId);
+        if (myProducts.isEmpty()) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("orders", List.of());
+            response.put("summary", Map.of("totalOrders", 0, "totalSales", 0, "pendingOrders", 0, "avgTicket", 0));
+            return ResponseEntity.ok(response);
+        }
+
+        Set<Long> myProductIds = new HashSet<>();
+        Set<String> myProductNames = new HashSet<>();
+        for (Product product : myProducts) {
+            if (product.getIdProduct() != null) {
+                myProductIds.add(product.getIdProduct());
+            }
+            if (product.getNameProduct() != null) {
+                myProductNames.add(product.getNameProduct().trim().toLowerCase(Locale.ROOT));
+            }
+        }
+
+        List<com.exe.Huerta_directa.Entity.Payment> approvedPayments = paymentRepository.findAllByStatusWithItems("approved");
+        List<Map<String, Object>> orders = new ArrayList<>();
+
+        BigDecimal totalSales = BigDecimal.ZERO;
+        int pendingOrders = 0;
+
+        for (com.exe.Huerta_directa.Entity.Payment payment : approvedPayments) {
+            if (payment.getItems() == null || payment.getItems().isEmpty()) {
+                continue;
+            }
+
+            for (com.exe.Huerta_directa.Entity.PaymentItem item : payment.getItems()) {
+                if (item == null) {
+                    continue;
+                }
+
+                boolean matchesById = item.getProductId() != null && myProductIds.contains(item.getProductId());
+                boolean matchesByName = item.getProductId() == null
+                        && item.getTitle() != null
+                        && myProductNames.contains(item.getTitle().trim().toLowerCase(Locale.ROOT));
+
+                if (!matchesById && !matchesByName) {
+                    continue;
+                }
+
+                BigDecimal lineTotal = item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
+                totalSales = totalSales.add(lineTotal);
+
+                String rawStatus = payment.getStatus() == null ? "approved" : payment.getStatus().toLowerCase(Locale.ROOT);
+                String status = switch (rawStatus) {
+                    case "pending", "in_process" -> "pending";
+                    case "rejected", "failure" -> "canceled";
+                    default -> "completed";
+                };
+
+                if ("pending".equals(status)) {
+                    pendingOrders++;
+                }
+
+                Map<String, Object> orderRow = new HashMap<>();
+                orderRow.put("orderNumber", "#" + payment.getId());
+                orderRow.put("buyer", payment.getPayerEmail());
+                orderRow.put("product", item.getTitle());
+                orderRow.put("quantity", item.getQuantity());
+                orderRow.put("date", payment.getPaymentDate());
+                orderRow.put("amount", lineTotal);
+                orderRow.put("status", status);
+                orderRow.put("paymentId", payment.getPreferenceId());
+                orders.add(orderRow);
+            }
+        }
+
+        orders.sort(Comparator.comparing((Map<String, Object> o) -> o.get("date").toString()).reversed());
+
+        BigDecimal avgTicket = orders.isEmpty()
+                ? BigDecimal.ZERO
+                : totalSales.divide(BigDecimal.valueOf(orders.size()), 2, RoundingMode.HALF_UP);
+
+        Map<String, Object> summary = new HashMap<>();
+        summary.put("totalOrders", orders.size());
+        summary.put("totalSales", totalSales);
+        summary.put("pendingOrders", pendingOrders);
+        summary.put("avgTicket", avgTicket);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("orders", orders);
+        response.put("summary", summary);
+        return ResponseEntity.ok(response);
     }
 
     private void descontarStockDelCarrito(List<CarritoItem> carrito) {

@@ -121,6 +121,8 @@ const ProductCard = ({ product }: Props) => {
       cantidad: 1,
       subtotal: discountedPrice,
       imagen: product.image,
+      producerId: product.ownerId,
+      producerName: product.producerName,
     });
   };
 

@@ -1,12 +1,18 @@
 import { faCreditCard } from "@fortawesome/free-solid-svg-icons";
 import { useCart } from "../../hooks/useCart";
+import { usePayment } from "../../hooks/usePayment";
+import { getShippingLabel, getShippingPrice } from "../../contexts/PaymentContext";
 import { Button } from "../GlobalComponents/Button.tsx";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 
 export const OrderSummaryCard = () => {
 	const { totals, items } = useCart();
+	const { shippingMethod } = usePayment();
 	const navigate = useNavigate();
+	const shippingPrice = getShippingPrice(shippingMethod);
+	const shippingLabel = getShippingLabel(shippingMethod);
+	const finalTotal = totals.total + shippingPrice;
 
 	const handleProceedToPayment = async () => {
 		if (items.length === 0) {
@@ -49,8 +55,8 @@ export const OrderSummaryCard = () => {
 				)}
 
 				<div className="flex justify-between text-gray-700">
-					<span>Envío</span>
-					<span className="font-medium">$5.000</span>
+					<span>{shippingLabel}</span>
+					<span className="font-medium">{shippingPrice === 0 ? "Gratis" : formatPrice(shippingPrice)}</span>
 				</div>
 
 				<div className="flex justify-between text-gray-700">
@@ -62,7 +68,7 @@ export const OrderSummaryCard = () => {
 			{/* Total Grande */}
 			<div className="flex justify-between mb-6">
 				<span className="text-xl font-bold text-gray-800">Total</span>
-				<span className="text-3xl font-bold text-[#8BC34A]">{formatPrice(totals.total)}</span>
+				<span className="text-3xl font-bold text-[#8BC34A]">{formatPrice(finalTotal)}</span>
 			</div>
 
 			{/* Botón Pagar */}

@@ -6,6 +6,14 @@ import com.exe.Huerta_directa.Entity.Product;
 import com.exe.Huerta_directa.Entity.User;
 import com.exe.Huerta_directa.Impl.MercadoPagoServicePaymentRequest;
 import com.exe.Huerta_directa.Repository.ProductRepository;
+import com.lowagie.text.Document;
+import com.lowagie.text.Font;
+import com.lowagie.text.FontFactory;
+import com.lowagie.text.Paragraph;
+import com.lowagie.text.Phrase;
+import com.lowagie.text.pdf.PdfPCell;
+import com.lowagie.text.pdf.PdfPTable;
+import com.lowagie.text.pdf.PdfWriter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,8 +22,10 @@ import com.exe.Huerta_directa.DTO.CarritoItem;
 import com.exe.Huerta_directa.Service.ProductService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
+import java.io.IOException;
 import java.text.NumberFormat;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -27,6 +37,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import jakarta.mail.MessagingException;
 
@@ -255,6 +266,130 @@ public class PaymentController {
         response.put("orders", orders);
         response.put("summary", summary);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/exportPdf")
+    public void exportMyOrdersToPdf(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String status,
+            HttpSession session,
+            HttpServletResponse response) throws IOException {
+
+        ResponseEntity<Map<String, Object>> ordersResponse = getMyOrders(session);
+        if (ordersResponse.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Sesion expirada");
+            return;
+        }
+
+        Map<String, Object> body = ordersResponse.getBody();
+        if (body == null) {
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "No se pudieron exportar las ordenes");
+            return;
+        }
+
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> orders = (List<Map<String, Object>>) body.getOrDefault("orders", List.of());
+
+        String normalizedSearch = search == null ? "" : search.trim().toLowerCase(Locale.ROOT);
+        String normalizedStatus = status == null ? "" : status.trim().toLowerCase(Locale.ROOT);
+
+        List<Map<String, Object>> filteredOrders = orders.stream()
+                .filter(order -> {
+                    boolean matchesStatus = normalizedStatus.isBlank()
+                            || normalizedStatus.equals(String.valueOf(order.getOrDefault("status", "")).toLowerCase(Locale.ROOT));
+
+                    if (normalizedSearch.isBlank()) {
+                        return matchesStatus;
+                    }
+
+                    String orderNumber = String.valueOf(order.getOrDefault("orderNumber", "")).toLowerCase(Locale.ROOT);
+                    String buyer = String.valueOf(order.getOrDefault("buyer", "")).toLowerCase(Locale.ROOT);
+                    String product = String.valueOf(order.getOrDefault("product", "")).toLowerCase(Locale.ROOT);
+
+                    return matchesStatus && (orderNumber.contains(normalizedSearch)
+                            || buyer.contains(normalizedSearch)
+                            || product.contains(normalizedSearch));
+                })
+                .collect(Collectors.toList());
+
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition", "attachment; filename=ordenes_huerta_directa.pdf");
+
+        Document document = new Document();
+        try {
+            PdfWriter.getInstance(document, response.getOutputStream());
+            document.open();
+
+            Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16);
+            Font subtitleFont = FontFactory.getFont(FontFactory.HELVETICA, 10);
+            Font headerFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 9);
+            Font bodyFont = FontFactory.getFont(FontFactory.HELVETICA, 9);
+
+            document.add(new Paragraph("Reporte de Ordenes - Huerta Directa", titleFont));
+            document.add(new Paragraph("Total registros: " + filteredOrders.size(), subtitleFont));
+            document.add(new Paragraph(" "));
+
+            PdfPTable table = new PdfPTable(6);
+            table.setWidthPercentage(100);
+            table.setWidths(new float[] {1.1f, 1.8f, 2.0f, 1.2f, 1.2f, 1.0f});
+
+            addPdfHeaderCell(table, "N Orden", headerFont);
+            addPdfHeaderCell(table, "Usuario", headerFont);
+            addPdfHeaderCell(table, "Producto", headerFont);
+            addPdfHeaderCell(table, "Fecha", headerFont);
+            addPdfHeaderCell(table, "Monto", headerFont);
+            addPdfHeaderCell(table, "Estado", headerFont);
+
+            NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("es", "CO"));
+            for (Map<String, Object> order : filteredOrders) {
+                addPdfBodyCell(table, String.valueOf(order.getOrDefault("orderNumber", "")), bodyFont);
+                addPdfBodyCell(table, String.valueOf(order.getOrDefault("buyer", "")), bodyFont);
+                addPdfBodyCell(table, String.valueOf(order.getOrDefault("product", "")), bodyFont);
+                addPdfBodyCell(table, String.valueOf(order.getOrDefault("date", "")), bodyFont);
+
+                BigDecimal amount = parseBigDecimal(order.get("amount"));
+                addPdfBodyCell(table, currencyFormat.format(amount), bodyFont);
+
+                String orderStatus = String.valueOf(order.getOrDefault("status", "completed"));
+                String statusLabel = switch (orderStatus) {
+                    case "pending" -> "Pendiente";
+                    case "canceled" -> "Cancelada";
+                    default -> "Completada";
+                };
+                addPdfBodyCell(table, statusLabel, bodyFont);
+            }
+
+            document.add(table);
+        } catch (Exception e) {
+            throw new IOException("Error al generar PDF de ordenes", e);
+        } finally {
+            if (document.isOpen()) {
+                document.close();
+            }
+        }
+    }
+
+    private void addPdfHeaderCell(PdfPTable table, String text, Font font) {
+        PdfPCell cell = new PdfPCell(new Phrase(text, font));
+        cell.setPadding(6f);
+        table.addCell(cell);
+    }
+
+    private void addPdfBodyCell(PdfPTable table, String text, Font font) {
+        PdfPCell cell = new PdfPCell(new Phrase(text, font));
+        cell.setPadding(5f);
+        table.addCell(cell);
+    }
+
+    private BigDecimal parseBigDecimal(Object value) {
+        if (value == null) {
+            return BigDecimal.ZERO;
+        }
+        try {
+            return new BigDecimal(String.valueOf(value));
+        } catch (NumberFormatException ex) {
+            return BigDecimal.ZERO;
+        }
     }
 
     private void descontarStockDelCarrito(List<CarritoItem> carrito) {

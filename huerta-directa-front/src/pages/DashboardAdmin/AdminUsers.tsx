@@ -9,10 +9,13 @@ import {
   faFilePdf,
   faListUl,
   faBorderAll,
+  faEnvelope,
 } from "@fortawesome/free-solid-svg-icons";
 import { usePageTitle } from "../../hooks/usePageTitle";
 import { Button } from "../../components/GlobalComponents/Button";
 import { EditUserModal } from "../../components/Modals/EditUserModal";
+import { SendMassEmailModal } from "../../components/Modals/SendMassEmailModal";
+import Swal from "sweetalert2";
 import { API_URL } from "../../config/api";
 
 interface UserInfo {
@@ -33,6 +36,7 @@ export const AdminUsers: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isMassEmailOpen, setIsMassEmailOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserInfo | null>(null);
 
   useEffect(() => {
@@ -150,8 +154,18 @@ export const AdminUsers: React.FC = () => {
   };
 
   const handleDeleteUser = async (id: number) => {
-    const confirmDelete = confirm("¿Seguro que quieres eliminar este usuario?");
-    if (!confirmDelete) return;
+    const result = await Swal.fire({
+      title: "¿Estás seguro?",
+      text: "No podrás revertir esta acción.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar"
+    });
+
+    if (!result.isConfirmed) return;
 
     try {
       const response = await fetch(`${API_URL}/api/users/${id}`, {
@@ -161,11 +175,38 @@ export const AdminUsers: React.FC = () => {
 
       if (response.ok) {
         setUsers(users.filter((u) => u.id !== id));
+        Swal.fire({
+          title: "¡Eliminado!",
+          text: "El usuario ha sido eliminado correctamente",
+          icon: "success",
+          timer: 1500,
+          showConfirmButton: false,
+          toast: true,
+          position: "top-end"
+        });
       } else {
         console.error("Error eliminando usuario");
+        Swal.fire({
+          title: "Error",
+          text: "Error eliminando usuario. Es posible que tenga productos asociados.",
+          icon: "error",
+          timer: 3000,
+          showConfirmButton: false,
+          toast: true,
+          position: "top-end"
+        });
       }
     } catch (error) {
       console.error("Error:", error);
+      Swal.fire({
+        title: "Error",
+        text: "Error de red al eliminar usuario.",
+        icon: "error",
+        timer: 3000,
+        showConfirmButton: false,
+        toast: true,
+        position: "top-end"
+      });
     }
   };
 
@@ -226,6 +267,12 @@ export const AdminUsers: React.FC = () => {
               iconLetf={faFilePdf}
               className="bg-[#004d00] text-white rounded-xl py-3 px-6 h-11.5"
               onClick={handleExportPdf}
+            />
+            <Button
+              text="Correos Masivos"
+              iconLetf={faEnvelope}
+              className="bg-blue-600 dark:bg-blue-700 hover:bg-blue-800 text-white rounded-xl py-3 px-6 h-11.5 shadow-sm transition-all"
+              onClick={() => setIsMassEmailOpen(true)}
             />
           </div>
         </div>
@@ -458,6 +505,11 @@ export const AdminUsers: React.FC = () => {
         onClose={() => setIsEditModalOpen(false)}
         user={selectedUser}
         onSave={handleSaveUser}
+      />
+      
+      <SendMassEmailModal
+        isOpen={isMassEmailOpen}
+        onClose={() => setIsMassEmailOpen(false)}
       />
     </div>
   );

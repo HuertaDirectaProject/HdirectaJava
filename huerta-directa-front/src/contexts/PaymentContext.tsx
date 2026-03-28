@@ -2,6 +2,20 @@ import React, { createContext, useContext, useState, useCallback } from 'react';
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
+export type ShippingMethod = 'standard' | 'express' | 'pickup';
+
+export const SHIPPING_METHOD_CONFIG: Record<ShippingMethod, { label: string; price: number }> = {
+  standard: { label: 'Envío Estándar', price: 15000 },
+  express: { label: 'Envío Express', price: 15000 },
+  pickup: { label: 'Tarifa acordada', price: 0 },
+};
+
+export const getShippingPrice = (method: ShippingMethod): number =>
+  SHIPPING_METHOD_CONFIG[method]?.price ?? 0;
+
+export const getShippingLabel = (method: ShippingMethod): string =>
+  SHIPPING_METHOD_CONFIG[method]?.label ?? 'Envío';
+
 export interface ShippingAddress {
   nombre: string;
   calle: string;
@@ -13,13 +27,13 @@ export interface ShippingAddress {
 interface PaymentContextType {
   status: 'idle' | 'loading' | 'success' | 'error';
   paymentMethod: string;
-  shippingMethod: 'standard' | 'express' | 'pickup';
+  shippingMethod: ShippingMethod;
   shippingAddress: ShippingAddress | null;
   error: string | null;
   paymentId: string | null;
 
   setPaymentMethod: (method: string) => void;
-  setShippingMethod: (method: 'standard' | 'express' | 'pickup') => void;
+  setShippingMethod: (method: ShippingMethod) => void;
   setShippingAddress: (address: ShippingAddress) => void;
   processPayment: (data: any) => Promise<any>;
   setError: (error: string) => void;
@@ -32,7 +46,7 @@ const PaymentContext = createContext<PaymentContextType | undefined>(undefined);
 export const PaymentProvider = ({ children }: { children: React.ReactNode }) => {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [paymentMethod, setPaymentMethod] = useState('credit_card');
-  const [shippingMethod, setShippingMethod] = useState<'standard' | 'express' | 'pickup'>('standard');
+  const [shippingMethod, setShippingMethod] = useState<ShippingMethod>('standard');
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [paymentId, setPaymentId] = useState<string | null>(null);

@@ -110,6 +110,17 @@ export const useProductDetail = () => {
   // ── Carrito ───────────────────────────────────────────────────────────────
   const handleAddToCart = useCallback(() => {
     if (!product) return;
+
+    if (product.stock <= 0 || quantity <= 0 || quantity > product.stock) {
+      Swal.fire({
+        title: "Stock insuficiente",
+        text: "Contacta al vendedor para mas informacion",
+        icon: "warning",
+        confirmButtonText: "OK",
+      });
+      return;
+    }
+
     const hasDiscount = !!(product.discountOffer && product.discountOffer > 0);
     const discountedPrice = hasDiscount
       ? product.price * (1 - product.discountOffer! / 100)
@@ -123,6 +134,7 @@ export const useProductDetail = () => {
       cantidad: quantity,
       subtotal: discountedPrice * quantity,
       imagen: `${API_URL}/uploads/productos/${product.imageProduct}`,
+      stockDisponible: product.stock,
       producerId: product.userId,
       producerName: product.userName,
     });

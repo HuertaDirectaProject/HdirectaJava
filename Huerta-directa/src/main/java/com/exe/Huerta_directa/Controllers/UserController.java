@@ -776,47 +776,69 @@ public class UserController {
     }
 
     /**
-     * Método para envío masivo optimizado - Configuración SMTP mejorada
+     * Método para envío masivo optimizado — usa Brevo igual que LoginController
      */
     private void enviarCorreoMasivoOptimizado(List<User> users, String asunto, String cuerpo) throws MessagingException {
-        try {
-            String apiKey = System.getenv("RESEND_API_KEY");
-            Resend resend = new Resend(apiKey);
-            String htmlContent = crearContenidoHTMLEnvioMasivo("Usuario", cuerpo);
-            for (User user : users) {
-                try {
-                    CreateEmailOptions emailOptions = CreateEmailOptions.builder()
-                            .from("Huerta Directa <onboarding@resend.dev>")
-                            .to(user.getEmail())
-                            .subject(asunto)
-                            .html(htmlContent)
-                            .build();
-                    resend.emails().send(emailOptions);
-                } catch (Exception e) {
-                    System.err.println("Error enviando a " + user.getEmail() + ": " + e.getMessage());
-                }
+        String htmlContent = crearContenidoHTMLEnvioMasivo("Usuario", cuerpo);
+        int errores = 0;
+        for (User user : users) {
+            try {
+                enviarCorreoConBrevo(user.getEmail(), asunto, htmlContent);
+                Thread.sleep(300); // pausa para no saturar la API de Brevo
+            } catch (Exception e) {
+                errores++;
+                System.err.println("Error enviando a " + user.getEmail() + ": " + e.getMessage());
             }
-        } catch (Exception e) {
-            throw new MessagingException("Error en envío masivo: " + e.getMessage());
+        }
+        if (errores > 0 && errores == users.size()) {
+            throw new MessagingException("No se pudo enviar ningún correo. Verifica la clave BREVO_API_KEY.");
         }
     }
 
     /**
-     * Método para enviar correo individual
+     * Método para enviar correo individual — usa Brevo igual que LoginController
      */
     private void enviarCorreoIndividual(String destinatario, String asunto, String cuerpo) throws MessagingException {
+        enviarCorreoConBrevo(destinatario, asunto, cuerpo);
+    }
+
+    /**
+     * Núcleo compartido de envío por Brevo — copia exacta del patrón de LoginController
+     */
+    private void enviarCorreoConBrevo(String destinatario, String asunto, String htmlContent) throws MessagingException {
         try {
-            String apiKey = System.getenv("RESEND_API_KEY");
-            Resend resend = new Resend(apiKey);
-            CreateEmailOptions emailOptions = CreateEmailOptions.builder()
-                    .from("Huerta Directa <onboarding@resend.dev>")
-                    .to(destinatario)
-                    .subject(asunto)
-                    .html(cuerpo)
-                    .build();
-            resend.emails().send(emailOptions);
+            String json = new com.fasterxml.jackson.databind.ObjectMapper()
+                .writeValueAsString(java.util.Map.of(
+                    "sender", java.util.Map.of(
+                        "name", "Huerta Directa",
+                        "email", "jjpp142007@gmail.com"
+                    ),
+                    "to", java.util.List.of(
+                        java.util.Map.of("email", destinatario)
+                    ),
+                    "subject", asunto,
+                    "htmlContent", htmlContent
+                ));
+
+            var request = java.net.http.HttpRequest.newBuilder()
+                .uri(java.net.URI.create("https://api.brevo.com/v3/smtp/email"))
+                .header("api-key", System.getenv("BREVO_API_KEY"))
+                .header("Content-Type", "application/json")
+                .POST(java.net.http.HttpRequest.BodyPublishers.ofString(json))
+                .build();
+
+            var response = java.net.http.HttpClient.newHttpClient()
+                .send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() >= 400) {
+                throw new MessagingException("Brevo error " + response.statusCode() + ": " + response.body());
+            }
+
+            System.out.println("Correo enviado a: " + destinatario);
+        } catch (MessagingException e) {
+            throw e;
         } catch (Exception e) {
-            throw new MessagingException("Error enviando correo: " + e.getMessage());
+            throw new MessagingException("Error enviando correo a " + destinatario + ": " + e.getMessage());
         }
     }
 

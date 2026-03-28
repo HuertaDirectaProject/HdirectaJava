@@ -14,9 +14,11 @@ import {
   faListUl,
   faBorderAll,
   faBell,
+  faEnvelope,
 } from "@fortawesome/free-solid-svg-icons";
 import { Button } from "../GlobalComponents/Button";
 import { EditUserModal } from "../Modals/EditUserModal";
+import { SendMassEmailModal } from "../Modals/SendMassEmailModal";
 import { useDashboardAdmin } from "../../hooks/useDashboardAdmin";
 import { API_URL } from "../../config/api";
 
@@ -43,6 +45,7 @@ const DashboardAdminDesktop: React.FC = () => {
   const [userPage, setUserPage] = React.useState(1);
   const [productPage, setProductPage] = React.useState(1);
   const [productViewMode, setProductViewMode] = React.useState<"list" | "grid">("grid");
+  const [isMassEmailOpen, setIsMassEmailOpen] = React.useState(false);
   const itemsPerPage = 5;
 
   const sortedUsers = [...filteredUsers].sort((a, b) => b.id - a.id);
@@ -229,6 +232,12 @@ const DashboardAdminDesktop: React.FC = () => {
               iconLetf={faFilePdf}
               className="bg-[#004d00] text-white rounded-xl py-3 px-8 mt-2 mb-2 w-full md:w-auto"
               onClick={handleExportPdf}
+            />
+            <Button
+              text="Correos Masivos"
+              iconLetf={faEnvelope}
+              className="bg-blue-600 dark:bg-blue-700 hover:bg-blue-800 text-white rounded-xl py-3 px-8 mt-2 mb-2 w-full md:w-auto shadow-sm transition-all"
+              onClick={() => setIsMassEmailOpen(true)}
             />
           </div>
         </div>
@@ -568,6 +577,11 @@ const DashboardAdminDesktop: React.FC = () => {
         onClose={() => setIsEditModalOpen(false)}
         user={selectedUser}
         onSave={handleSaveUser}
+      />
+      
+      <SendMassEmailModal
+        isOpen={isMassEmailOpen}
+        onClose={() => setIsMassEmailOpen(false)}
       />
     </div>
   );

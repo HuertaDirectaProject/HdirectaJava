@@ -299,8 +299,7 @@ export const ProductDetailPage = () => {
                   </div>
 
                   <div className="grid grid-cols-1 gap-3 pt-4">
-                    <Button text="Comprar ahora"
-                      className="w-full py-4 rounded-xl bg-[#004d00] dark:bg-[#6fa33b] text-white font-black shadow-lg shadow-[#004d00]/20 dark:shadow-[#6fa33b]/20 border-none" />
+                    
                     <Button text="Agregar al carrito" onClick={handleAddToCart}
                       className="w-full py-4 rounded-xl bg-[#004d00] dark:bg-[#6fa33b] text-white font-black shadow-lg shadow-[#004d00]/20 dark:shadow-[#6fa33b]/20 border-none"
                       iconLetf={faCartShopping} />

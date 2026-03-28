@@ -220,7 +220,7 @@ export const useDashboardAdmin = () => {
       params.append("dato", "name_user");
       params.append("valor", searchTerm);
     }
-    window.location.href = `/api/users/exportExcel?${params.toString()}`;
+    window.location.href = `${API_URL}/api/users/exportExcel?${params.toString()}`;
   };
 
   const handleExportPdf = () => {
@@ -229,7 +229,7 @@ export const useDashboardAdmin = () => {
       params.append("dato", "name_user");
       params.append("valor", searchTerm);
     }
-    window.location.href = `/api/users/exportPdf?${params.toString()}`;
+    window.location.href = `${API_URL}/api/users/exportPdf?${params.toString()}`;
   };
 
   return {

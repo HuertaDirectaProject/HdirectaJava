@@ -7,6 +7,7 @@ import { useCart } from "../../contexts/CartContext";
 import { getShippingPrice } from "../../contexts/PaymentContext";
 import { usePayment } from "../../hooks/usePayment";
 import paymentService from "../../services/paymentService";
+import Swal from "sweetalert2";
 
 export const MercadoPagoPayment = () => {
     usePageTitle("MercadoPayment");
@@ -75,6 +76,45 @@ export const MercadoPagoPayment = () => {
                     onReady: () => console.log("✅ Brick cargado"),
                     onSubmit: async (data: any) => {
                         try {
+                            let stockValidation;
+                            try {
+                                stockValidation = await paymentService.validateCartStock(
+                                    items.map((item) => ({
+                                        productId: item.id,
+                                        cantidad: item.cantidad,
+                                    })),
+                                );
+                            } catch {
+                                await Swal.fire({
+                                    icon: "error",
+                                    title: "No se pudo validar stock",
+                                    text: "Intenta nuevamente en unos segundos",
+                                    confirmButtonColor: "#8dc84b",
+                                });
+                                return;
+                            }
+
+                            if (!stockValidation.valid) {
+                                const lines = stockValidation.errors
+                                    .map((err) => {
+                                        const name = err.nombre ?? `Producto ${err.productId ?? ""}`.trim();
+                                        if (typeof err.disponible === "number" && typeof err.solicitado === "number") {
+                                            return `${name}: disponible ${err.disponible}, solicitado ${err.solicitado}`;
+                                        }
+                                        return `${name}: ${err.error}`;
+                                    })
+                                    .join("\n");
+
+                                await Swal.fire({
+                                    icon: "warning",
+                                    title: "Stock insuficiente",
+                                    text: lines || "Algunos productos ya no tienen stock suficiente",
+                                    confirmButtonColor: "#8dc84b",
+                                });
+                                navigate("/payment/checkout", { replace: true });
+                                return;
+                            }
+
                             const payload = {
                                 transaction_amount: Math.floor(totalWithShipping),
                                 description: CONFIG.DESCRIPTION,

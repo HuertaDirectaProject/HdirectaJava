@@ -11,6 +11,7 @@ export interface CartItem {
   cantidad: number;
   subtotal: number;
   imagen?: string;
+  stockDisponible?: number;
   producerId?: number;
   producerName?: string;
 }
@@ -67,6 +68,8 @@ const loadStoredCartItems = (storageKey: string): CartItem[] => {
           cantidad,
           subtotal: precio * cantidad,
           imagen: item.imagen ? String(item.imagen) : undefined,
+          stockDisponible:
+            typeof item.stockDisponible === "number" ? Number(item.stockDisponible) : undefined,
           producerId:
             typeof item.producerId === "number" ? Number(item.producerId) : undefined,
           producerName: item.producerName ? String(item.producerName) : undefined,
@@ -89,6 +92,14 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const DESCUENTO_PERCENT = 10;
   const MAX_STOCK_PER_PRODUCT = 100;
 
+  const getMaxAllowedByItem = useCallback((item: CartItem) => {
+    const stockLimit =
+      typeof item.stockDisponible === "number" && item.stockDisponible >= 0
+        ? item.stockDisponible
+        : MAX_STOCK_PER_PRODUCT;
+    return Math.min(stockLimit, MAX_STOCK_PER_PRODUCT);
+  }, []);
+
   // Calcular totales
   const calculateTotals = useCallback((): CartTotals => {
     const subtotal = Math.floor(items.reduce((sum, item) => sum + item.subtotal, 0));
@@ -103,12 +114,13 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     setItems((prev) => {
       const existing = prev.find((p) => p.id === item.id);
       const nextQuantity = (existing?.cantidad ?? 0) + item.cantidad;
+      const maxAllowed = getMaxAllowedByItem(existing ?? item);
 
-      if (nextQuantity > MAX_STOCK_PER_PRODUCT) {
+      if (nextQuantity > maxAllowed) {
         Swal.fire({
           icon: "warning",
           title: "Stock inválido",
-          text: "No se puede comprar más de 100 unidades",
+          text: `Solo hay ${maxAllowed} unidades disponibles`,
         });
         return prev;
       }
@@ -120,6 +132,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
                 ...p,
                 cantidad: p.cantidad + item.cantidad,
                 subtotal: p.precio * (p.cantidad + item.cantidad),
+                stockDisponible: p.stockDisponible ?? item.stockDisponible,
               }
             : p,
         );
@@ -132,7 +145,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         },
       ];
     });
-  }, []);
+  }, [getMaxAllowedByItem]);
 
   // Eliminar producto
   const removeItem = useCallback((id: number) => {
@@ -144,6 +157,18 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     (id: number, cantidad: number) => {
       if (cantidad <= 0) {
         removeItem(id);
+        return;
+      }
+
+      const currentItem = items.find((p) => p.id === id);
+      const maxAllowed = currentItem ? getMaxAllowedByItem(currentItem) : MAX_STOCK_PER_PRODUCT;
+
+      if (cantidad > maxAllowed) {
+        Swal.fire({
+          icon: "warning",
+          title: "Stock inválido",
+          text: `Solo hay ${maxAllowed} unidades disponibles`,
+        });
         return;
       }
 
@@ -162,7 +187,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         ),
       );
     },
-    [removeItem],
+    [removeItem, items, getMaxAllowedByItem],
   );
 
   // Vaciar carrito

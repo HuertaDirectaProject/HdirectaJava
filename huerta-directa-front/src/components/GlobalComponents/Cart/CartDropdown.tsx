@@ -10,6 +10,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useCart } from "../../../contexts/CartContext";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
+import paymentService from "../../../services/paymentService";
 
 interface Props {
   open: boolean;
@@ -26,6 +27,44 @@ export const CartDropdown = ({ open, onClose }: Props) => {
         icon: "warning",
         title: "Carrito vacío",
         text: "Debes tener productos en el carrito antes de proceder al pago",
+        confirmButtonColor: "#8dc84b",
+      });
+      return;
+    }
+
+    let stockValidation;
+    try {
+      stockValidation = await paymentService.validateCartStock(
+        items.map((item) => ({
+          productId: item.id,
+          cantidad: item.cantidad,
+        })),
+      );
+    } catch {
+      await Swal.fire({
+        icon: "error",
+        title: "No se pudo validar stock",
+        text: "Intenta nuevamente en unos segundos",
+        confirmButtonColor: "#8dc84b",
+      });
+      return;
+    }
+
+    if (!stockValidation.valid) {
+      const lines = stockValidation.errors
+        .map((err) => {
+          const name = err.nombre ?? `Producto ${err.productId ?? ""}`.trim();
+          if (typeof err.disponible === "number" && typeof err.solicitado === "number") {
+            return `${name}: disponible ${err.disponible}, solicitado ${err.solicitado}`;
+          }
+          return `${name}: ${err.error}`;
+        })
+        .join("\n");
+
+      await Swal.fire({
+        icon: "warning",
+        title: "Stock insuficiente",
+        text: lines || "Algunos productos ya no tienen stock suficiente",
         confirmButtonColor: "#8dc84b",
       });
       return;

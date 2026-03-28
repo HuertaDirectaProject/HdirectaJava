@@ -121,6 +121,7 @@ const ProductCard = ({ product }: Props) => {
       cantidad: 1,
       subtotal: discountedPrice,
       imagen: product.image,
+      stockDisponible: product.stock,
       producerId: product.ownerId,
       producerName: product.producerName,
     });
@@ -144,7 +145,7 @@ const ProductCard = ({ product }: Props) => {
     <div className="h-full w-full bg-white dark:bg-zinc-900 rounded-3xl shadow-xl overflow-hidden border border-stone-200/60 dark:border-zinc-700 group transition-transform duration-500 hover:scale-[1.007] flex flex-col">
       
       {/* Imagen Slider */}
-      <div className="relative h-64 flex-shrink-0 overflow-hidden group/slider">
+      <div className="relative h-64 shrink-0 overflow-hidden group/slider">
         <img
           src={allImages[currentImageIndex]}
           alt={product.name}
@@ -215,9 +216,9 @@ const ProductCard = ({ product }: Props) => {
       </div>
 
       {/* Contenido */}
-      <div className="px-6 py-4 flex-grow flex flex-col justify-between">
+      <div className="px-6 py-4 grow flex flex-col justify-between">
         <div className="space-y-3">
-          <div className="min-h-[3.5rem] flex items-center">
+          <div className="min-h-14 flex items-center">
             <h2 className="text-xl font-bold text-black/80 dark:text-white line-clamp-2 leading-tight">
               {product.name}
             </h2>

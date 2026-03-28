@@ -6,6 +6,14 @@ import com.exe.Huerta_directa.Entity.Product;
 import com.exe.Huerta_directa.Entity.User;
 import com.exe.Huerta_directa.Impl.MercadoPagoServicePaymentRequest;
 import com.exe.Huerta_directa.Repository.ProductRepository;
+import com.lowagie.text.Document;
+import com.lowagie.text.Font;
+import com.lowagie.text.FontFactory;
+import com.lowagie.text.Paragraph;
+import com.lowagie.text.Phrase;
+import com.lowagie.text.pdf.PdfPCell;
+import com.lowagie.text.pdf.PdfPTable;
+import com.lowagie.text.pdf.PdfWriter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,8 +22,10 @@ import com.exe.Huerta_directa.DTO.CarritoItem;
 import com.exe.Huerta_directa.Service.ProductService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
+import java.io.IOException;
 import java.text.NumberFormat;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -27,6 +37,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import jakarta.mail.MessagingException;
 
@@ -49,6 +60,9 @@ public class PaymentController {
             HttpSession session) {
 
         try {
+            List<CarritoItem> carrito = paymentRequest.getCarrito();
+            productService.validarStockCarrito(carrito);
+
             System.out.println("📥 RAW payer: " + paymentRequest.getPayer());
             System.out.println("📥 RAW email: "
                     + (paymentRequest.getPayer() != null ? paymentRequest.getPayer().getEmail() : "PAYER NULL"));
@@ -79,9 +93,6 @@ public class PaymentController {
             if ("approved".equals(status)) {
                 System.out.println("✅ Pago APROBADO - Descontando stock y guardando en BD...");
 
-                // Obtener carrito antes de limpiarlo
-                @SuppressWarnings("unchecked")
-                List<CarritoItem> carrito = paymentRequest.getCarrito();
                 // --- GUARDAR EN BASE DE DATOS PARA ESTADÍSTICAS ---
                 try {
                     com.exe.Huerta_directa.Entity.Payment paymentEntity = new com.exe.Huerta_directa.Entity.Payment();
@@ -110,11 +121,14 @@ public class PaymentController {
                 }
                 // --------------------------------------------------
 
-                descontarStockDelCarrito(paymentRequest.getCarrito());
+                productService.descontarStockCarrito(carrito);
 
                 // Enviar correo de confirmación
                 try {
-                    enviarCorreoConfirmacionPago(paymentRequest, paymentId.toString(), carrito);
+                    User sessionUser = (User) session.getAttribute("user");
+                    String realEmail = sessionUser != null ? sessionUser.getEmail() : paymentRequest.getPayer().getEmail();
+                    String realName = sessionUser != null ? sessionUser.getName() : "Cliente";
+                    enviarCorreoConfirmacionPago(paymentRequest, paymentId.toString(), carrito, realEmail, realName);
                 } catch (Exception emailError) {
                     System.err.println("⚠️ Error al enviar correo (no afecta el pago): " + emailError.getMessage());
                 }
@@ -148,6 +162,57 @@ public class PaymentController {
             e.printStackTrace();
             return crearRespuestaError("Error inesperado al procesar el pago");
         }
+    }
+
+    @PostMapping("/validate-stock")
+    public ResponseEntity<Map<String, Object>> validateCartStock(@RequestBody Map<String, Object> payload) {
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> rawCart = (List<Map<String, Object>>) payload.getOrDefault("carrito", List.of());
+
+        List<Map<String, Object>> errors = new ArrayList<>();
+        for (Map<String, Object> item : rawCart) {
+            Long productId = parseLong(item.get("productId"));
+            Integer cantidad = parseInteger(item.get("cantidad"));
+
+            if (productId == null || cantidad == null || cantidad <= 0) {
+                Map<String, Object> error = new HashMap<>();
+                error.put("productId", productId);
+                error.put("error", "Item invalido en carrito");
+                errors.add(error);
+                continue;
+            }
+
+            Product product = productRepository.findById(productId).orElse(null);
+            if (product == null) {
+                Map<String, Object> error = new HashMap<>();
+                error.put("productId", productId);
+                error.put("error", "Producto no encontrado");
+                errors.add(error);
+                continue;
+            }
+
+            int availableStock = product.getStock() == null ? 0 : product.getStock();
+            if (availableStock < cantidad) {
+                Map<String, Object> error = new HashMap<>();
+                error.put("productId", productId);
+                error.put("nombre", product.getNameProduct());
+                error.put("disponible", availableStock);
+                error.put("solicitado", cantidad);
+                error.put("error", "Stock insuficiente");
+                errors.add(error);
+            }
+        }
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("valid", errors.isEmpty());
+        response.put("errors", errors);
+
+        if (errors.isEmpty()) {
+            return ResponseEntity.ok(response);
+        }
+
+        response.put("mensaje", "Hay productos con stock insuficiente");
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 
     @GetMapping("/my-orders")
@@ -257,26 +322,149 @@ public class PaymentController {
         return ResponseEntity.ok(response);
     }
 
-    private void descontarStockDelCarrito(List<CarritoItem> carrito) {
+    @GetMapping("/exportPdf")
+    public void exportMyOrdersToPdf(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String status,
+            HttpSession session,
+            HttpServletResponse response) throws IOException {
+
+        ResponseEntity<Map<String, Object>> ordersResponse = getMyOrders(session);
+        if (ordersResponse.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Sesion expirada");
+            return;
+        }
+
+        Map<String, Object> body = ordersResponse.getBody();
+        if (body == null) {
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "No se pudieron exportar las ordenes");
+            return;
+        }
+
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> orders = (List<Map<String, Object>>) body.getOrDefault("orders", List.of());
+
+        String normalizedSearch = search == null ? "" : search.trim().toLowerCase(Locale.ROOT);
+        String normalizedStatus = status == null ? "" : status.trim().toLowerCase(Locale.ROOT);
+
+        List<Map<String, Object>> filteredOrders = orders.stream()
+                .filter(order -> {
+                    boolean matchesStatus = normalizedStatus.isBlank()
+                            || normalizedStatus.equals(String.valueOf(order.getOrDefault("status", "")).toLowerCase(Locale.ROOT));
+
+                    if (normalizedSearch.isBlank()) {
+                        return matchesStatus;
+                    }
+
+                    String orderNumber = String.valueOf(order.getOrDefault("orderNumber", "")).toLowerCase(Locale.ROOT);
+                    String buyer = String.valueOf(order.getOrDefault("buyer", "")).toLowerCase(Locale.ROOT);
+                    String product = String.valueOf(order.getOrDefault("product", "")).toLowerCase(Locale.ROOT);
+
+                    return matchesStatus && (orderNumber.contains(normalizedSearch)
+                            || buyer.contains(normalizedSearch)
+                            || product.contains(normalizedSearch));
+                })
+                .collect(Collectors.toList());
+
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition", "attachment; filename=ordenes_huerta_directa.pdf");
+
+        Document document = new Document();
         try {
-            if (carrito == null || carrito.isEmpty()) {
-                System.out.println("⚠️ No hay productos en el carrito para descontar");
-                return;
+            PdfWriter.getInstance(document, response.getOutputStream());
+            document.open();
+
+            Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16);
+            Font subtitleFont = FontFactory.getFont(FontFactory.HELVETICA, 10);
+            Font headerFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 9);
+            Font bodyFont = FontFactory.getFont(FontFactory.HELVETICA, 9);
+
+            document.add(new Paragraph("Reporte de Ordenes - Huerta Directa", titleFont));
+            document.add(new Paragraph("Total registros: " + filteredOrders.size(), subtitleFont));
+            document.add(new Paragraph(" "));
+
+            PdfPTable table = new PdfPTable(6);
+            table.setWidthPercentage(100);
+            table.setWidths(new float[] {1.1f, 1.8f, 2.0f, 1.2f, 1.2f, 1.0f});
+
+            addPdfHeaderCell(table, "N Orden", headerFont);
+            addPdfHeaderCell(table, "Usuario", headerFont);
+            addPdfHeaderCell(table, "Producto", headerFont);
+            addPdfHeaderCell(table, "Fecha", headerFont);
+            addPdfHeaderCell(table, "Monto", headerFont);
+            addPdfHeaderCell(table, "Estado", headerFont);
+
+            NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("es", "CO"));
+            for (Map<String, Object> order : filteredOrders) {
+                addPdfBodyCell(table, String.valueOf(order.getOrDefault("orderNumber", "")), bodyFont);
+                addPdfBodyCell(table, String.valueOf(order.getOrDefault("buyer", "")), bodyFont);
+                addPdfBodyCell(table, String.valueOf(order.getOrDefault("product", "")), bodyFont);
+                addPdfBodyCell(table, String.valueOf(order.getOrDefault("date", "")), bodyFont);
+
+                BigDecimal amount = parseBigDecimal(order.get("amount"));
+                addPdfBodyCell(table, currencyFormat.format(amount), bodyFont);
+
+                String orderStatus = String.valueOf(order.getOrDefault("status", "completed"));
+                String statusLabel = switch (orderStatus) {
+                    case "pending" -> "Pendiente";
+                    case "canceled" -> "Cancelada";
+                    default -> "Completada";
+                };
+                addPdfBodyCell(table, statusLabel, bodyFont);
             }
 
-            System.out.println("📦 Descontando stock de " + carrito.size() + " productos:");
-
-            for (CarritoItem item : carrito) {
-                try {
-                    productService.descontarStock(item.getProductId(), item.getCantidad());
-                    System.out.println("  ✅ " + item.getNombre() + " - Cantidad: " + item.getCantidad());
-                } catch (RuntimeException e) {
-                    System.err.println("  ❌ Error con producto " + item.getNombre() + ": " + e.getMessage());
-                }
-            }
+            document.add(table);
         } catch (Exception e) {
-            System.err.println("❌ Error general al descontar stock: " + e.getMessage());
-            e.printStackTrace();
+            throw new IOException("Error al generar PDF de ordenes", e);
+        } finally {
+            if (document.isOpen()) {
+                document.close();
+            }
+        }
+    }
+
+    private void addPdfHeaderCell(PdfPTable table, String text, Font font) {
+        PdfPCell cell = new PdfPCell(new Phrase(text, font));
+        cell.setPadding(6f);
+        table.addCell(cell);
+    }
+
+    private void addPdfBodyCell(PdfPTable table, String text, Font font) {
+        PdfPCell cell = new PdfPCell(new Phrase(text, font));
+        cell.setPadding(5f);
+        table.addCell(cell);
+    }
+
+    private BigDecimal parseBigDecimal(Object value) {
+        if (value == null) {
+            return BigDecimal.ZERO;
+        }
+        try {
+            return new BigDecimal(String.valueOf(value));
+        } catch (NumberFormatException ex) {
+            return BigDecimal.ZERO;
+        }
+    }
+
+    private Long parseLong(Object value) {
+        if (value == null) {
+            return null;
+        }
+        try {
+            return Long.valueOf(String.valueOf(value));
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
+    private Integer parseInteger(Object value) {
+        if (value == null) {
+            return null;
+        }
+        try {
+            return Integer.valueOf(String.valueOf(value));
+        } catch (NumberFormatException ex) {
+            return null;
         }
     }
 
@@ -339,39 +527,18 @@ public class PaymentController {
      * Envía correo de confirmación de pago exitoso
      */
     private void enviarCorreoConfirmacionPago(PaymentRequest paymentRequest, String paymentId,
-            List<CarritoItem> carrito) {
+                                              List<CarritoItem> carrito, String realEmail, String realName) {
         try {
-            // Obtener datos del pagador
-            String email = paymentRequest.getPayer().getEmail();
-            String firstName = paymentRequest.getPayer().getFirstName();
-            String lastName = paymentRequest.getPayer().getLastName();
-            String customerName = (firstName != null ? firstName : "") + " " + (lastName != null ? lastName : "");
-            customerName = customerName.trim();
+            String email = realEmail;
+            String customerName = (realName != null && !realName.isBlank()) ? realName : "Cliente";
 
-            if (customerName.isEmpty()) {
-                customerName = "Cliente";
-            }
-
-            // 🔧 OVERRIDE para modo prueba - Si el email es de prueba de Mercado Pago, usar
-            // tu email real
-            if (email != null && (email.contains("test_user") || email.contains("@testuser"))) {
-                email = "TU_EMAIL_REAL@gmail.com"; // ← CAMBIA ESTO A TU EMAIL REAL
-                System.out.println("🔧 Modo prueba detectado - Enviando correo a: " + email);
-            }
-
-            // Formatear monto
             @SuppressWarnings("deprecation")
             NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("es", "CO"));
             String formattedAmount = currencyFormat.format(paymentRequest.getTransactionAmount());
 
-            // Generar resumen de productos
             String productsSummary = generarResumenProductos(carrito);
+            String htmlContent = crearContenidoHTMLPagoExitoso(customerName, paymentId, formattedAmount, productsSummary);
 
-            // Crear contenido HTML
-            String htmlContent = crearContenidoHTMLPagoExitoso(customerName, paymentId, formattedAmount,
-                    productsSummary);
-
-            // Enviar correo
             String subject = "✅ Confirmación de Pago Exitoso - Huerta Directa";
             enviarCorreoIndividual(email, subject, htmlContent);
 
@@ -380,7 +547,6 @@ public class PaymentController {
         } catch (Exception e) {
             System.err.println("❌ Error al enviar correo de confirmación: " + e.getMessage());
             e.printStackTrace();
-            // No lanzamos excepción para que no afecte el proceso de pago
         }
     }
 

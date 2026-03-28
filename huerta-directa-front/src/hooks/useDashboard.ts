@@ -3,6 +3,7 @@ import Swal from "sweetalert2";
 import { useProducts } from "./Productos/useProducts";
 import { updateProduct } from "../services/productService";
 import type { Product } from "../types/Product";
+import { API_URL } from "../config/api";
 
 export interface InsightItem {
   title: string;
@@ -28,27 +29,9 @@ export const useDashboard = () => {
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
 
   const insights: InsightItem[] = [
-    {
-      title: "Ventas",
-      value: "$25,000",
-      percentage: 81,
-      footer: "Ultimas 24 horas",
-      color: "sales",
-    },
-    {
-      title: "Gastos",
-      value: "$15,567",
-      percentage: 62,
-      footer: "Ultimas 24 horas",
-      color: "expenses",
-    },
-    {
-      title: "Ingresos",
-      value: "$10,240",
-      percentage: 31,
-      footer: "Ultimas 24 horas",
-      color: "income",
-    },
+    { title: "Ventas", value: "$25,000", percentage: 81, footer: "Ultimas 24 horas", color: "sales" },
+    { title: "Gastos", value: "$15,567", percentage: 62, footer: "Ultimas 24 horas", color: "expenses" },
+    { title: "Ingresos", value: "$10,240", percentage: 31, footer: "Ultimas 24 horas", color: "income" },
   ];
 
   const filteredProducts = products.filter(
@@ -61,14 +44,14 @@ export const useDashboard = () => {
     const params = new URLSearchParams();
     if (searchTerm) params.append("buscar", searchTerm);
     if (category) params.append("categoria", category);
-    window.location.href = `/api/products/exportExcel?${params.toString()}`;
+    window.location.href = `${API_URL}/api/products/exportExcel?${params.toString()}`; // ✅ Corregido
   };
 
   const handleExportPdf = () => {
     const params = new URLSearchParams();
     if (searchTerm) params.append("buscar", searchTerm);
     if (category) params.append("categoria", category);
-    window.location.href = `/api/products/exportPdf?${params.toString()}`;
+    window.location.href = `${API_URL}/api/products/exportPdf?${params.toString()}`; // ✅ Corregido
   };
 
   const handleUploadSubmit = async (e: React.FormEvent) => {
@@ -79,29 +62,23 @@ export const useDashboard = () => {
     formData.append("archivo", uploadFile);
 
     try {
-      const response = await fetch("/api/users/upload-products", {
+      const response = await fetch(`${API_URL}/api/users/upload-products`, { // ✅ Corregido
         method: "POST",
         body: formData,
       });
       const result = await response.json();
       if (response.ok && result.success) {
         setUploadResult({ success: true, message: "¡Carga masiva exitosa!" });
-        fetchProducts(); // Refresh list
+        fetchProducts();
         setTimeout(() => {
           setIsUploadModalOpen(false);
           setUploadResult(null);
         }, 2000);
       } else {
-        setUploadResult({
-          success: false,
-          message: result.message || "Error al cargar productos",
-        });
+        setUploadResult({ success: false, message: result.message || "Error al cargar productos" });
       }
     } catch {
-      setUploadResult({
-        success: false,
-        message: "Error de conexión con el servidor",
-      });
+      setUploadResult({ success: false, message: "Error de conexión con el servidor" });
     }
   };
 
@@ -113,18 +90,9 @@ export const useDashboard = () => {
   const handleSaveProduct = async (updatedProduct: Product) => {
     try {
       await updateProduct(updatedProduct.idProduct, updatedProduct);
-      setProducts(
-        products.map((p) =>
-          p.idProduct === updatedProduct.idProduct ? updatedProduct : p,
-        ),
-      );
+      setProducts(products.map((p) => p.idProduct === updatedProduct.idProduct ? updatedProduct : p));
       setIsEditModalOpen(false);
-      Swal.fire({
-        icon: "success",
-        title: "Producto actualizado",
-        timer: 1500,
-        showConfirmButton: false,
-      });
+      Swal.fire({ icon: "success", title: "Producto actualizado", timer: 1500, showConfirmButton: false });
     } catch (error) {
       console.error(error);
       Swal.fire("Error", "No se pudo actualizar el producto", "error");
@@ -139,18 +107,9 @@ export const useDashboard = () => {
   const handleApplyOffer = async (updatedProduct: Product) => {
     try {
       await updateProduct(updatedProduct.idProduct, updatedProduct);
-      setProducts(
-        products.map((p) =>
-          p.idProduct === updatedProduct.idProduct ? updatedProduct : p,
-        ),
-      );
+      setProducts(products.map((p) => p.idProduct === updatedProduct.idProduct ? updatedProduct : p));
       setIsOfferModalOpen(false);
-      Swal.fire({
-        icon: "success",
-        title: "Oferta aplicada",
-        timer: 1500,
-        showConfirmButton: false,
-      });
+      Swal.fire({ icon: "success", title: "Oferta aplicada", timer: 1500, showConfirmButton: false });
     } catch (error) {
       console.error(error);
       Swal.fire("Error", "No se pudo aplicar la oferta", "error");
@@ -158,36 +117,20 @@ export const useDashboard = () => {
   };
 
   return {
-    products,
-    setProducts,
-    removeProduct,
-    fetchProducts,
-    searchTerm,
-    setSearchTerm,
-    category,
-    setCategory,
-    isUploadModalOpen,
-    setIsUploadModalOpen,
-    isEditModalOpen,
-    setIsEditModalOpen,
-    isOfferModalOpen,
-    setIsOfferModalOpen,
-    selectedProduct,
-    setSelectedProduct,
-    uploadFile,
-    setUploadFile,
-    uploadResult,
-    setUploadResult,
-    viewMode,
-    setViewMode,
-    insights,
-    filteredProducts,
-    handleExportExcel,
-    handleExportPdf,
-    handleUploadSubmit,
-    handleEditProduct,
-    handleSaveProduct,
-    handleOpenOfferModal,
+    products, setProducts, removeProduct, fetchProducts,
+    searchTerm, setSearchTerm,
+    category, setCategory,
+    isUploadModalOpen, setIsUploadModalOpen,
+    isEditModalOpen, setIsEditModalOpen,
+    isOfferModalOpen, setIsOfferModalOpen,
+    selectedProduct, setSelectedProduct,
+    uploadFile, setUploadFile,
+    uploadResult, setUploadResult,
+    viewMode, setViewMode,
+    insights, filteredProducts,
+    handleExportExcel, handleExportPdf,
+    handleUploadSubmit, handleEditProduct,
+    handleSaveProduct, handleOpenOfferModal,
     handleApplyOffer,
   };
 };

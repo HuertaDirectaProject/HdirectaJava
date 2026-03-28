@@ -77,9 +77,7 @@ export const useSMSVerification = (phone: string) => {
 
             if (response.ok) {
                 setSuccess(true);
-            } else {
-                setError("Error completando login");
-            }
+            } 
         } catch (err: any) {
             setError("Código incorrecto, intenta de nuevo");
         } finally {

@@ -1,5 +1,6 @@
 package com.exe.Huerta_directa.Impl;
 
+import com.exe.Huerta_directa.DTO.CarritoItem;
 import com.exe.Huerta_directa.DTO.ProductDTO;
 import com.exe.Huerta_directa.DTO.CommentDTO;
 import com.exe.Huerta_directa.Entity.Product;
@@ -357,6 +358,53 @@ public class ProductServiceImpl implements ProductService {
         producto.setStock(producto.getStock() - cantidad);
         productRepository.save(producto);
 
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public void validarStockCarrito(List<CarritoItem> carrito) {
+        if (carrito == null || carrito.isEmpty()) {
+            throw new RuntimeException("El carrito esta vacio");
+        }
+
+        for (CarritoItem item : carrito) {
+            if (item == null || item.getProductId() == null) {
+                throw new RuntimeException("Hay productos invalidos en el carrito");
+            }
+
+            Integer cantidad = item.getCantidad();
+            if (cantidad == null || cantidad <= 0) {
+                throw new RuntimeException("Cantidad invalida para el producto: " + item.getNombre());
+            }
+
+            Product producto = productRepository.findById(item.getProductId())
+                    .orElseThrow(() -> new RuntimeException("Producto no encontrado con ID: " + item.getProductId()));
+
+            if (producto.getStock() == null) {
+                throw new RuntimeException("El producto '" + producto.getNameProduct() + "' no tiene stock configurado");
+            }
+
+            if (producto.getStock() < cantidad) {
+                throw new RuntimeException("Stock insuficiente para '" + producto.getNameProduct() +
+                        "'. Disponible: " + producto.getStock() +
+                        ", Solicitado: " + cantidad);
+            }
+        }
+    }
+
+    @Override
+    @Transactional
+    public void descontarStockCarrito(List<CarritoItem> carrito) {
+        validarStockCarrito(carrito);
+
+        for (CarritoItem item : carrito) {
+            Product producto = productRepository.findById(item.getProductId())
+                    .orElseThrow(() -> new RuntimeException("Producto no encontrado con ID: " + item.getProductId()));
+
+            int nuevoStock = producto.getStock() - item.getCantidad();
+            producto.setStock(nuevoStock);
+            productRepository.save(producto);
+        }
     }
 
     @Override

@@ -144,10 +144,8 @@ const AdminSidebarContent: React.FC<{ isOpen: boolean; onToggle: () => void }> =
     { label: "Estadísticas Globales", icon: faChartPie, link: "/admin/stats" },
     { label: "Gestión de Usuarios", icon: faUsers, link: "/admin/usuarios" },
     { label: "Gestión de Productos", icon: faBoxesStacked, link: "/admin/productos" },
-    { label: "Reportes de Ventas", icon: faFileContract, link: "/admin/reportes" },
     { label: "Área Social", icon: faEnvelope, link: "/admin/mensajes" },
     { label: "Mi Perfil", icon: faGear, link: "/admin/perfil" },
-    { label: "Configuración", icon: faGear, link: "/admin/config" },
     { label: "Registrar Admin", icon: faUserPlus, link: "/admin/registrar" },
     { label: "Pagina Principal", icon: faRightFromBracket, link: "/HomePage" },
   ];

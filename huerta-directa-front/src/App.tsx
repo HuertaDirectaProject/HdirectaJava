@@ -20,7 +20,6 @@ import { AdminStats } from "./pages/DashboardAdmin/AdminStats";
 import { AdminUsers } from "./pages/DashboardAdmin/AdminUsers";
 import { AdminProducts } from "./pages/DashboardAdmin/AdminProducts";
 import { AdminReports } from "./pages/DashboardAdmin/AdminReports";
-import { AdminConfig } from "./pages/DashboardAdmin/AdminConfig";
 import { AdminRegister } from "./pages/DashboardAdmin/AdminRegister";
 import QuienesSomos from "./pages/About/QuienesSomos";
 import ProductDetailPage from "./pages/AboutProduct/ProductDetailPage";
@@ -124,7 +123,6 @@ function App() {
                             <Route path="/admin/usuarios" element={<AdminUsers />} />
                             <Route path="/admin/productos" element={<AdminProducts />} />
                             <Route path="/admin/reportes" element={<AdminReports />} />
-                            <Route path="/admin/config" element={<AdminConfig />} />
                             <Route path="/admin/registrar" element={<AdminRegister />} />
                             <Route path="/admin/perfil" element={<ActualizacionUsuario />} />
                         </Route>

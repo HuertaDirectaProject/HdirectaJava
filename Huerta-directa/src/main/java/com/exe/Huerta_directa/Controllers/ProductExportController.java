@@ -40,10 +40,8 @@ public void exportarProductosExcel(
     Workbook workbook = null;
 
     try {
-        // Obtener productos según filtros
         List<ProductDTO> productos = obtenerProductosFiltrados(buscar, categoria);
 
-        // Configurar respuesta HTTP
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         String filename = "Productos_" + LocalDateTime.now()
                 .format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".xlsx";
@@ -53,11 +51,9 @@ public void exportarProductosExcel(
         response.setHeader("Pragma", "no-cache");
         response.setDateHeader("Expires", 0);
 
-        // Crear libro
-        workbook = new XSSFWorkbook(); // si tienes muchos datos: new SXSSFWorkbook();
+        workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Productos");
 
-        // Encabezados
         Row headerRow = sheet.createRow(0);
         headerRow.createCell(0).setCellValue("ID");
         headerRow.createCell(1).setCellValue("Nombre");
@@ -68,87 +64,66 @@ public void exportarProductosExcel(
         headerRow.createCell(6).setCellValue("Fecha Publicación");
         headerRow.createCell(7).setCellValue("Stock");
 
-        // Datos
         int rowNum = 1;
 
         for (ProductDTO producto : productos) {
             Row row = sheet.createRow(rowNum++);
 
-            // ID
             row.createCell(0).setCellValue(producto.getIdProduct());
 
-            // Nombre
             row.createCell(1).setCellValue(
                     producto.getNameProduct() != null ? producto.getNameProduct() : "N/A"
             );
 
-            // Precio seguro
             double precio = 0.0;
             try {
                 if (producto.getPrice() != null) {
                     precio = producto.getPrice().doubleValue();
                 }
-            } catch (Exception e) {
-                precio = 0.0;
-            }
+            } catch (Exception ignored) {}
             row.createCell(2).setCellValue(precio);
 
-            // Categoría
             row.createCell(3).setCellValue(
                     producto.getCategory() != null ? producto.getCategory() : "N/A"
             );
 
-            // Unidad
             row.createCell(4).setCellValue(
                     producto.getUnit() != null ? producto.getUnit() : "N/A"
             );
 
-            // Descripción
             row.createCell(5).setCellValue(
                     producto.getDescriptionProduct() != null ? producto.getDescriptionProduct() : "N/A"
             );
 
-            // Fecha segura
             String fecha = "N/A";
             try {
                 if (producto.getPublicationDate() != null) {
                     fecha = producto.getPublicationDate().toString();
                 }
-            } catch (Exception e) {
-                fecha = "N/A";
-            }
+            } catch (Exception ignored) {}
             row.createCell(6).setCellValue(fecha);
 
-            // Stock seguro
             int stock = 0;
             try {
                 stock = producto.getStock();
-            } catch (Exception e) {
-                stock = 0;
-            }
+            } catch (Exception ignored) {}
             row.createCell(7).setCellValue(stock);
         }
 
-        // Ajustar columnas
         for (int i = 0; i < 8; i++) {
             sheet.autoSizeColumn(i);
         }
 
-        // Escribir archivo
         out = response.getOutputStream();
         workbook.write(out);
         out.flush();
 
     } catch (Exception e) {
-        e.printStackTrace(); // aquí ves el error real en producción
+        e.printStackTrace();
+        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     } finally {
-        try {
-            if (out != null) out.close();
-        } catch (Exception ignored) {}
-
-        try {
-            if (workbook != null) workbook.close();
-        } catch (Exception ignored) {}
+        try { if (out != null) out.close(); } catch (Exception ignored) {}
+        try { if (workbook != null) workbook.close(); } catch (Exception ignored) {}
     }
 }
     @GetMapping({"/exportar_productos_pdf", "/api/products/exportPdf"})

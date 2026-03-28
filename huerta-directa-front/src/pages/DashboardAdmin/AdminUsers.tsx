@@ -135,14 +135,45 @@ export const AdminUsers: React.FC = () => {
     }
   };
 
-  const handleExportExcel = () => {
-    const params = new URLSearchParams();
-    if (searchTerm) {
-      params.append("dato", "name_user");
-      params.append("valor", searchTerm);
+const handleExportExcel = async () => {
+  const params = new URLSearchParams();
+
+  if (searchTerm) {
+    params.append("dato", "name_user");
+    params.append("valor", searchTerm);
+  }
+
+  try {
+    const response = await fetch(
+      `${API_URL}/api/users/exportExcel?${params.toString()}`,
+      {
+        method: "GET",
+        credentials: "include",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Error al descargar el Excel");
     }
-    window.location.href = `${API_URL}/api/users/exportExcel?${params.toString()}`;
-  };
+
+    const blob = await response.blob();
+
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+
+    a.href = url;
+    a.download = "usuarios.xlsx";
+
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    window.URL.revokeObjectURL(url);
+
+  } catch (error) {
+    console.error("Error exportando Excel:", error);
+  }
+};
 
   const handleExportPdf = () => {
     const params = new URLSearchParams();

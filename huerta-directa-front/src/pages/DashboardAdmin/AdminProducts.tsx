@@ -97,11 +97,44 @@ export const AdminProducts: React.FC = () => {
     setIsNotifyModalOpen(true);
   };
 
-  const handleExportExcel = () => {
-    const params = new URLSearchParams();
-    if (searchTerm) params.append("buscar", searchTerm);
-    window.location.href = `${API_URL}/api/products/exportExcel?${params.toString()}`;
-  };
+const handleExportExcel = async () => {
+  const params = new URLSearchParams();
+
+  if (searchTerm) {
+    params.append("buscar", searchTerm);
+  }
+
+  try {
+    const response = await fetch(
+      `${API_URL}/api/products/exportExcel?${params.toString()}`,
+      {
+        method: "GET",
+        credentials: "include",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Error al descargar el Excel");
+    }
+
+    const blob = await response.blob();
+
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+
+    a.href = url;
+    a.download = "productos.xlsx";
+
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    window.URL.revokeObjectURL(url);
+
+  } catch (error) {
+    console.error("Error exportando Excel:", error);
+  }
+};
 
   const handleExportPdf = () => {
     const params = new URLSearchParams();

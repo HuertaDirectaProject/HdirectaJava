@@ -99,27 +99,24 @@ public void exportarExcel(
         @RequestParam(required = false) String valor) throws IOException {
 
     ServletOutputStream out = null;
-    org.apache.poi.ss.usermodel.Workbook workbook = null;
+    Workbook workbook = null;
 
     try {
-        // Obtener usuarios filtrados
         List<UserDTO> usuarios = obtenerUsuariosFiltrados(dato, valor);
 
-        // Configurar respuesta HTTP
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         String filename = "Usuarios_" + java.time.LocalDateTime.now()
                 .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".xlsx";
+
         response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
         response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
         response.setHeader("Pragma", "no-cache");
         response.setDateHeader("Expires", 0);
 
-        // Crear libro Excel (puedes cambiar a SXSSFWorkbook si tienes muchos datos)
         workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook();
-        org.apache.poi.ss.usermodel.Sheet sheet = workbook.createSheet("Usuarios");
+        Sheet sheet = workbook.createSheet("Usuarios");
 
-        // Encabezados
-        org.apache.poi.ss.usermodel.Row headerRow = sheet.createRow(0);
+        Row headerRow = sheet.createRow(0);
         headerRow.createCell(0).setCellValue("ID");
         headerRow.createCell(1).setCellValue("Nombre");
         headerRow.createCell(2).setCellValue("Email");
@@ -127,28 +124,17 @@ public void exportarExcel(
         headerRow.createCell(4).setCellValue("Edad");
         headerRow.createCell(5).setCellValue("Rol ID");
 
-        // Filtro aplicado
-        if (dato != null && valor != null && !valor.isEmpty()) {
-            org.apache.poi.ss.usermodel.Row filterRow = sheet.createRow(1);
-            filterRow.createCell(0).setCellValue("Filtro aplicado:");
-            filterRow.createCell(1).setCellValue(dato + " = " + valor);
-        }
-
-        // Datos
-        int rowNum = (dato != null && valor != null && !valor.isEmpty()) ? 2 : 1;
+        int rowNum = 1;
 
         for (UserDTO usuario : usuarios) {
-            org.apache.poi.ss.usermodel.Row row = sheet.createRow(rowNum++);
+            Row row = sheet.createRow(rowNum++);
 
-            // ID
             row.createCell(0).setCellValue(usuario.getId());
 
-            // Nombre
             row.createCell(1).setCellValue(
                     usuario.getName() != null ? usuario.getName() : "N/A"
             );
 
-            // Email
             row.createCell(2).setCellValue(
                     usuario.getEmail() != null ? usuario.getEmail() : "N/A"
             );
@@ -159,9 +145,7 @@ public void exportarExcel(
                 if (usuario.getGender() != null) {
                     genero = obtenerGeneroTexto(usuario.getGender());
                 }
-            } catch (Exception e) {
-                genero = "N/A";
-            }
+            } catch (Exception ignored) {}
             row.createCell(3).setCellValue(genero);
 
             // Edad segura
@@ -170,37 +154,28 @@ public void exportarExcel(
                 if (usuario.getBirthDate() != null) {
                     edad = calcularEdad(usuario.getBirthDate());
                 }
-            } catch (Exception e) {
-                edad = 0;
-            }
+            } catch (Exception ignored) {}
             row.createCell(4).setCellValue(edad);
 
-            // Rol
             row.createCell(5).setCellValue(
                     usuario.getIdRole() != null ? usuario.getIdRole() : 0
             );
         }
 
-        // Ajustar columnas
         for (int i = 0; i < 6; i++) {
             sheet.autoSizeColumn(i);
         }
 
-        // Escribir archivo
         out = response.getOutputStream();
         workbook.write(out);
         out.flush();
 
     } catch (Exception e) {
-        e.printStackTrace(); // aquí ves el error real en Railway
+        e.printStackTrace();
+        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     } finally {
-        try {
-            if (out != null) out.close();
-        } catch (Exception ignored) {}
-
-        try {
-            if (workbook != null) workbook.close();
-        } catch (Exception ignored) {}
+        try { if (out != null) out.close(); } catch (Exception ignored) {}
+        try { if (workbook != null) workbook.close(); } catch (Exception ignored) {}
     }
 }
     // Método POST: exportar con gráficas

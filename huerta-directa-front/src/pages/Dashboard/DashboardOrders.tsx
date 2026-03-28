@@ -10,6 +10,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { usePageTitle } from "../../hooks/usePageTitle";
 import orderService, { type OrderRow, type OrderStatus } from "../../services/orderService";
+import { API_URL } from "../../config/api";
 
 const statusStyles: Record<OrderStatus, string> = {
   completed: "bg-[#dff4d6] text-[#3f7d20]",
@@ -116,6 +117,17 @@ export const DashboardOrders = () => {
     URL.revokeObjectURL(url);
   };
 
+  const handleExportPdf = () => {
+    const params = new URLSearchParams();
+    if (searchTerm.trim()) {
+      params.append("search", searchTerm.trim());
+    }
+    if (statusFilter !== "all") {
+      params.append("status", statusFilter);
+    }
+    window.location.href = `${API_URL}/api/payments/exportPdf?${params.toString()}`;
+  };
+
   return (
     <section className="space-y-6">
       <header className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -135,7 +147,7 @@ export const DashboardOrders = () => {
             Excel
           </button>
           <button
-            onClick={() => window.print()}
+            onClick={handleExportPdf}
             className="px-4 py-2 rounded-xl bg-[#2f6b0e] hover:bg-[#245509] text-white font-bold text-sm transition-colors cursor-pointer"
           >
             PDF

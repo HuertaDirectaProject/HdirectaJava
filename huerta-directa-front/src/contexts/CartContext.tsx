@@ -35,6 +35,7 @@ interface CartContextType {
 // CREAR CONTEXTO
 const CartContext = createContext<CartContextType | undefined>(undefined);
 const CART_STORAGE_KEY_PREFIX = "huerta_cart_items";
+const AUTH_CHANGED_EVENT = "huerta-auth-user-changed";
 
 const getCurrentCartStorageKey = (): string => {
   const currentUser = authService.getCurrentUser();
@@ -172,10 +173,13 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const maybeSwitchCartBySession = () => {
       const nextKey = getCurrentCartStorageKey();
-      if (nextKey !== storageKey) {
-        setStorageKey(nextKey);
-        setItems(loadStoredCartItems(nextKey));
-      }
+      setStorageKey((prevKey) => {
+        if (nextKey !== prevKey) {
+          setItems(loadStoredCartItems(nextKey));
+          return nextKey;
+        }
+        return prevKey;
+      });
     };
 
     maybeSwitchCartBySession();
@@ -190,12 +194,18 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       }
     };
 
+    const handleAuthChanged = () => {
+      maybeSwitchCartBySession();
+    };
+
     window.addEventListener("focus", handleFocus);
     window.addEventListener("storage", handleStorage);
+    window.addEventListener(AUTH_CHANGED_EVENT, handleAuthChanged);
 
     return () => {
       window.removeEventListener("focus", handleFocus);
       window.removeEventListener("storage", handleStorage);
+      window.removeEventListener(AUTH_CHANGED_EVENT, handleAuthChanged);
     };
   }, [storageKey]);
 

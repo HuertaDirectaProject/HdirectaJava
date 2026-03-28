@@ -117,8 +117,8 @@ export const Footer = () => {
         <div>
           <h4 className="text-lg font-semibold mb-4">Contáctanos</h4>
           <ul className="space-y-2 text-sm text-green-100 dark:text-gray-300">
-            <li>📧 contacto@huertadirecta.com</li>
-            <li>📞 +57 300 000 0000</li>
+            <li>📧 hdirecta@gmail.com</li>
+            <li>📞 +57 3187707557</li>
             <li>📍 Colombia</li>
           </ul>
         </div>

@@ -60,6 +60,9 @@ public class PaymentController {
             HttpSession session) {
 
         try {
+            List<CarritoItem> carrito = paymentRequest.getCarrito();
+            productService.validarStockCarrito(carrito);
+
             System.out.println("📥 RAW payer: " + paymentRequest.getPayer());
             System.out.println("📥 RAW email: "
                     + (paymentRequest.getPayer() != null ? paymentRequest.getPayer().getEmail() : "PAYER NULL"));
@@ -90,9 +93,6 @@ public class PaymentController {
             if ("approved".equals(status)) {
                 System.out.println("✅ Pago APROBADO - Descontando stock y guardando en BD...");
 
-                // Obtener carrito antes de limpiarlo
-                @SuppressWarnings("unchecked")
-                List<CarritoItem> carrito = paymentRequest.getCarrito();
                 // --- GUARDAR EN BASE DE DATOS PARA ESTADÍSTICAS ---
                 try {
                     com.exe.Huerta_directa.Entity.Payment paymentEntity = new com.exe.Huerta_directa.Entity.Payment();
@@ -121,7 +121,7 @@ public class PaymentController {
                 }
                 // --------------------------------------------------
 
-                descontarStockDelCarrito(paymentRequest.getCarrito());
+                productService.descontarStockCarrito(carrito);
 
                 // Enviar correo de confirmación
                 try {
@@ -159,6 +159,57 @@ public class PaymentController {
             e.printStackTrace();
             return crearRespuestaError("Error inesperado al procesar el pago");
         }
+    }
+
+    @PostMapping("/validate-stock")
+    public ResponseEntity<Map<String, Object>> validateCartStock(@RequestBody Map<String, Object> payload) {
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> rawCart = (List<Map<String, Object>>) payload.getOrDefault("carrito", List.of());
+
+        List<Map<String, Object>> errors = new ArrayList<>();
+        for (Map<String, Object> item : rawCart) {
+            Long productId = parseLong(item.get("productId"));
+            Integer cantidad = parseInteger(item.get("cantidad"));
+
+            if (productId == null || cantidad == null || cantidad <= 0) {
+                Map<String, Object> error = new HashMap<>();
+                error.put("productId", productId);
+                error.put("error", "Item invalido en carrito");
+                errors.add(error);
+                continue;
+            }
+
+            Product product = productRepository.findById(productId).orElse(null);
+            if (product == null) {
+                Map<String, Object> error = new HashMap<>();
+                error.put("productId", productId);
+                error.put("error", "Producto no encontrado");
+                errors.add(error);
+                continue;
+            }
+
+            int availableStock = product.getStock() == null ? 0 : product.getStock();
+            if (availableStock < cantidad) {
+                Map<String, Object> error = new HashMap<>();
+                error.put("productId", productId);
+                error.put("nombre", product.getNameProduct());
+                error.put("disponible", availableStock);
+                error.put("solicitado", cantidad);
+                error.put("error", "Stock insuficiente");
+                errors.add(error);
+            }
+        }
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("valid", errors.isEmpty());
+        response.put("errors", errors);
+
+        if (errors.isEmpty()) {
+            return ResponseEntity.ok(response);
+        }
+
+        response.put("mensaje", "Hay productos con stock insuficiente");
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 
     @GetMapping("/my-orders")
@@ -392,26 +443,25 @@ public class PaymentController {
         }
     }
 
-    private void descontarStockDelCarrito(List<CarritoItem> carrito) {
+    private Long parseLong(Object value) {
+        if (value == null) {
+            return null;
+        }
         try {
-            if (carrito == null || carrito.isEmpty()) {
-                System.out.println("⚠️ No hay productos en el carrito para descontar");
-                return;
-            }
+            return Long.valueOf(String.valueOf(value));
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
 
-            System.out.println("📦 Descontando stock de " + carrito.size() + " productos:");
-
-            for (CarritoItem item : carrito) {
-                try {
-                    productService.descontarStock(item.getProductId(), item.getCantidad());
-                    System.out.println("  ✅ " + item.getNombre() + " - Cantidad: " + item.getCantidad());
-                } catch (RuntimeException e) {
-                    System.err.println("  ❌ Error con producto " + item.getNombre() + ": " + e.getMessage());
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("❌ Error general al descontar stock: " + e.getMessage());
-            e.printStackTrace();
+    private Integer parseInteger(Object value) {
+        if (value == null) {
+            return null;
+        }
+        try {
+            return Integer.valueOf(String.valueOf(value));
+        } catch (NumberFormatException ex) {
+            return null;
         }
     }
 

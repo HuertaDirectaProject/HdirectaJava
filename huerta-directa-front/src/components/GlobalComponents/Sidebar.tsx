@@ -9,7 +9,6 @@ import {
   faFileLines,
   faUsers,
   faBoxesStacked,
-  faFileContract,
   faGear,
   faUserPlus,
   faRightFromBracket,

@@ -123,6 +123,8 @@ export const useProductDetail = () => {
       cantidad: quantity,
       subtotal: discountedPrice * quantity,
       imagen: `${API_URL}/uploads/productos/${product.imageProduct}`,
+      producerId: product.userId,
+      producerName: product.userName,
     });
   }, [product, quantity, addItem]);
 

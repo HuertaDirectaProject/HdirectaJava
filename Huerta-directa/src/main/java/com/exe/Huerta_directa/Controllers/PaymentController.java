@@ -225,7 +225,7 @@ public class PaymentController {
                 }
 
                 Map<String, Object> orderRow = new HashMap<>();
-                orderRow.put("orderNumber", "#" + payment.getId());
+                orderRow.put("orderNumber", "#0");
                 orderRow.put("buyer", payment.getPayerEmail());
                 orderRow.put("product", item.getTitle());
                 orderRow.put("quantity", item.getQuantity());
@@ -238,6 +238,11 @@ public class PaymentController {
         }
 
         orders.sort(Comparator.comparing((Map<String, Object> o) -> o.get("date").toString()).reversed());
+
+        // Numeracion privada por cuenta: siempre inicia en 1 para cada productor.
+        for (int i = 0; i < orders.size(); i++) {
+            orders.get(i).put("orderNumber", "#" + (i + 1));
+        }
 
         BigDecimal avgTicket = orders.isEmpty()
                 ? BigDecimal.ZERO

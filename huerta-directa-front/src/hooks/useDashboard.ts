@@ -61,7 +61,10 @@ const handleExportExcel = async () => {
     );
 
     if (!response.ok) {
-      throw new Error("Error al descargar el Excel");
+      console.error("STATUS:", response.status);
+      const text = await response.text();
+      console.error("RESPONSE:", text);
+      throw new Error(`Error ${response.status}`);
     }
 
     const blob = await response.blob();

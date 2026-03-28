@@ -62,6 +62,7 @@ export interface ErrorResponse {
 
 class AuthService {
   private readonly STORAGE_KEY = 'user';
+  private readonly AUTH_CHANGED_EVENT = 'huerta-auth-user-changed';
   private readonly BASE_URL = import.meta.env.VITE_API_URL ?? ''; // Vite comuniccion con backend
 
   /**
@@ -518,6 +519,7 @@ class AuthService {
    */
   private saveUser(user: User): void {
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(user));
+    window.dispatchEvent(new CustomEvent(this.AUTH_CHANGED_EVENT));
   }
 
   /**
@@ -526,6 +528,7 @@ class AuthService {
   private clearUser(): void {
     localStorage.removeItem(this.STORAGE_KEY);
     localStorage.removeItem("huerta_chat_history");
+    window.dispatchEvent(new CustomEvent(this.AUTH_CHANGED_EVENT));
   }
 }
 

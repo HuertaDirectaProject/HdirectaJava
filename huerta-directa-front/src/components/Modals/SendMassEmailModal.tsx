@@ -13,6 +13,7 @@ export const SendMassEmailModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const [body, setBody] = useState(
     "Hola,\n\nNos ponemos en contacto contigo desde Huerta Directa para informarte sobre las últimas novedades de nuestra plataforma.\n\nGracias por ser parte de nuestra comunidad.\n\nAtentamente,\nEl Equipo de Huerta Directa",
   );
+  const [bcc, setBcc] = useState("");
   const [isSending, setIsSending] = useState(false);
 
   if (!isOpen) return null;
@@ -34,7 +35,12 @@ export const SendMassEmailModal: React.FC<Props> = ({ isOpen, onClose }) => {
       let endpoint = "";
       let payload: any = { subject, body };
 
-if (recipientGroup === "all") {
+      // Agregar BCC si el usuario ingresó algún email
+      if (bcc.trim()) {
+        payload.bcc = bcc.split(",").map((e) => e.trim()).filter(Boolean);
+      }
+
+      if (recipientGroup === "all") {
         endpoint = `${API_URL}/api/users/send-bulk-email`;
       } else if (recipientGroup === "admins") {
         endpoint = `${API_URL}/api/users/send-bulk-email-by-role`;
@@ -125,6 +131,20 @@ if (recipientGroup === "all") {
               onChange={(e) => setSubject(e.target.value)}
               className="w-full border-2 border-gray-100 dark:border-[#2a332c] bg-gray-50 dark:bg-[#1f2a22] text-gray-700 dark:text-gray-200 rounded-xl px-4 py-3 outline-none focus:border-[#8dc84b] transition-all"
               placeholder="Ej: Novedades de Huerta Directa"
+            />
+          </div>
+
+          {/* BCC */}
+          <div>
+            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+              Con copia oculta (BCC) <span className="font-normal text-gray-400">— opcional, separar por comas</span>
+            </label>
+            <input
+              type="text"
+              value={bcc}
+              onChange={(e) => setBcc(e.target.value)}
+              className="w-full border-2 border-gray-100 dark:border-[#2a332c] bg-gray-50 dark:bg-[#1f2a22] text-gray-700 dark:text-gray-200 rounded-xl px-4 py-3 outline-none focus:border-[#8dc84b] transition-all"
+              placeholder="email1@ejemplo.com, email2@ejemplo.com"
             />
           </div>
 

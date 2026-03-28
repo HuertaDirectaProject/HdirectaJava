@@ -236,7 +236,7 @@ const DashboardAdminDesktop: React.FC = () => {
             <Button
               text="Correos Masivos"
               iconLetf={faEnvelope}
-              className="bg-blue-600 dark:bg-blue-700 hover:bg-blue-800 text-white rounded-xl py-3 px-8 mt-2 mb-2 w-full md:w-auto shadow-sm transition-all"
+              className="bg-[#8dc84b] hover:bg-[#72a83a] text-white rounded-xl py-3 px-8 mt-2 mb-2 w-full md:w-auto shadow-sm transition-all"
               onClick={() => setIsMassEmailOpen(true)}
             />
           </div>

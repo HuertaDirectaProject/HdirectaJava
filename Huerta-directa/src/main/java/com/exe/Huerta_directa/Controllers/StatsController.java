@@ -21,7 +21,7 @@ public class StatsController {
     @GetMapping("/dashboard/admin")
     public ResponseEntity<StatsDTO> getAdminDashboardStats(HttpSession session) {
         User user = (User) session.getAttribute("user");
-        if (user == null || user.getRole() == null || ! "Administrador".equals(user.getRole().getName())) {
+        if (user == null || user.getRole() == null || user.getRole().getIdRole() == null || user.getRole().getIdRole() != 1L) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         return ResponseEntity.ok(statsService.getAdminStats());

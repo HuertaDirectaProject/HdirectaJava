@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 import Swal from "sweetalert2";
+import authService from "../services/authService";
 
 // TIPOS
 export interface CartItem {
@@ -10,6 +11,8 @@ export interface CartItem {
   cantidad: number;
   subtotal: number;
   imagen?: string;
+  producerId?: number;
+  producerName?: string;
 }
 
 export interface CartTotals {
@@ -31,10 +34,56 @@ interface CartContextType {
 
 // CREAR CONTEXTO
 const CartContext = createContext<CartContextType | undefined>(undefined);
+const CART_STORAGE_KEY_PREFIX = "huerta_cart_items";
+
+const getCurrentCartStorageKey = (): string => {
+  const currentUser = authService.getCurrentUser();
+  if (currentUser?.id) {
+    return `${CART_STORAGE_KEY_PREFIX}_user_${currentUser.id}`;
+  }
+  return `${CART_STORAGE_KEY_PREFIX}_guest`;
+};
+
+const loadStoredCartItems = (storageKey: string): CartItem[] => {
+  try {
+    const raw = localStorage.getItem(storageKey);
+    if (!raw) return [];
+
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed
+      .filter((item) => item && typeof item.id === "number")
+      .map((item) => {
+        const cantidad = Number(item.cantidad) > 0 ? Number(item.cantidad) : 1;
+        const precio = Number(item.precio) || 0;
+
+        return {
+          id: Number(item.id),
+          nombre: String(item.nombre ?? ""),
+          descripcion: String(item.descripcion ?? ""),
+          precio,
+          cantidad,
+          subtotal: precio * cantidad,
+          imagen: item.imagen ? String(item.imagen) : undefined,
+          producerId:
+            typeof item.producerId === "number" ? Number(item.producerId) : undefined,
+          producerName: item.producerName ? String(item.producerName) : undefined,
+        } satisfies CartItem;
+      });
+  } catch {
+    return [];
+  }
+};
 
 // PROVIDER
 export const CartProvider = ({ children }: { children: React.ReactNode }) => {
-  const [items, setItems] = useState<CartItem[]>([]);
+  const [storageKey, setStorageKey] = useState<string>(() =>
+    getCurrentCartStorageKey(),
+  );
+  const [items, setItems] = useState<CartItem[]>(() =>
+    loadStoredCartItems(getCurrentCartStorageKey()),
+  );
   const IVA_PERCENT = 19;
   const DESCUENTO_PERCENT = 10;
   const MAX_STOCK_PER_PRODUCT = 100;
@@ -119,6 +168,40 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const clearCart = useCallback(() => {
     setItems([]);
   }, []);
+
+  useEffect(() => {
+    const maybeSwitchCartBySession = () => {
+      const nextKey = getCurrentCartStorageKey();
+      if (nextKey !== storageKey) {
+        setStorageKey(nextKey);
+        setItems(loadStoredCartItems(nextKey));
+      }
+    };
+
+    maybeSwitchCartBySession();
+
+    const handleFocus = () => {
+      maybeSwitchCartBySession();
+    };
+
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === "user") {
+        maybeSwitchCartBySession();
+      }
+    };
+
+    window.addEventListener("focus", handleFocus);
+    window.addEventListener("storage", handleStorage);
+
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, [storageKey]);
+
+  useEffect(() => {
+    localStorage.setItem(storageKey, JSON.stringify(items));
+  }, [items, storageKey]);
 
   const totals = calculateTotals();
 

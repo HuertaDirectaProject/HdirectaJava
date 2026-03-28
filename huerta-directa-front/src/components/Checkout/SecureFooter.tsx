@@ -3,7 +3,7 @@ import { faLock, faShield, faCheckCircle } from "@fortawesome/free-solid-svg-ico
 
 export const SecureFooter = () => {
 	return (
-		<div className="bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200 p-6 rounded-lg mt-8">
+		<div className="bg-linear-to-r from-gray-50 to-gray-100 border-t border-gray-200 p-6 rounded-lg mt-8">
 			<div className="flex items-center justify-center gap-8">
 				{/* Icono 1 */}
 				<div className="flex flex-col items-center gap-2 text-center">

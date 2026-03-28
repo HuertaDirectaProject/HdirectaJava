@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTrash, faPen } from "@fortawesome/free-solid-svg-icons";
+import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import { useCart } from "../../hooks/useCart";
 
 interface Props {
@@ -27,10 +27,7 @@ export const OrderItem = ({ item }: Props) => {
 	return (
 		<div className="border border-gray-200 rounded-lg p-4 hover:border-[#8BC34A] transition-colors">
 			<div className="flex gap-4">
-				{/* Imagen placeholder */}
-				<div className="w-20 h-20 bg-gray-200 rounded-lg flex items-center justify-center flex-shrink-0">
-					<span className="text-gray-400 text-sm">Imagen</span>
-				</div>
+				
 
 				{/* Info */}
 				<div className="flex-1">
@@ -60,9 +57,7 @@ export const OrderItem = ({ item }: Props) => {
 					<p className="font-bold text-lg text-[#8BC34A]">{formatPrice(item.subtotal)}</p>
 
 					<div className="flex gap-2">
-						<button className="p-2 hover:bg-gray-100 rounded transition">
-							<FontAwesomeIcon icon={faPen} className="text-blue-500" />
-						</button>
+						
 						<button
 							onClick={() => removeItem(item.id)}
 							className="p-2 hover:bg-gray-100 rounded transition"

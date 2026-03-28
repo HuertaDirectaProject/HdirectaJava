@@ -4,6 +4,8 @@ import { SecureFooter } from "../../components/Checkout/SecureFooter";
 import { usePageTitle } from "../../hooks/usePageTitle";
 import { useEffect, useRef } from "react";
 import { useCart } from "../../contexts/CartContext";
+import { getShippingPrice } from "../../contexts/PaymentContext";
+import { usePayment } from "../../hooks/usePayment";
 import paymentService from "../../services/paymentService";
 
 export const MercadoPagoPayment = () => {
@@ -12,6 +14,9 @@ export const MercadoPagoPayment = () => {
     const containerRef = useRef<HTMLDivElement>(null);
     const isCompletingPaymentRef = useRef(false);
     const { totals, clearCart, items } = useCart();
+    const { shippingMethod } = usePayment();
+    const shippingPrice = getShippingPrice(shippingMethod);
+    const totalWithShipping = totals.total + shippingPrice;
 
     const CONFIG = {
         PUBLIC_KEY: import.meta.env.VITE_MP_PUBLIC_KEY,
@@ -53,7 +58,7 @@ export const MercadoPagoPayment = () => {
 
             const settings = {
                 initialization: {
-                    amount: Math.floor(totals.total),
+                    amount: Math.floor(totalWithShipping),
                     payer: { email: CONFIG.PAYER_EMAIL },
                 },
                 customization: {
@@ -71,7 +76,7 @@ export const MercadoPagoPayment = () => {
                     onSubmit: async (data: any) => {
                         try {
                             const payload = {
-                                transaction_amount: Math.floor(totals.total),
+                                transaction_amount: Math.floor(totalWithShipping),
                                 description: CONFIG.DESCRIPTION,
                                 payment_method_id: data.formData.payment_method_id,
                                 token: data.formData.token,
@@ -153,7 +158,7 @@ export const MercadoPagoPayment = () => {
                 containerRef.current.innerHTML = "";
             }
         };
-    }, [items.length, navigate, totals.total]); // dependencias del doc 4
+    }, [items.length, navigate, totalWithShipping]); // dependencias del doc 4
 
     return (
         <div className="min-h-screen bg-[#F5F0E8] py-8 px-4">

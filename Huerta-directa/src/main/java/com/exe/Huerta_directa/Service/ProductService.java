@@ -1,5 +1,6 @@
 package com.exe.Huerta_directa.Service;
 
+import com.exe.Huerta_directa.DTO.CarritoItem;
 import com.exe.Huerta_directa.DTO.ProductDTO;
 
 import java.util.List;
@@ -39,6 +40,10 @@ public interface ProductService {
     Map<String, Long> contarProductosPorCategoria();
 
     void descontarStock(Long productId, Integer cantidad);
+
+    void validarStockCarrito(List<CarritoItem> carrito);
+
+    void descontarStockCarrito(List<CarritoItem> carrito);
 
     void agregarImagen(Long productId, String imageUrl);
 
